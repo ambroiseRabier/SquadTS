@@ -18,7 +18,6 @@ async function main() {
   const server = new Server(logger);
 
   await server.watch();
-
 }
 
 main();
