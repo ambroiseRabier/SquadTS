@@ -1,0 +1,23 @@
+{
+  "name": "SquadTS",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "run": "ts-node src/index.ts",
+    "watch": "ts-node-dev --respawn src/index.ts",
+    "test": "jest",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "pino": "^9.6.0",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "pino-pretty": "^13.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.5.3"
+  },
+  "private": true
+}
