@@ -3,11 +3,13 @@ import net from 'net';
 import util from 'util';
 
 
-const SERVERDATA_EXECCOMMAND = 0x02;
-const SERVERDATA_RESPONSE_VALUE = 0x00;
-const SERVERDATA_AUTH = 0x03;
-const SERVERDATA_AUTH_RESPONSE = 0x02;
-const SERVERDATA_CHAT_VALUE = 0x01;
+enum DataType {
+  EXEC_COMMAND = 0x02,
+  RESPONSE_VALUE = 0x00,
+  AUTH = 0x03,
+  AUTH_RESPONSE = 0x02,
+  CHAT_VALUE = 0x01
+}
 
 const MID_PACKET_ID = 0x01;
 const END_PACKET_ID = 0x02;
@@ -38,7 +40,7 @@ export class Rcon {
   private incomingResponse: Packet[] = [];
   private connected: boolean = false;
   private loggedin: boolean = false;
-  private responseCallbackQueue: ((response: Packet|Error) => void)[] = [];
+  private responseCallbackQueue: ((response: Packet|Error|string) => void)[] = [];
   private count: number = 1;
 
   constructor(options: RconOptions) {
@@ -82,7 +84,7 @@ export class Rcon {
       // IE, Squad server crash, Squad server shutdown for multiple minutes.
 
       while (this.responseCallbackQueue.length > 0) {
-        this.responseCallbackQueue.shift()(new Error('RCON DISCONNECTED'));
+        this.responseCallbackQueue.shift()!(new Error('RCON DISCONNECTED'));
       }
       this.callbackIds = [];
     }
@@ -110,8 +112,10 @@ export class Rcon {
     // );
 
     switch (decodedPacket.type) {
-      case SERVERDATA_RESPONSE_VALUE:
-      case SERVERDATA_AUTH_RESPONSE:
+      // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
+      // When the server receives an auth request, it will respond with an empty SERVERDATA_RESPONSE_VALUE, followed immediately by a SERVERDATA_AUTH_RESPONSE indicating whether authentication succeeded or failed.
+      case DataType.RESPONSE_VALUE:
+      case DataType.AUTH_RESPONSE:
         switch (decodedPacket.id) {
           case MID_PACKET_ID:
             this.incomingResponse.push(decodedPacket);
@@ -120,8 +124,21 @@ export class Rcon {
           case END_PACKET_ID:
             this.callbackIds = this.callbackIds.filter((p) => p.id !== decodedPacket.count);
 
-            this.responseCallbackQueue.shift()(
-              this.incomingResponse.map((packet) => packet.body).join()
+            // probably need to log that stuff
+            // Todo responseCallbackQueue having string is probably something to refactor. What is the intention here?
+            // We added callbacks to the queue when the request was sent. responseCallbackQueue will not be empty
+            // OKay so i understand now, doc say we need to pair response with auth request, so this is sending back
+            // the response to the writeAuth
+            // we should refactor that after confirming I havent broken anything else in between.
+            this.responseCallbackQueue.shift()!(
+              this.incomingResponse.map((packet) => {
+                if (packet instanceof Error) {
+                  // todo
+                  // Logger.error
+                }
+
+                return (packet as Packet).body;
+              }).join()
             );
             this.incomingResponse = [];
 
@@ -138,7 +155,7 @@ export class Rcon {
         }
         break;
 
-      case SERVERDATA_CHAT_VALUE:
+      case DataType.CHAT_VALUE:
         this.processChatPacket(decodedPacket);
         break;
 
@@ -181,7 +198,7 @@ export class Rcon {
 
       if (
         matchCount > 0 ||
-        [SERVERDATA_AUTH_RESPONSE, SERVERDATA_CHAT_VALUE].includes(decodedPacket.type)
+        [DataType.AUTH_RESPONSE, DataType.CHAT_VALUE].includes(decodedPacket.type)
       ) {
         this.onPacket(decodedPacket);
         this.incomingData = this.incomingData.subarray(packetSize);
@@ -224,7 +241,7 @@ export class Rcon {
 
         try {
           // connected successfully, now try auth...
-          await this.write(SERVERDATA_AUTH, this.options.password);
+          await this.writeAuth(this.options.password);
 
           // connected and authed successfully
           this.autoReconnect = true;
@@ -250,7 +267,7 @@ export class Rcon {
   }
 
   protected execute(command: string) {
-    return this.write(SERVERDATA_EXECCOMMAND, command);
+    return this.write(DataType.EXEC_COMMAND, command);
   }
 
   private disconnect() {
@@ -283,9 +300,84 @@ export class Rcon {
     });
   }
 
+  private writeAuth(password: string) {
+    const type = DataType.AUTH;
+    return new Promise<void>(
+      (resolve, reject) => {
+        if (!this.connected) {
+          reject(new Error('Not connected.'));
+          return;
+        }
 
-  private write(type: number, body: string) {
-    return new Promise<void>((resolve, reject) => {
+        if (!this.client.writable) {
+          reject(new Error('Unable to write to socket.'));
+          return;
+        }
+
+        // todo: not sure displaying password is a good idea.
+        // Logger.verbose('RCON', 2, `Writing packet with type "${type}" and body "${body}".`);
+
+        const encodedPacket = encodePacket(
+          this.count,
+          type,
+          END_PACKET_ID,
+          password
+        );
+
+        if (MAXIMUM_PACKET_SIZE < encodedPacket.length) {
+          reject(new Error('Packet too long.'));
+          return;
+        }
+
+        const onError = (err: any) => {
+          // Logger.verbose('RCON', 1, 'Error occurred. Wiping response action queue.', err);
+          this.responseCallbackQueue = [];
+          reject(err);
+        };
+
+        // the auth packet also sends a normal response, so we add an extra empty action to ignore it
+        this.callbackIds.push({ id: this.count, cmd: password });
+        this.responseCallbackQueue.push(() => {});
+        this.responseCallbackQueue.push((decodedPacket) => {
+          this.client.removeListener('error', onError);
+
+          // todo: probably something to refactor here
+          // This probably should not happen, there probably some more refactor to be done thx to TS
+          if (decodedPacket instanceof Error) {
+            // Todo log error
+            // Logger.error ...
+          }
+          // force for TS, we'll ignore for now as this code currently work
+          decodedPacket = decodedPacket as any as Packet;
+
+          // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
+          // "If auth failed, -1"
+          if (decodedPacket.id === -1) {
+            // Logger.verbose('RCON', 1, 'Authentication failed.');
+            reject(new Error('Authentication failed.'));
+          } else {
+            // Logger.verbose('RCON', 1, 'Authentication succeeded.');
+            this.loggedin = true;
+            resolve();
+          }
+        });
+
+        this.client.once('error', onError);
+
+        if (this.count + 1 > 65535) {
+          this.count = 1;
+        }
+
+        // todo password visible inside the packet, bad idea?
+        // Logger.verbose('RCON', 4, `Sending packet: ${bufToHexString(encodedPacket)}`);
+        this.client.write(encodedPacket);
+      });
+  }
+
+
+  private write(type: Exclude<DataType, DataType.AUTH>, body: string) {
+    return new Promise(
+      (resolve, reject) => {
       if (!this.connected) {
         reject(new Error('Not connected.'));
         return;
@@ -296,7 +388,7 @@ export class Rcon {
         return;
       }
 
-      if (!this.loggedin && type !== SERVERDATA_AUTH) {
+      if (!this.loggedin) {
         reject(new Error('RCON not Logged in'));
         return;
       }
@@ -306,7 +398,7 @@ export class Rcon {
       const encodedPacket = encodePacket(
         this.count,
         type,
-        type !== SERVERDATA_AUTH ? MID_PACKET_ID : END_PACKET_ID,
+        MID_PACKET_ID,
         body
       );
 
@@ -323,42 +415,25 @@ export class Rcon {
         reject(err);
       };
 
-      // the auth packet also sends a normal response, so we add an extra empty action to ignore it
+      this.callbackIds.push({ id: this.count, cmd: body });
+      this.responseCallbackQueue.push((response) => {
+        this.client.removeListener('error', onError);
 
-      if (type === SERVERDATA_AUTH) {
-        this.callbackIds.push({ id: this.count, cmd: body });
+        if (response instanceof Error) {
+          // todo: this needs to go...
+          // Called from onClose()
+          reject(response);
+        } else {
+          // Logger.verbose(
+          //   'RCON',
+          //   2,
+          //   `Returning complete response: ${response.replace(/\r\n|\r|\n/g, '\\n')}`
+          // );
 
-        this.responseCallbackQueue.push(() => {});
-        this.responseCallbackQueue.push((decodedPacket: Packet) => {
-          this.client.removeListener('error', onError);
-          if (decodedPacket.id === -1) {
-            // Logger.verbose('RCON', 1, 'Authentication failed.');
-            reject(new Error('Authentication failed.'));
-          } else {
-            // Logger.verbose('RCON', 1, 'Authentication succeeded.');
-            this.loggedin = true;
-            resolve();
-          }
-        });
-      } else {
-        this.callbackIds.push({ id: this.count, cmd: body });
-        this.responseCallbackQueue.push((response) => {
-          this.client.removeListener('error', onError);
-
-          if (response instanceof Error) {
-            // Called from onClose()
-            reject(response);
-          } else {
-            // Logger.verbose(
-            //   'RCON',
-            //   2,
-            //   `Returning complete response: ${response.replace(/\r\n|\r|\n/g, '\\n')}`
-            // );
-
-            resolve(response);
-          }
-        });
-      }
+          // todo same here, I suppose this is a string at this point, some refactor to be done with responseCallbackQueue
+          resolve(response as string);
+        }
+      });
 
       this.client.once('error', onError);
 
@@ -369,23 +444,19 @@ export class Rcon {
       // Logger.verbose('RCON', 4, `Sending packet: ${bufToHexString(encodedPacket)}`);
       this.client.write(encodedPacket);
 
-      if (type !== SERVERDATA_AUTH) {
-        // Logger.verbose(
-        //   'RCON',
-        //   4,
-        //   `Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`
-        // );
-        this.client.write(encodedEmptyPacket);
-        this.count++;
-      }
-    });
+      // Logger.verbose(
+      //   'RCON',
+      //   4,
+      //   `Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`
+      // );
+      this.client.write(encodedEmptyPacket);
+      this.count++;
+    }) as Promise<string>; // todo: temp fix
   }
-
 
 
   protected processChatPacket(decodedPacket: Packet) {}
 }
-
 
 export type Packet = ReturnType<typeof decodePacket>;
 

@@ -1,90 +1,80 @@
-
-// interface ChatMessage {
-//   raw: string;
-//   chat: string;
-//   name: string;
-//   message: string;
-//   time: Date;
-// }
+import { extractIDsLower } from './id-parser';
+import { omit } from 'lodash';
 
 
-// interface ChatCase {
-//   pattern: RegExp;
-//   eventName: string;
-//   convertor: (matches: string[]) => Omit<ChatMessage, 'raw' | 'time'>;
-//   idsMatchIndex: number;
-// }
-
-import { extractIDsLower, iterateIDs, lowerPlatform } from './id-parser';
-
-interface ChatCaseCommon {
-  pattern: RegExp;
-  idsMatchIndex: number;
-}
+// todo: some typing to explain the events send is needed, this may change format.
+// unless you can extract group name from regex string as type ?
+type Base = {
+  raw: string;
+  time: Date;
+};
 
 type ChatCase = {
   eventName: "CHAT_MESSAGE";
-  convertor: (matches: string[]) => {
+  body: {
     chat: string;
     name: string;
     message: string;
-  };
+  } & Base;
 } | {
   eventName: "POSSESSED_ADMIN_CAMERA";
   convertor: (matches: string[]) => {
     name: string;
-  };
+  } & Base;
 };
 
 
-// todo: name capturing group en regex ?
 // todo: event name plus clair, concis, genre enum ? ou const string[] ?
-const cases: (ChatCaseCommon & ChatCase)[] = [
+const cases = [
   {
     pattern: /\[(?<chat>ChatAll|ChatTeam|ChatSquad|ChatAdmin)] \[Online IDs:(?<ids>[^\]]+)\] (?<name>.+?) : (?<message>.*)/,
-    eventName: "CHAT_MESSAGE",
-    // convertor: (matches: string[]) => ({
-    //   chat: matches[1],
-    //   name: matches[3],
-    //   message: matches[4]
-    // }),
-    // idsMatchIndex: 2
+    eventName: "CHAT_MESSAGE"
   },
   {
-    pattern: /\[Online Ids:([^\]]+)\] (.+) has possessed admin camera\./,
-    eventName: "POSSESSED_ADMIN_CAMERA",
-    convertor: (matches: string[]) => ({
-      name: matches[2],
-    }),
-    idsMatchIndex: 1
+    pattern: /\[Online Ids:(?<name>[^\]]+)\] (.+) has possessed admin camera\./,
+    eventName: "POSSESSED_ADMIN_CAMERA"
+  },
+  {
+    pattern: /\[Online IDs:(?<name>[^\]]+)\] (.+) has unpossessed admin camera\./,
+    eventName: "UNPOSSESSED_ADMIN_CAMERA"
+  },
+  {
+    pattern: /Remote admin has warned player (?<name>.*)\. Message was "(?<reason>.*)"/,
+    eventName: "PLAYER_WARNED"
+  },
+  {
+    pattern: /Kicked player (?<playerID>[0-9]+)\. \[Online IDs=(?<ids>[^\]]+)\] (?<name>.*)/,
+    eventName: "PLAYER_KICKED"
+  },
+  {
+    pattern: /(?<playerName>.+) \(Online IDs:(?<ids>[^)]+)\) has created Squad (?<squadID>\d+) \(Squad Name: (?<squadName>.+)\) on (?<teamName>.+)/,
+    eventName: "SQUAD_CREATED"
+  },
+  {
+    pattern: /Banned player (?<playerID>[0-9]+)\. \[Online IDs=(?<ids>[^\]]+)\] (?<name>.*) for interval (?<interval>.*)/,
+    eventName: "PLAYER_BANNED"
   },
 ];
 
 export function processBody(body: string) {
-  for (const { pattern, eventName, convertor, idsMatchIndex } of cases) {
+  for (const { pattern, eventName } of cases) {
     const matches = body.match(pattern);
     if (matches) {
-      Logger.verbose('SquadRcon', 2, `Matched ${convertToReadableText(eventName)}: ${body}`);
-
-      const result = {
-        ...convertor(matches),
+      const content = {
+        // Add custom fields like message or name depending on pattern it matched.
+        ...omit(matches.groups, ['ids']),
         raw: body,
-        time: new Date()
+        time: new Date(),
+        // matches.groups is not null as we specified group name above
+        // It will add steam ID and and eos ID, if `ids` is provided.
+        ...(matches.groups!.ids ? extractIDsLower(matches.groups!.ids) : undefined)
       };
 
-      result = {...result, ...extractIDsLower(matches[idsMatchIndex])}
-
-      this.emit(eventName, result);
-
-      return; // Match found, exit the loop
+      // Match found, exit the loop, only one match expected.
+      return {
+        eventName,
+        content
+      };
     }
   }
-}
-
-// Example: "CHAT_MESSAGE" to "chat message"
-function convertToReadableText(input: string): string {
-  return input
-    .toLowerCase()
-    .split('_')
-    .join(' ');
 }
