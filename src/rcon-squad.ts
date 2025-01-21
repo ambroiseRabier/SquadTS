@@ -1,6 +1,6 @@
 import { Packet, Rcon } from './rcon';
 import { processBody } from './chat-processor';
-import { extractIDsLower } from './id-parser';
+import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
 
 
@@ -16,7 +16,6 @@ function convertToReadableText(input: string): string {
 
 // todo: envisager d'envoyer rcon en tant que Dep, pour le mock ds les test
 export class RconSquad extends Rcon {
-
 
   protected processChatPacket(decodedPacket: Packet) {
     const processedBody = processBody(decodedPacket.body);
@@ -75,7 +74,7 @@ export class RconSquad extends Rcon {
         isLeader: isLeader === 'True',
         teamID: teamID !== 'N/A' ? parseInt(teamID) : null,
         squadID: squadID !== 'N/A' ? parseInt(squadID) : null,
-        ...extractIDsLower(ids)
+        ...extractIDs(ids)
       });
     }
 
@@ -85,46 +84,59 @@ export class RconSquad extends Rcon {
   async getSquads() {
     const responseSquad = await this.execute('ListSquads');
 
-    const squads: {
-
-    }[] = [];
-
-
     if (!responseSquad || responseSquad.length < 1) {
-      return squads;
+      return [];
     }
 
-    for (const line of responseSquad.split('\n')) {
-      const match = line.match(
-        /ID: (?<squadID>\d+) \| Name: (?<squadName>.+) \| Size: (?<size>\d+) \| Locked: (?<locked>True|False) \| Creator Name: (?<creatorName>.+) \| Creator Online IDs:(?<creator_ids>[^|]+)/
-      );
-      const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
+    const squadRegex = /ID: (?<squadID>\d+) \| Name: (?<squadName>.+) \| Size: (?<size>\d+) \| Locked: (?<locked>True|False) \| Creator Name: (?<creatorName>.+) \| Creator Online IDs:(?<creator_ids>[^|]+)/;
 
-      if (!match) {
-        continue;
-      }
+    // Using functional approach (.map) is preferred as typing can be inferred.
+    return responseSquad
+      .split('\n')
+      .map((line) => {
+        const match = line.match(squadRegex);
+        const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
 
-      const squad = {
-        ...omit(match.groups!, 'squadID'),
-        squadID: parseInt(match.groups!.squadID),
-        teamID: matchSide && parseInt(matchSide.groups!.teamID),
-        teamName: matchSide && matchSide.groups!.teamName
-      };
+        if (!match) {
+          // same as continue in a for loop when combined with filter null bellow
+          return null;
+        }
 
-      iterateIDs(match.groups!.creator_ids).forEach((platform, id) => {
-        squad['creator' + capitalID(platform)] = id;
-      });
-
-      squads.push(squad);
-    }
-
-    return squads;
+        return {
+          ...omit(match.groups!, 'squadID'),
+          squadID: parseInt(match.groups!.squadID),
+          teamID: matchSide && parseInt(matchSide.groups!.teamID),
+          teamName: matchSide && matchSide.groups!.teamName,
+          ...extractIDs(match.groups!.creator_ids, 'creator'),
+        };
+      })
+      // Remove null entries
+      .filter((squad): squad is NonNullable<typeof squad> => squad !== null);
   }
 
+  async broadcast(message: string) {
+    await this.execute(`AdminBroadcast ${message}`);
+  }
 
+  async setFogOfWar(mode: string) {
+    await this.execute(`AdminSetFogOfWar ${mode}`);
+  }
 
   async warn(anyID: string, message: string) {
     await this.execute(`AdminWarn "${anyID}" ${message}`);
+  }
+
+  // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
+  async ban(anyID: string, banLength: string, message: string) {
+    await this.execute(`AdminBan "${anyID}" ${banLength} ${message}`);
+  }
+
+  async switchTeam(anyID: string) {
+    await this.execute(`AdminForceTeamChange "${anyID}"`);
+  }
+
+  async disbandSquad(teamID: string, squadID: string) {
+    await this.execute(`AdminDisbandSquad ${teamID} ${squadID}`);
   }
 
   async kick(anyID: string, reason: string) {

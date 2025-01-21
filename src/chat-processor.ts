@@ -1,4 +1,4 @@
-import { extractIDsLower } from './id-parser';
+import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
 
 
@@ -48,7 +48,8 @@ const cases = [
   },
   {
     pattern: /(?<playerName>.+) \(Online IDs:(?<ids>[^)]+)\) has created Squad (?<squadID>\d+) \(Squad Name: (?<squadName>.+)\) on (?<teamName>.+)/,
-    eventName: "SQUAD_CREATED"
+    eventName: "SQUAD_CREATED",
+    idsPrefix: 'player'
   },
   {
     pattern: /Banned player (?<playerID>[0-9]+)\. \[Online IDs=(?<ids>[^\]]+)\] (?<name>.*) for interval (?<interval>.*)/,
@@ -57,7 +58,7 @@ const cases = [
 ];
 
 export function processBody(body: string) {
-  for (const { pattern, eventName } of cases) {
+  for (const { pattern, eventName, idsPrefix } of cases) {
     const matches = body.match(pattern);
     if (matches) {
       const content = {
@@ -67,7 +68,7 @@ export function processBody(body: string) {
         time: new Date(),
         // matches.groups is not null as we specified group name above
         // It will add steam ID and and eos ID, if `ids` is provided.
-        ...(matches.groups!.ids ? extractIDsLower(matches.groups!.ids) : undefined)
+        ...(matches.groups!.ids ? extractIDs(matches.groups!.ids, idsPrefix) : undefined)
       };
 
       // Match found, exit the loop, only one match expected.

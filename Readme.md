@@ -23,3 +23,8 @@
 
 1. `npm i`
 2. `npm run watch`
+
+
+To test on a squad server, you may host yourself (but it will be a hassle):
+- https://squad.fandom.com/wiki/Server_Installation
+- https://hub.docker.com/r/cm2network/squad/

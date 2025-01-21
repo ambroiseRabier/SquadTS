@@ -8,27 +8,27 @@ export const playerIdNames = ['steamID', 'eosID'] as const;
  */
 const ID_MATCHER = /\s*(?<platform>[^\s:]+)\s*:\s*(?<id>[^\s]+)/g;
 
-export function extractIDsLower(str: string) {
-  return extractIDs(str, false) as {steamID: string, eosID: string};
-}
 
-export function extractIDsUpper(str: string) {
-  return extractIDs(str, true) as {SteamID: string, EOSID: string};
-}
-
-function extractIDs(idsStr: string, upper: boolean) {
+/**
+ * Returns {steamID: string, eosID: string} without prefix
+ * With prefix "creator" it will return {creatorSteamID: string, creatorEosID: string}
+ */
+export function extractIDs<T extends string | undefined>(
+  idsStr: string,
+  prefix?: T
+): T extends string
+  ? Record<`${T}${Capitalize<typeof playerIdNames[number]>}`, string>
+  : Record<`${typeof playerIdNames[number]}ID`, string> {
   return Object.fromEntries(
     Array.from(idsStr.matchAll(ID_MATCHER)).map((match) => {
       const { platform, id } = match.groups ?? {};
-      const formattedPlatform = upper
-        ? capitalPlatform(platform)
-        : lowerPlatform(platform);
+      const formattedPlatform = prefix
+        ? prefix + capitalPlatform(platform) // Capitalized with prefix
+        : lowerPlatform(platform); // Lowercase without prefix
       return [formattedPlatform, id];
     })
-  );
+  ) as any;
 }
-
-// FORMATTING
 
 /**
  * Generates capitalized ID names. Examples:
