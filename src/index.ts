@@ -1,6 +1,7 @@
 import { Server } from './server';
 import pino from 'pino';
 import pretty from 'pino-pretty';
+import { Rcon } from './rcon';
 
 // inversifyJS ?
 async function main() {
@@ -13,6 +14,13 @@ async function main() {
   const logger = pino({
     level: isDev ? 'trace': 'info',
   }, isDev ? prettyStream : undefined);
+
+  const rcon = new Rcon({
+    autoReconnectDelay: 5000,
+    host: '',
+    password: '',
+    port: 0
+  });
 
 
   const server = new Server(logger);
