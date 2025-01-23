@@ -13,3 +13,4 @@ yarn-error.log*
 
 # build folder
 dist
+dev-config

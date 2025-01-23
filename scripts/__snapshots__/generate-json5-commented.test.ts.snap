@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Gen 1`] = `
+"{
+  // desc host
+  host: '',
+  // desc port
+  port: 21114,
+  // desc password
+  password: '',
+  // desc autoReconnectDelay
+  autoReconnectDelay: 5000,
+  // desc subObj
+  subObj: {
+    // desc subTest
+    subTest: 0,
+    // desc subProp
+    subProp: 33,
+    // desc port
+    port: 0,
+    // desc sub2
+    sub2: {
+      // desc sub3
+      sub3: 0,
+    },
+  },
+}"
+`;

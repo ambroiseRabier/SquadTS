@@ -2,6 +2,8 @@ import { Packet, Rcon } from './rcon';
 import { processBody } from './chat-processor';
 import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
+import pino from 'pino';
+import Logger = pino.Logger;
 
 
 /**
@@ -15,7 +17,14 @@ function convertToReadableText(input: string): string {
 }
 
 // todo: envisager d'envoyer rcon en tant que Dep, pour le mock ds les test
-export class RconSquad extends Rcon {
+export class RconSquad {
+
+  constructor(
+    private readonly rcon: Rcon,
+    private readonly logger: Logger) {
+
+  }
+
 
   protected processChatPacket(decodedPacket: Packet) {
     const processedBody = processBody(decodedPacket.body);
@@ -33,13 +42,13 @@ export class RconSquad extends Rcon {
   }
 
   async getCurrentMap() {
-    const response = await this.execute('ShowCurrentMap');
+    const response = await this.rcon.execute('ShowCurrentMap');
     const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
     return match!.groups!;
   }
 
   async getNextMap() {
-    const response = await this.execute('ShowNextMap');
+    const response = await this.rcon.execute('ShowNextMap');
     const match = response.match(/^Next level is ([^,]*), layer is ([^,]*)/);
     return {
       level: match ? (match[1] !== '' ? match[1] : null) : null,
@@ -48,7 +57,7 @@ export class RconSquad extends Rcon {
   }
 
   async getListPlayers() {
-    const response = await this.execute('ListPlayers');
+    const response = await this.rcon.execute('ListPlayers');
 
     const players: {
       playerID: number;
@@ -82,7 +91,7 @@ export class RconSquad extends Rcon {
   }
 
   async getSquads() {
-    const responseSquad = await this.execute('ListSquads');
+    const responseSquad = await this.rcon.execute('ListSquads');
 
     if (!responseSquad || responseSquad.length < 1) {
       return [];
@@ -115,35 +124,35 @@ export class RconSquad extends Rcon {
   }
 
   async broadcast(message: string) {
-    await this.execute(`AdminBroadcast ${message}`);
+    await this.rcon.execute(`AdminBroadcast ${message}`);
   }
 
   async setFogOfWar(mode: string) {
-    await this.execute(`AdminSetFogOfWar ${mode}`);
+    await this.rcon.execute(`AdminSetFogOfWar ${mode}`);
   }
 
   async warn(anyID: string, message: string) {
-    await this.execute(`AdminWarn "${anyID}" ${message}`);
+    await this.rcon.execute(`AdminWarn "${anyID}" ${message}`);
   }
 
   // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
   async ban(anyID: string, banLength: string, message: string) {
-    await this.execute(`AdminBan "${anyID}" ${banLength} ${message}`);
+    await this.rcon.execute(`AdminBan "${anyID}" ${banLength} ${message}`);
   }
 
   async switchTeam(anyID: string) {
-    await this.execute(`AdminForceTeamChange "${anyID}"`);
+    await this.rcon.execute(`AdminForceTeamChange "${anyID}"`);
   }
 
   async disbandSquad(teamID: string, squadID: string) {
-    await this.execute(`AdminDisbandSquad ${teamID} ${squadID}`);
+    await this.rcon.execute(`AdminDisbandSquad ${teamID} ${squadID}`);
   }
 
   async kick(anyID: string, reason: string) {
-    await this.execute(`AdminKick "${anyID}" ${reason}`);
+    await this.rcon.execute(`AdminKick "${anyID}" ${reason}`);
   }
 
   async forceTeamChange(anyID: string) {
-    await this.execute(`AdminForceTeamChange "${anyID}"`);
+    await this.rcon.execute(`AdminForceTeamChange "${anyID}"`);
   }
 }

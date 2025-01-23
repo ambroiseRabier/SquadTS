@@ -5,6 +5,8 @@
 2. `npm i`
 3. `npm run`
 
+or run with watch file with `npm run watch`
+
 
 ## From release (pre-transpiled)
 
@@ -12,6 +14,10 @@
 2. Unzip
 3. Install prod dependencies `npm i --production`
 4. `npm run run:prod`
+
+## Custom config folder
+
+Set SQUAD_JS_CONFIG_PATH env var, absolute path expected
 
 ## Docker
 
@@ -28,3 +34,22 @@
 To test on a squad server, you may host yourself (but it will be a hassle):
 - https://squad.fandom.com/wiki/Server_Installation
 - https://hub.docker.com/r/cm2network/squad/
+
+To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder 
+and add `SQUAD_JS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+
+## Aussi intéressant:
+creer un script pour load les maps une fois
+https://github.com/iamalone98/SquadJS/blob/master/src/core/maps/vanilla.json
+
+cache les layers, ya ds le logs de squad qd tu demarre aussi
+
+https://github.com/Team-Silver-Sphere/SquadJS/pull/372/files#diff-57920470afdfc49129bd5057db6e0b532838db173a9dc17bf2aa78ea633f1248
+
+acces au log depuis exterieur, ex datadog, logstash
+
+---
+
+generate config like in squadJS, or make it manual but test it ? look worse.
+
+zod describe -> json schema if needed.

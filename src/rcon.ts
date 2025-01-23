@@ -1,6 +1,7 @@
 import { z } from "zod";
 import net from 'net';
 import util from 'util';
+import { Logger } from "pino";
 
 
 enum DataType {
@@ -16,14 +17,27 @@ const END_PACKET_ID = 0x02;
 
 const MAXIMUM_PACKET_SIZE = 4096;
 
-const rconOptionsSchema = z.object({
-  host: z.string().min(1, "Host is required"),
-  port: z.number().int().positive("Port must be a positive integer"),
-  password: z.string().default(""),
+const ipRegex = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+
+export const rconOptionsSchema = z.object({
+  host: z
+    .string()
+    .min(1, "Host is required")
+    .regex(ipRegex, "Invalid IPv4")
+    .describe("The IP of the server."),
+  port: z
+    .number()
+    .int()
+    .positive("Port must be a positive integer")
+    .default(21114)
+    .describe("The RCON port of the server."),
+  password: z
+    .string()
+    .describe("The RCON password of the server."),
   autoReconnectDelay: z
     .number()
-    .min(1000, "AutoReconnectDelay minimum is 1000ms") // don't DOS yourself
     .nonnegative("AutoReconnectDelay must be a non-negative number")
+    .min(1000, "AutoReconnectDelay minimum is 1000ms") // don't DOS yourself
     .default(5000),
 });
 
@@ -32,7 +46,6 @@ export type RconOptions = z.infer<typeof rconOptionsSchema>;
 
 
 export class Rcon {
-  private options: RconOptions;
   private client: net.Socket;
   private incomingData: Buffer<ArrayBuffer> = Buffer.from([]);
   private autoReconnect: boolean = false;
@@ -43,10 +56,24 @@ export class Rcon {
   private responseCallbackQueue: ((response: Packet|Error|string) => void)[] = [];
   private count: number = 1;
 
-  constructor(options: RconOptions) {
-    // Throw on fail
-    this.options = rconOptionsSchema.parse(options);
-    
+  constructor(
+    private options: RconOptions,
+    private logger: Logger)
+  {
+    const opt = rconOptionsSchema.safeParse(options);
+
+    if (!opt.success) {
+      const errorMessages = opt.error.issues.map(
+        (issue) => `  - ${issue.path.join('.')}: ${issue.message}`
+      ).join('\n');
+
+      logger.error(`Invalid RCON options:\n${errorMessages}`);
+
+      throw new Error(); // todo: propagate options error and watch file ?
+    } else {
+      this.options = opt.data;
+    }
+
     // Setup socket
     this.client = new net.Socket();
     this.client.on('data', this.decodeData);
@@ -266,7 +293,7 @@ export class Rcon {
     });
   }
 
-  protected execute(command: string) {
+  public execute(command: string) {
     return this.write(DataType.EXEC_COMMAND, command);
   }
 

@@ -1,0 +1,9 @@
+{
+  autoReconnectDelay: 5000,
+  // The IP of the server.
+  host: '',
+  // The RCON password of the server.
+  password: '',
+  // The RCON port of the server.
+  port: 21114
+}

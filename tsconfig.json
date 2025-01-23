@@ -1,14 +1,33 @@
 {
   "compilerOptions": {
+
+    // Just take highest
+    // es2016 is a no because it doesn't support name capturing groups in regex.
+    // Doc: https://www.typescriptlang.org/docs/handbook/modules/theory.html#the-module-output-format
     "target": "ES2022",
+
+    // > node16 and nodenext are the only correct module options for all apps and libraries that are intended to run in Node.js v12 or later
+    // https://www.typescriptlang.org/docs/handbook/modules/reference.html#the-module-compiler-option
+    // Current nodenext is node16
     "module": "node16",
+
+    // Allow default import like `import lodash from 'lodash';` instead of `import * as lodash from 'lodash';`
     "esModuleInterop": true,
+
+    // Stricter code
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+
+    // Faster compile time
     "skipLibCheck": true,
+
+    // Build dir
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "scripts"
+  ],
   "exclude": [
     "**/*.test.ts",
     "**/tests/**"
