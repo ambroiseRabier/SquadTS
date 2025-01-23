@@ -1,9 +1,10 @@
-import { Packet, Rcon } from './rcon';
-import { processBody } from './chat-processor';
+*import { Packet, Rcon } from './rcon';
+import { cases, CasesToEvents, processBody, SquadEvents } from './chat-processor';
 import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
-import pino from 'pino';
-import Logger = pino.Logger;
+import pino, {Logger} from 'pino';
+import EventEmitter from 'node:events';
+import { Action } from './action';
 
 
 /**
@@ -16,13 +17,18 @@ function convertToReadableText(input: string): string {
     .join(' ');
 }
 
+
 // todo: envisager d'envoyer rcon en tant que Dep, pour le mock ds les test
 export class RconSquad {
+  public readonly events: SquadEvents;
 
   constructor(
     private readonly rcon: Rcon,
     private readonly logger: Logger) {
-
+    this.events = Object.fromEntries(
+      // Can't tell why c is seen as any by typescript, the type of eventName is correctly found though.
+      cases.map((c: any) => [c.eventName, new Action()])
+    ) as SquadEvents;
   }
 
 

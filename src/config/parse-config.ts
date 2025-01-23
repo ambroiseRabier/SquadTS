@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { rconOptionsSchema } from './rcon';
+import { rconOptionsSchema } from '../rcon/rcon';
 
 export const optionsSchema = z.object({
   rcon: rconOptionsSchema

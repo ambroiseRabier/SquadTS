@@ -53,3 +53,7 @@ acces au log depuis exterieur, ex datadog, logstash
 generate config like in squadJS, or make it manual but test it ? look worse.
 
 zod describe -> json schema if needed.
+
+---
+
+pre-commit hook pr generate la config ?

@@ -1,18 +1,16 @@
 import { SquadServer } from './squad-server';
 import {pino} from 'pino';
 import pretty from 'pino-pretty';
-import { Rcon } from './rcon';
-import { RconSquad } from './rcon-squad';
+import { Rcon } from './rcon/rcon';
+import { RconSquad } from './rcon/rcon-squad';
 import chalk from 'chalk';
-import { loadConfigFiles } from './load-config';
-import { resolveConfigsPath } from './get-config-path';
-import { parseConfig } from './parse-config';
-import { z } from 'zod';
+import { loadConfigFiles } from './config/load-config';
+import { resolveConfigsPath } from './config/resolve-configs-path';
+import { parseConfig } from './config/parse-config';
 
 
 // inversifyJS ?
 async function main() {
-
   const isDev = process.env.NODE_ENV !== 'production';
   // Pino will show pretty logs only in dev as per their recommendation.
   const prettyStream = pretty({
@@ -39,7 +37,7 @@ async function main() {
     msgPrefix: chalk.blue('[SquadServer] '),
   });
 
-  logger.info('SquadServerFactory', 1, 'Creating SquadServer...');
+  logger.info('Creating SquadServer...');
 
   const server = new SquadServer(squadServerLogger, squadRcon);
 
