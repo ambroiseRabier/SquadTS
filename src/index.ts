@@ -18,32 +18,36 @@ async function main() {
     sync: process.env.NODE_ENV === 'test'
   });
   const logger = pino({
-    level: isDev ? 'trace': 'info',
+    level: isDev ? 'debug': 'info',
     ...(isDev ? {
       base: null,  // Remove processID and hostname
     } : {}),
     // formatters:,
   }, isDev ? prettyStream : undefined);
 
-  const configs = await loadConfigFiles(resolveConfigsPath());
-  logger.debug(configs, 'Loaded Configurations');
+  const configFolder = resolveConfigsPath();
+  logger.info(`Loading configurations from ${configFolder}`);
+  const configs = await loadConfigFiles(configFolder);
+  logger.info('Configurations loaded.');
+  logger.trace(configs);
 
   const parsedConfig = await parseConfig(configs);
 
-  const rcon = new Rcon(parsedConfig.rcon, logger);
+  const rconLogger = logger.child({}, {
+    msgPrefix: chalk.greenBright('[RCON] '),
+  });
+
+  const rcon = new Rcon(parsedConfig.rcon, rconLogger);
   const squadRcon = new RconSquad(rcon, logger);
 
   const squadServerLogger = logger.child({}, {
-    msgPrefix: chalk.blue('[SquadServer] '),
+    msgPrefix: chalk.blueBright('[SquadServer] '),
   });
 
   logger.info('Creating SquadServer...');
 
   const server = new SquadServer(squadServerLogger, squadRcon);
 
-  // console.log(await squadRcon.getCurrentMap());
-  // console.log(await squadRcon.getListPlayers());
-  // console.log(await squadRcon.getSquads());
 
   await server.watch();
 }

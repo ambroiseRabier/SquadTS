@@ -209,7 +209,10 @@ export class RconSquad {
           squadID: parseInt(match.groups!.squadID),
           teamID: matchSide && parseInt(matchSide.groups!.teamID),
           teamName: matchSide && matchSide.groups!.teamName,
-          ...extractIDs(match.groups!.creator_ids, 'creator'),
+          // ...extractIDs(match.groups!.creator_ids, 'creator'),
+          // todo breaking change (you may revert using git history if necessary), note: I kind of like to specify creator, as
+          // it could easily be confused with squad leader (supposing there is actually a difference)
+          ...extractIDs(match.groups!.creator_ids),
         };
       })
       // Remove null entries
@@ -247,5 +250,13 @@ export class RconSquad {
 
   async forceTeamChange(anyID: string) {
     await this.rcon.execute(`AdminForceTeamChange "${anyID}"`);
+  }
+
+  async connect() {
+    return this.rcon.connect();
+  }
+
+  async disconnect() {
+    return this.rcon.disconnect();
   }
 }

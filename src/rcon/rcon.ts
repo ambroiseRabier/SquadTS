@@ -76,9 +76,9 @@ export class Rcon {
 
     // Setup socket
     this.client = new net.Socket();
-    this.client.on('data', this.decodeData);
-    this.client.on('close', this.onClose);
-    this.client.on('error', this.onError);
+    this.client.on('data', this.decodeData.bind(this));
+    this.client.on('close', this.onClose.bind(this));
+    this.client.on('error', this.onError.bind(this));
 
     // Internal variables
     // ... todo ?
@@ -200,6 +200,7 @@ export class Rcon {
 
   private decodeData(data: Buffer<ArrayBuffer>) {
     // todo: "module" on logger
+    this.logger.trace(`Got data: ${bufToHexString(data)}`)
     // Logger.verbose('RCON', 4, `Got data: ${this.bufToHexString(data)}`);
 
     this.incomingData = Buffer.concat([this.incomingData, data]);
@@ -256,7 +257,7 @@ export class Rcon {
     }
   }
 
-  private connect() {
+  public connect() {
     return new Promise<void>((resolve, reject) => {
       // Logger.verbose('RCON', 1, `Connecting to: ${this.host}:${this.port}`);
 
@@ -297,7 +298,7 @@ export class Rcon {
     return this.write(DataType.EXEC_COMMAND, command);
   }
 
-  private disconnect() {
+  public disconnect() {
     return new Promise<void>((resolve, reject) => {
       // Logger.verbose('RCON', 1, `Disconnecting from: ${this.host}:${this.port}`);
 

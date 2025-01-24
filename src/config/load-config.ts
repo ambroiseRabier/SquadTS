@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import JSON5 from 'json5';
+import chalk from 'chalk';
 
 type Configs = Record<string, any>;
 
@@ -12,10 +13,10 @@ type Configs = Record<string, any>;
 export async function loadConfigFiles(dir: string): Promise<Configs> {
   let files: string[];
   try {
-    // Read all files in the directory
+    // Read all files in the directory,
     files = await fs.readdir(dir);
   } catch (err) {
-    throw new Error(`Failed to read directory: ${dir}. Error: ${(err as Error).message}`);
+    throw new Error(chalk.red(`Failed to read directory: ${dir}. Error: ${(err as Error).message}`));
   }
 
   const configs: Configs = {};

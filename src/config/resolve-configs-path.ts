@@ -7,11 +7,15 @@ import path from 'path';
  */
 export function resolveConfigsPath(): string {
   if (process.env.SQUAD_JS_CONFIG_PATH) {
-    if (path.isAbsolute(process.env.SQUAD_JS_CONFIG_PATH)) {
-      return path.resolve(process.env.SQUAD_JS_CONFIG_PATH);
+    // remove double quote if provided
+    const dir = process.env.SQUAD_JS_CONFIG_PATH.replace(/"/g, '');
+
+    if (path.isAbsolute(dir)) {
+      return path.resolve(dir);
     } else {
-      // To have path from project root, we add ".." before user relative path input.
-      return path.resolve(__dirname, '..', process.env.SQUAD_JS_CONFIG_PATH);
+      // To have path from project root, we add ".." twice before user relative path input.
+      // How much ".." depends on placement of this file in directories...
+      return path.resolve(__dirname, '..', '..', dir);
     }
   } else {
     return path.resolve(__dirname, '../config');
