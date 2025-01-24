@@ -1,5 +1,7 @@
+import { map, mergeMap, Subject } from 'rxjs';
+
 *import { Packet, Rcon } from './rcon';
-import { cases, CasesToEvents, processBody, SquadEvents } from './chat-processor';
+import { cases, CasesToEvents, events, processBody, SquadEvents } from './chat-processor';
 import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
 import pino, {Logger} from 'pino';
@@ -18,17 +20,56 @@ function convertToReadableText(input: string): string {
 }
 
 
+interface Player {
+  eosID: string;
+}
+
 // todo: envisager d'envoyer rcon en tant que Dep, pour le mock ds les test
 export class RconSquad {
-  public readonly events: SquadEvents;
+  public readonly events: SquadEvents<{player: Player}>;
+  public players: Player[] = [];
 
   constructor(
     private readonly rcon: Rcon,
-    private readonly logger: Logger) {
+    private readonly logger: Logger)
+  {
+
+    // Populate events dictionary with Subject
     this.events = Object.fromEntries(
       // Can't tell why c is seen as any by typescript, the type of eventName is correctly found though.
-      cases.map((c: any) => [c.eventName, new Action()])
-    ) as SquadEvents;
+      events.map((eventName:any) => [eventName, new Subject()])
+    ) as typeof this.events; // force typing here
+
+    // get player for each.
+    for (let event of Object.values(this.events)) {
+      event.pipe(
+        map((data) => {
+          return data;
+          // return {
+          //   ...data,
+          //   player: this.players.find(p => p.eosID === data.eosID)
+          // };
+        })
+      )
+    }
+
+    for (let key in this.events) {
+      const event = this.events[key];
+      event.pipe(
+        map((data) => {
+          return data; // Correct type inference since `event` is tied to its specific key.
+        })
+      );
+    }
+
+    this.events.CHAT_MESSAGE.pipe(
+      map((data) => {
+        const command = data.message.match(/!([^ ]+) ?(.*)/);
+
+        }
+      )
+    );
+
   }
 
 
