@@ -12,6 +12,13 @@ enum DataType {
   CHAT_VALUE = 0x01
 }
 
+// 1 => "CHAT_VALUE"
+function getEnumKeyByValue(value: number): string | undefined {
+  return Object.keys(DataType).find(
+    (key) => DataType[key as keyof typeof DataType] === value
+  );
+}
+
 const MID_PACKET_ID = 0x01;
 const END_PACKET_ID = 0x02;
 
@@ -88,23 +95,19 @@ export class Rcon {
   private onClose(errorMessage: string) {
     this.connected = false;
     this.loggedin = false;
-    // Logger.verbose(
-    //   'RCON',
-    //   1,
-    //   `Socket closed ${errorMessage ? 'with' : 'without'} an error. ${errorMessage}`
-    // );
+    this.logger.error(`Socket closed ${errorMessage ? 'with' : 'without'} an error. ${errorMessage}`);
 
     // Cleanup all local state onClose
     if (this.incomingData.length > 0) {
-      // Logger.verbose('RCON', 2, `Clearing Buffered Data`);
+      this.logger.debug(`Clearing Buffered Data`);
       this.incomingData = Buffer.from([]);
     }
     if (this.incomingResponse.length > 0) {
-      // Logger.verbose('RCON', 2, `Clearing Buffered Response Data`);
+      this.logger.debug(`Clearing Buffered Response Data`);
       this.incomingResponse = [];
     }
     if (this.responseCallbackQueue.length > 0) {
-      // Logger.verbose('RCON', 2, `Clearing Pending Callbacks`);
+      this.logger.debug(`Clearing Pending Callbacks`);
 
       // Cleanup Pending Callbacks; We should maybe retry these on next connection
       // However, depending on the reason we got disconnected it may be a while.
@@ -117,14 +120,14 @@ export class Rcon {
     }
 
     if (this.autoReconnect) {
-      // Logger.verbose('RCON', 1, `Sleeping ${this.autoReconnectDelay}ms before reconnecting.`);
-      setTimeout(this.connect, this.options.autoReconnectDelay);
+      this.logger.info(`Sleeping ${this.options.autoReconnectDelay}ms before reconnecting.`)
+      setTimeout(this.connect.bind(this), this.options.autoReconnectDelay);
     }
   }
 
 
-  private onError() {
-    // Logger.verbose('RCON', 1, `Socket had error:`, err);
+  private onError(err: any) {
+    this.logger.error(`Socket error: ${err}`);
     // todo: emit ou pas.
     // this.emit('RCON_ERROR', err);
   }
@@ -132,11 +135,7 @@ export class Rcon {
   private onPacket(decodedPacket: Packet) {
     // the logic in this method simply splits data sent via the data event into packets regardless of how they're
     // distributed in the event calls
-    // Logger.verbose(
-    //   'RCON',
-    //   2,
-    //   `Processing decoded packet: ${this.decodedPacketToString(decodedPacket)}`
-    // );
+    this.logger.debug(`Processing decoded packet: ${decodedPacketToString(decodedPacket)}`)
 
     switch (decodedPacket.type) {
       // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
@@ -171,13 +170,7 @@ export class Rcon {
 
             break;
           default:
-            // Logger.verbose(
-            //   'RCON',
-            //   1,
-            //   `Unknown packet ID ${decodedPacket.id} in: ${this.decodedPacketToString(
-            //     decodedPacket
-            //   )}`
-            // );
+            this.logger.warn(`Unknown packet ID ${decodedPacket.id} in: ${decodedPacketToString(decodedPacket)}`);
             this.onClose('Unknown Packet');
         }
         break;
@@ -187,21 +180,13 @@ export class Rcon {
         break;
 
       default:
-        // Logger.verbose(
-        //   'RCON',
-        //   1,
-        //   `Unknown packet type ${decodedPacket.type} in: ${this.decodedPacketToString(
-        //     decodedPacket
-        //   )}`
-        // );
+        this.logger.warn(`Unknown packet type ${decodedPacket.type} in: ${decodedPacketToString(decodedPacket)}`)
         this.onClose('Unknown Packet');
     }
   }
 
   private decodeData(data: Buffer<ArrayBuffer>) {
-    // todo: "module" on logger
-    this.logger.trace(`Got data: ${bufToHexString(data)}`)
-    // Logger.verbose('RCON', 4, `Got data: ${this.bufToHexString(data)}`);
+    this.logger.trace(`Got data: ${bufToHexString(data)}`);
 
     this.incomingData = Buffer.concat([this.incomingData, data]);
 
@@ -210,16 +195,12 @@ export class Rcon {
       const packetSize = size + 4;
 
       if (this.incomingData.byteLength < packetSize) {
-        // Logger.verbose(
-        //   'RCON',
-        //   4,
-        //   `Waiting for more data... Have: ${this.incomingData.byteLength} Expected: ${packetSize}`
-        // );
+        this.logger.trace(`Waiting for more data... Have: ${this.incomingData.byteLength} Expected: ${packetSize}`);
         break;
       }
       const packet = this.incomingData.subarray(0, packetSize);
 
-      // Logger.verbose('RCON', 4, `Processing packet: ${this.bufToHexString(packet)}`);
+      this.logger.trace(`Got packet: ${bufToHexString(packet)}`);
       const decodedPacket = decodePacket(packet);
 
       const matchCount = this.callbackIds.filter((d) => d.id === decodedPacket.count).length;
@@ -247,7 +228,7 @@ export class Rcon {
           // it does so it's the broken packet
           // remove the broken packet from the incoming data
           this.incomingData = this.incomingData.subarray(probePacketSize);
-          // Logger.verbose('RCON', 4, `Ignoring some data: ${this.bufToHexString(probeBuf)}`);
+          this.logger.trace(`Removing broken packet: ${bufToHexString(probeBuf)}`);
           continue;
         }
       }
@@ -259,13 +240,13 @@ export class Rcon {
 
   public connect() {
     return new Promise<void>((resolve, reject) => {
-      // Logger.verbose('RCON', 1, `Connecting to: ${this.host}:${this.port}`);
+      this.logger.info(`Connecting to ${this.options.host}:${this.options.port}`);
 
       const onConnect = async () => {
         this.client.removeListener('error', onError);
         this.connected = true;
 
-        // Logger.verbose('RCON', 1, `Connected to: ${this.host}:${this.port}`);
+        this.logger.info(`Connected to ${this.options.host}:${this.options.port}`);
 
         try {
           // connected successfully, now try auth...
@@ -282,7 +263,7 @@ export class Rcon {
       const onError = (err: any) => {
         this.client.removeListener('connect', onConnect);
 
-        // Logger.verbose('RCON', 1, `Failed to connect to: ${this.host}:${this.port}`, err);
+        this.logger.error(`Failed to connect to ${this.options.host}:${this.options.port}`, err);
 
         reject(err);
       };
@@ -300,12 +281,12 @@ export class Rcon {
 
   public disconnect() {
     return new Promise<void>((resolve, reject) => {
-      // Logger.verbose('RCON', 1, `Disconnecting from: ${this.host}:${this.port}`);
+      this.logger.info(`Disconnecting from ${this.options.host}:${this.options.port}`);
 
       const onClose = () => {
         this.client.removeListener('error', onError);
 
-        // Logger.verbose('RCON', 1, `Disconnected from: ${this.host}:${this.port}`);
+        this.logger.info(`Disconnected from ${this.options.host}:${this.options.port}`);
 
         resolve();
       };
@@ -313,7 +294,7 @@ export class Rcon {
       const onError = (err: any) => {
         this.client.removeListener('close', onClose);
 
-        // Logger.verbose('RCON', 1, `Failed to disconnect from: ${this.host}:${this.port}`, err);
+        this.logger.error(`Failed to disconnect from ${this.options.host}:${this.options.port}`, err);
 
         reject(err);
       };
@@ -343,7 +324,7 @@ export class Rcon {
         }
 
         // todo: not sure displaying password is a good idea.
-        // Logger.verbose('RCON', 2, `Writing packet with type "${type}" and body "${body}".`);
+        // Logger.verbose('RCON', 2, `Writing packet with type "${getEnumKeyByValue(type)}" and body "${body}".`);
 
         const encodedPacket = encodePacket(
           this.count,
@@ -358,7 +339,7 @@ export class Rcon {
         }
 
         const onError = (err: any) => {
-          // Logger.verbose('RCON', 1, 'Error occurred. Wiping response action queue.', err);
+          this.logger.error('Error occurred. Wiping response action queue.', err);
           this.responseCallbackQueue = [];
           reject(err);
         };
@@ -374,6 +355,7 @@ export class Rcon {
           if (decodedPacket instanceof Error) {
             // Todo log error
             // Logger.error ...
+            this.logger.error('decodePacket is an ERROR, unknown how to handel', decodedPacket);
           }
           // force for TS, we'll ignore for now as this code currently work
           decodedPacket = decodedPacket as any as Packet;
@@ -381,10 +363,10 @@ export class Rcon {
           // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
           // "If auth failed, -1"
           if (decodedPacket.id === -1) {
-            // Logger.verbose('RCON', 1, 'Authentication failed.');
+            this.logger.error('Authentication failed.');
             reject(new Error('Authentication failed.'));
           } else {
-            // Logger.verbose('RCON', 1, 'Authentication succeeded.');
+            this.logger.info('Authentication succeeded.');
             this.loggedin = true;
             resolve();
           }
@@ -421,7 +403,7 @@ export class Rcon {
         return;
       }
 
-      // Logger.verbose('RCON', 2, `Writing packet with type "${type}" and body "${body}".`);
+      this.logger.debug(`Writing packet with type "${getEnumKeyByValue(type)}" and body "${body}".`);
 
       const encodedPacket = encodePacket(
         this.count,
@@ -438,7 +420,7 @@ export class Rcon {
       }
 
       const onError = (err: any) => {
-        // Logger.verbose('RCON', 1, 'Error occurred. Wiping response action queue.', err);
+        this.logger.error('Error occurred. Wiping response action queue.', err);
         this.responseCallbackQueue = [];
         reject(err);
       };
@@ -452,11 +434,7 @@ export class Rcon {
           // Called from onClose()
           reject(response);
         } else {
-          // Logger.verbose(
-          //   'RCON',
-          //   2,
-          //   `Returning complete response: ${response.replace(/\r\n|\r|\n/g, '\\n')}`
-          // );
+          this.logger.debug(`Returning response: ${(response as string).replace(/\r\n|\r|\n/g, '\\n')}`);
 
           // todo same here, I suppose this is a string at this point, some refactor to be done with responseCallbackQueue
           resolve(response as string);
@@ -469,14 +447,10 @@ export class Rcon {
         this.count = 1;
       }
 
-      // Logger.verbose('RCON', 4, `Sending packet: ${bufToHexString(encodedPacket)}`);
+      this.logger.trace(`Sending packet: ${bufToHexString(encodedPacket)}`);
       this.client.write(encodedPacket);
 
-      // Logger.verbose(
-      //   'RCON',
-      //   4,
-      //   `Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`
-      // );
+      this.logger.trace(`Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`);
       this.client.write(encodedEmptyPacket);
       this.count++;
     }) as Promise<string>; // todo: temp fix

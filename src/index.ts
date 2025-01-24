@@ -33,6 +33,7 @@ async function main() {
 
   const parsedConfig = await parseConfig(configs);
 
+  // too no-op it: use config: level: 'silent'
   const rconLogger = logger.child({}, {
     msgPrefix: chalk.greenBright('[RCON] '),
   });
