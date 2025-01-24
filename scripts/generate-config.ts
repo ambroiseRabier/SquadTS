@@ -4,6 +4,7 @@ import { generateJson5Commented } from './generate-config/generate-json5-comment
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import chalk from 'chalk';
 
 // You may skip asking user for pre-commit or CI/CD stuff.
 const FORCE_OVERRIDE = process.argv.includes('--force') || process.argv.includes('-f');
@@ -39,31 +40,31 @@ async function saveFiles() {
 
       // Check if file exists
       if (fs.existsSync(filePath) && !FORCE_OVERRIDE) {
-        console.log(`File already exists: ${filePath}`);
-
         // Ask user for permission to override, only once
         if (!shouldOverride && !asked) {
           asked = true;
-          shouldOverride = await askUser(`An existing config file ("${key}.json5") has been found in the folder,` +
-            ` do you want to override ALL CONFIG FILES in the folder ? Type "yes" to confirm: `);
+          const emphasizedMessage = `An existing config file (${chalk.blue.bold(`${key}.json5`)}) has been found in the folder,` +
+            ` do you want to override ${chalk.red.bold("ALL CONFIG FILES")} in the folder? Type ${chalk.red.bold('"yes"')} to confirm: `;
+
+          shouldOverride = await askUser(emphasizedMessage);
         }
 
         if (!shouldOverride) {
-          console.log(`Skipping file: ${filePath}`);
-          continue;
+          console.log(`Skipping files...`);
+          break;
         }
       }
 
       // Write the content to the file
       fs.writeFileSync(filePath, json5Commented, 'utf8');
-      console.log(`File saved: ${filePath}`);
+      console.log(`File saved: ${chalk.blue.bold(filePath)}`);
     } else {
       throw new Error(`Unsupported field type (only use objects at base level of Zod options schema): ${JSON.stringify(field)}`);
     }
   }
 }
 
-console.info(`Generating config files in ${configFolder}`);
+console.info(`Generating config files in ${chalk.blue.bold(configFolder)}`);
 
 // Ensure the 'config' folder exists
 if (!fs.existsSync(configFolder)) {

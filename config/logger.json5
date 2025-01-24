@@ -1,13 +1,8 @@
 {
+  // Define the log levels for each logger, available levels: trace, debug, info, warn, error, fatal
   verboseness: {
-    SquadServer: 1,
-    LogParser: 1,
-    RCON: 1
+    SquadServer: 'info',
+    LogParser: 'info',
+    RCON: 'info',
   },
-  colors: {
-    SquadServer: "yellowBright",
-    SquadServerFactory: "yellowBright",
-    LogParser: "blueBright",
-    RCON: "redBright"
-  }
 }

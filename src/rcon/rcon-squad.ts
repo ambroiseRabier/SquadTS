@@ -1,11 +1,10 @@
-import { map, mergeMap, Subject, tap } from 'rxjs';
+import { map, Subject, tap } from 'rxjs';
 import { Packet, Rcon } from './rcon';
-import { Base, events, processBody, SquadEvents } from './chat-processor';
+import { Base, events, ObjectFromRegexStr, processBody, SquadEvents } from './chat-processor';
 import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
-import pino, {Logger} from 'pino';
+import { Logger } from 'pino';
 import EventEmitter from 'node:events';
-import { Action } from './action';
 
 
 /**
@@ -41,7 +40,7 @@ export class RconSquad {
     // Populate events dictionary with Subject
     this.events = Object.fromEntries(
       // Can't tell why c is seen as any by typescript, the type of eventName is correctly found though.
-      events.map((eventName:any) => [eventName, new Subject()])
+      events.map((eventName: any) => [eventName, new Subject()])
     ) as typeof this.events; // force typing here
 
     this.configEvents();
@@ -135,9 +134,9 @@ export class RconSquad {
   }
 
   async getCurrentMap() {
-    const response = await this.rcon.execute('ShowCurrentMap');
+    const response: string = await this.rcon.execute('ShowCurrentMap');
     const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
-    return match!.groups!;
+    return match!.groups! as { level: string; layer: string; };
   }
 
   async getNextMap() {

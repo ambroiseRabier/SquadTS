@@ -13,9 +13,13 @@ export class SquadServer {
     this.logger.info('Server started');
     await this.rcon.connect();
 
-    console.log(await this.rcon.getCurrentMap());
+    // console.log(await this.rcon.getCurrentMap());
     console.log(await this.rcon.getListPlayers());
-    console.log(await this.rcon.getSquads());
+    // console.log(await this.rcon.getSquads());
+
+    // await this.rcon.getCurrentMap()
+    // await this.rcon.getListPlayers()
+    // await this.rcon.getSquads()
 
 
     // await this.rcon.connect();

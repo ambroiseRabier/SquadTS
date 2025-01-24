@@ -1,5 +1,5 @@
 import { SquadServer } from './squad-server';
-import {pino} from 'pino';
+import { pino } from 'pino';
 import pretty from 'pino-pretty';
 import { Rcon } from './rcon/rcon';
 import { RconSquad } from './rcon/rcon-squad';
@@ -25,6 +25,7 @@ async function main() {
     // formatters:,
   }, isDev ? prettyStream : undefined);
 
+
   const configFolder = resolveConfigsPath();
   logger.info(`Loading configurations from ${configFolder}`);
   const configs = await loadConfigFiles(configFolder);
@@ -35,14 +36,14 @@ async function main() {
 
   // too no-op it: use config: level: 'silent'
   const rconLogger = logger.child({}, {
-    msgPrefix: chalk.greenBright('[RCON] '),
+    msgPrefix: chalk.cyanBright('[RCON] '),
   });
 
   const rcon = new Rcon(parsedConfig.rcon, rconLogger);
   const squadRcon = new RconSquad(rcon, logger);
 
   const squadServerLogger = logger.child({}, {
-    msgPrefix: chalk.blueBright('[SquadServer] '),
+    msgPrefix: chalk.yellowBright('[SquadServer] '),
   });
 
   logger.info('Creating SquadServer...');

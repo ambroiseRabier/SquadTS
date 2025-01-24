@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import { rconOptionsSchema } from '../rcon/rcon';
+import { loggerOptionsSchema } from './logger.config';
 
 export const optionsSchema = z.object({
-  rcon: rconOptionsSchema
+  rcon: rconOptionsSchema,
+  logger: loggerOptionsSchema,
 });
 
 export type Options = z.infer<typeof optionsSchema>;

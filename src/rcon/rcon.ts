@@ -12,8 +12,8 @@ enum DataType {
   CHAT_VALUE = 0x01
 }
 
-// 1 => "CHAT_VALUE"
-function getEnumKeyByValue(value: number): string | undefined {
+// Ex: 1 => "CHAT_VALUE"
+function getDataTypeKeyByValue(value: number): string | undefined {
   return Object.keys(DataType).find(
     (key) => DataType[key as keyof typeof DataType] === value
   );
@@ -135,7 +135,7 @@ export class Rcon {
   private onPacket(decodedPacket: Packet) {
     // the logic in this method simply splits data sent via the data event into packets regardless of how they're
     // distributed in the event calls
-    this.logger.debug(`Processing decoded packet: ${decodedPacketToString(decodedPacket)}`)
+    this.logger.trace({decodedPacket}, `Processing decoded packet: `)
 
     switch (decodedPacket.type) {
       // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
@@ -324,7 +324,7 @@ export class Rcon {
         }
 
         // todo: not sure displaying password is a good idea.
-        // Logger.verbose('RCON', 2, `Writing packet with type "${getEnumKeyByValue(type)}" and body "${body}".`);
+        // Logger.verbose('RCON', 2, `Writing packet with type "${getDataTypeKeyByValue(type)}" and body "${body}".`);
 
         const encodedPacket = encodePacket(
           this.count,
@@ -403,7 +403,7 @@ export class Rcon {
         return;
       }
 
-      this.logger.debug(`Writing packet with type "${getEnumKeyByValue(type)}" and body "${body}".`);
+      this.logger.debug(`Writing packet with type "${getDataTypeKeyByValue(type)}" and body "${body}".`);
 
       const encodedPacket = encodePacket(
         this.count,
@@ -434,7 +434,7 @@ export class Rcon {
           // Called from onClose()
           reject(response);
         } else {
-          this.logger.debug(`Returning response: ${(response as string).replace(/\r\n|\r|\n/g, '\\n')}`);
+          this.logger.debug(`Returning response: "${(response as string)}"`);
 
           // todo same here, I suppose this is a string at this point, some refactor to be done with responseCallbackQueue
           resolve(response as string);

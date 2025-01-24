@@ -15,13 +15,18 @@ type ExtractGroupNames<T extends string> =
     ? GroupName | ExtractGroupNames<Rest>
     : never;
 
-type UnionToObject<T extends string> = {
-  [K in T]: string;
+export type ObjectFromRegexStr<T extends string> = {
+  [K in ExtractGroupNames<T>]: string;
 };
 
+// type CasesToEvents<TCases extends Record<string, string>, AdditionalData> = {
+//   [K in keyof TCases]: Subject<
+//     UnionToObject<ExtractGroupNames<TCases[K]>> & Base & AdditionalData
+//   >;
+// };
 type CasesToEvents<TCases extends Record<string, string>, AdditionalData> = {
   [K in keyof TCases]: Subject<
-    UnionToObject<ExtractGroupNames<TCases[K]>> & Base & AdditionalData
+    ObjectFromRegexStr<TCases[K]> & Base & AdditionalData
   >;
 };
 
