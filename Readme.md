@@ -57,3 +57,7 @@ zod describe -> json schema if needed.
 ---
 
 pre-commit hook pr generate la config ?
+
+---
+
+log parsing lib or some better way to handle logs ?

@@ -3,7 +3,7 @@ import { omit } from 'lodash';
 import { Subject } from 'rxjs';
 
 
-type Base = {
+export type Base = {
   raw: string;
   time: Date;
 } & ReturnType<typeof extractIDs>;
@@ -15,10 +15,6 @@ type ExtractGroupNames<T extends string> =
     ? GroupName | ExtractGroupNames<Rest>
     : never;
 
-// type SafeExtractGroupNames<T> = T extends string
-//   ? ExtractGroupNames<T>
-//   : never;
-
 type UnionToObject<T extends string> = {
   [K in T]: string;
 };
@@ -28,6 +24,7 @@ type CasesToEvents<TCases extends Record<string, string>, AdditionalData> = {
     UnionToObject<ExtractGroupNames<TCases[K]>> & Base & AdditionalData
   >;
 };
+
 
 export type SquadEvents<AdditionalData = {}> = CasesToEvents<typeof cases, AdditionalData>;
 

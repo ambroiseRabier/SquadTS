@@ -1,7 +1,6 @@
-import { map, mergeMap, Subject } from 'rxjs';
-
-*import { Packet, Rcon } from './rcon';
-import { cases, CasesToEvents, events, processBody, SquadEvents } from './chat-processor';
+import { map, mergeMap, Subject, tap } from 'rxjs';
+import { Packet, Rcon } from './rcon';
+import { Base, events, processBody, SquadEvents } from './chat-processor';
 import { extractIDs } from './id-parser';
 import { omit } from 'lodash';
 import pino, {Logger} from 'pino';
@@ -22,12 +21,17 @@ function convertToReadableText(input: string): string {
 
 interface Player {
   eosID: string;
+  name: string;
 }
+
 
 // todo: envisager d'envoyer rcon en tant que Dep, pour le mock ds les test
 export class RconSquad {
   public readonly events: SquadEvents<{player: Player}>;
+  public readonly chatCommandEvent: EventEmitter = new EventEmitter();
   public players: Player[] = [];
+  // eosId and Date
+  private adminsInAdminCam = new Map<string, Date>();
 
   constructor(
     private readonly rcon: Rcon,
@@ -40,36 +44,78 @@ export class RconSquad {
       events.map((eventName:any) => [eventName, new Subject()])
     ) as typeof this.events; // force typing here
 
+    this.configEvents();
+  }
+
+  private configEvents() {
     // get player for each.
-    for (let event of Object.values(this.events)) {
+    for (let event of Object.values(this.events) as Subject<any>[]) { // Typing break here sadly
       event.pipe(
-        map((data) => {
-          return data;
-          // return {
-          //   ...data,
-          //   player: this.players.find(p => p.eosID === data.eosID)
-          // };
+        map((data: Base) => {
+          return {
+            ...data,
+            player: this.players.find(p => p.eosID === data.eosID)
+          };
         })
       )
     }
 
-    for (let key in this.events) {
-      const event = this.events[key];
-      event.pipe(
-        map((data) => {
-          return data; // Correct type inference since `event` is tied to its specific key.
-        })
-      );
-    }
+    // todo: to be confirmed
+    // No eosID in PLAYER_WARNED data, so we resolve with player name
+    this.events.PLAYER_WARNED.pipe(
+      map(data => {
+        return {
+          ...data,
+          player: this.players.find(p => p.name === data.name)
+        };
+      })
+    )
 
     this.events.CHAT_MESSAGE.pipe(
       map((data) => {
-        const command = data.message.match(/!([^ ]+) ?(.*)/);
-
+          const command = data.message.match(/!([^ ]+) ?(.*)/);
+          if (command) {
+            this.chatCommandEvent.emit(command[1].toLowerCase(), {
+              ...data,
+              message: command[2].trim()
+            });
+          }
         }
       )
     );
 
+    this.events.POSSESSED_ADMIN_CAMERA.pipe(
+      tap(data => {
+        this.adminsInAdminCam.set(data.eosID, data.time);
+      })
+    );
+
+    this.events.UNPOSSESSED_ADMIN_CAMERA.pipe(
+      map(data => {
+        const time = this.adminsInAdminCam.get(data.eosID);
+        this.adminsInAdminCam.delete(data.eosID);
+
+        return {
+          ...data,
+          duration: time ? data.time.getTime() - time.getTime() : 0
+        }
+      })
+    );
+
+    // todo : RCON_ERROR: what to do with is ? is it used ?
+
+    this.events.SQUAD_CREATED.pipe(
+      map(data => {
+        return {
+          // todo: not too sure why this is removed only here, I believe it is to avoid duplicating info with player key.
+          ...omit(data, ['eosID', 'steamID', 'playerName']),
+          player: {
+            ...data,
+            squadID: data.squadID,
+          }
+        };
+      })
+    );
   }
 
 
