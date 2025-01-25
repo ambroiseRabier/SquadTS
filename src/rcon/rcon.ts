@@ -2,6 +2,7 @@ import net from 'net';
 import util from 'util';
 import { Logger } from "pino";
 import { RconOptions } from './rcon.config';
+import { Subject } from 'rxjs';
 
 
 enum DataType {
@@ -9,7 +10,7 @@ enum DataType {
   RESPONSE_VALUE = 0x00,
   AUTH = 0x03,
   AUTH_RESPONSE = 0x02,
-  CHAT_VALUE = 0x01
+  CHAT_VALUE = 0x01 // todo: maybe rename that LOG_VALUE, as this is not (only) player chat !
 }
 
 // Ex: 1 => "CHAT_VALUE"
@@ -26,6 +27,8 @@ const MAXIMUM_PACKET_SIZE = 4096;
 
 
 export class Rcon {
+  public readonly chatPacketEvent: Subject<string> = new Subject();
+
   private client: net.Socket;
   private incomingData: Buffer<ArrayBuffer> = Buffer.from([]);
   private autoReconnect: boolean = false;
@@ -136,7 +139,7 @@ export class Rcon {
         break;
 
       case DataType.CHAT_VALUE:
-        this.processChatPacket(decodedPacket);
+        this.chatPacketEvent.next(decodedPacket.body);
         break;
 
       default:
@@ -415,9 +418,6 @@ export class Rcon {
       this.count++;
     }) as Promise<string>; // todo: temp fix
   }
-
-
-  protected processChatPacket(decodedPacket: Packet) {}
 }
 
 export type Packet = ReturnType<typeof decodePacket>;

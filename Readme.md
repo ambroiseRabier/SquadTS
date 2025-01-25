@@ -15,9 +15,11 @@ or run with watch file with `npm run watch`
 3. Install prod dependencies `npm i --production`
 4. `npm run run:prod`
 
-## Custom config folder
+## Config folder
 
-Set SQUAD_JS_CONFIG_PATH env var, absolute path expected
+Config folder will be `./config`.
+If you need a different location, you can set `SQUAD_JS_CONFIG_PATH` env variable to an 
+absolute path or relative to project root directory.
 
 ## Docker
 
@@ -37,6 +39,7 @@ To test on a squad server, you may host yourself (but it will be a hassle):
 
 To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder 
 and add `SQUAD_JS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+
 
 ## Aussi intéressant:
 creer un script pour load les maps une fois

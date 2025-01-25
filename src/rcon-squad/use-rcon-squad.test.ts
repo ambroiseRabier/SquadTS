@@ -1,48 +1,27 @@
 import { expect, beforeEach, describe, it, jest } from '@jest/globals';
-import { RconSquad } from './rcon-squad';
-import { Rcon } from '../rcon/rcon';
-import pino from 'pino';
-
+import { useRconSquad } from './use-rcon-squad';
+import { Packet, Rcon } from '../rcon/rcon';
+import { Subject } from 'rxjs';
 
 jest.mock('../rcon/rcon');
 
-// // Create a mock for pino logger
-// // const mockLogger = {
-// //   info: jest.fn(),
-// //   warn: jest.fn(),
-// //   error: jest.fn(),
-// //   debug: jest.fn(),
-// //   fatal: jest.fn(),
-// //   trace: jest.fn(),
-// //   child: jest.fn(() => mockLogger), // Pino child method returns a new logger, which we mock here as well
-// // };
-// //
-// // jest.mock('pino', () => jest.fn(() => mockLogger));
-jest.mock('pino');
-
 describe('rcon-squad', () => {
-  let squadRcon: RconSquad;
-  let mockedRcon: jest.MockedObject<Rcon>;
+  let squadRcon: ReturnType<typeof useRconSquad>;
+  let mockedRcon: jest.Mocked<Rcon>;
 
   beforeEach(() => {
     // Clear previous mock calls and implementations
     jest.clearAllMocks();
 
-    const defaultOptions = {
-      host: '127.0.0.1',
-      port: 21114,
-      password: 'defaultPassword',
-      autoReconnectDelay: 5000,
-    };
-
-    const logger = pino();
-    const mockRconInstance = new Rcon(defaultOptions, logger);
-    // May also be accessed like so:
-    // (Rcon as unknown as jest.Mocked<typeof Rcon>).mock.instances[0]
-    mockedRcon = mockRconInstance as unknown as jest.MockedObject<Rcon>;
+    mockedRcon = {
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      execute: jest.fn(),
+      chatPacketEvent: new Subject<Packet>(),
+    } as unknown as jest.Mocked<Rcon>;
     mockedRcon.connect.mockResolvedValue();
     mockedRcon.disconnect.mockResolvedValue();
-    squadRcon = new RconSquad(mockRconInstance, logger);
+    squadRcon = useRconSquad(mockedRcon);
   });
 
 

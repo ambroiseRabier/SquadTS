@@ -1,14 +1,18 @@
 import path from 'path';
 
 /**
- * Use config folder by default, unless SQUAD_JS_CONFIG_PATH env var is specified.
- * Support both SQUAD_JS_CONFIG_PATH relative from root path and absolute path.
+ * Use config folder by default, unless envConfigPath env var is specified.
+ * Support both envConfigPath relative from root path and absolute path.
+ * e.g:
+ * - '' -> <project_root>/config
+ * - 'customFolder' -> <project_root>/customFolder
+ * - 'L://squadTS/config' -> 'L://squadTS/config'
  * @return Configs folder path
  */
-export function resolveConfigsPath(): string {
-  if (process.env.SQUAD_JS_CONFIG_PATH) {
+export function resolveConfigsPath(envConfigPath?: string): string {
+  if (envConfigPath) {
     // remove double quote if provided
-    const dir = process.env.SQUAD_JS_CONFIG_PATH.replace(/"/g, '');
+    const dir = envConfigPath.replace(/"/g, '');
 
     if (path.isAbsolute(dir)) {
       return path.resolve(dir);

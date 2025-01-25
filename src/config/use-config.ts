@@ -4,7 +4,7 @@ import { loadConfigFiles } from './load-config';
 import { parseConfig } from './parse-config';
 
 export async function useConfig(logger: Logger, ) {
-  const configFolder = resolveConfigsPath();
+  const configFolder = resolveConfigsPath(process.env.SQUAD_JS_CONFIG_PATH);
 
   // Files loading
   logger.info(`Loading configurations from ${configFolder}...`);

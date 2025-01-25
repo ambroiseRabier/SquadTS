@@ -1,5 +1,5 @@
-import { RconSquad } from './rcon-squad/rcon-squad';
 import { Logger } from "pino";
+import { RconSquad } from './rcon-squad/use-rcon-squad';
 
 
 export class SquadServer {
