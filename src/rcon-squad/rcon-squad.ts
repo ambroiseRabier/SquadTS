@@ -1,7 +1,7 @@
 import { map, Subject, tap } from 'rxjs';
-import { Packet, Rcon } from './rcon';
-import { Base, events, ObjectFromRegexStr, processBody, SquadEvents } from './chat-processor';
-import { extractIDs } from './id-parser';
+import { Packet, Rcon } from '../rcon/rcon';
+import { Base, events, processBody, SquadEvents } from '../rcon/chat-processor';
+import { extractIDs } from '../rcon/id-parser';
 import { omit } from 'lodash';
 import { Logger } from 'pino';
 import EventEmitter from 'node:events';
@@ -233,10 +233,6 @@ export class RconSquad {
   // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
   async ban(anyID: string, banLength: string, message: string) {
     await this.rcon.execute(`AdminBan "${anyID}" ${banLength} ${message}`);
-  }
-
-  async switchTeam(anyID: string) {
-    await this.rcon.execute(`AdminForceTeamChange "${anyID}"`);
   }
 
   async disbandSquad(teamID: string, squadID: string) {

@@ -1,10 +1,10 @@
 import { expect, beforeEach, describe, it, jest } from '@jest/globals';
 import { RconSquad } from './rcon-squad';
-import { Rcon } from './rcon';
+import { Rcon } from '../rcon/rcon';
 import pino from 'pino';
 
 
-jest.mock('./rcon');
+jest.mock('../rcon/rcon');
 
 // // Create a mock for pino logger
 // // const mockLogger = {
@@ -68,4 +68,28 @@ ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277
 
     expect(await squadRcon.getListPlayers()).toMatchSnapshot();
   });
+
+  it('getSquads', async () => {
+    const value = `----- Active Squads -----
+Team ID: 1 (Irregular Battle Group)
+ID: 1 | Name: Squad 1 | Size: 3 | Locked: False | Creator Name: stefjimanez76 | Creator Online IDs: EOS: 0002d1a8ee534edab8f366b826c1abf3 steam: 76561198214250793
+ID: 2 | Name: TWS | Size: 3 | Locked: False | Creator Name: Pika !!! | Creator Online IDs: EOS: 00020817daeb4e2faf717bdeeb18a9da steam: 76561197996303481
+Team ID: 2 (Manticore Security Task Force)
+ID: 1 | Name: SPEC OPS TWS | Size: 9 | Locked: False | Creator Name: Amzer | Creator Online IDs: EOS: 0002eca389864a621f1a51e2722df6be steam: 76561199594212551
+ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator Online IDs: EOS: 00021617235142d796774a04ed3d82fd steam: 76561199579221103
+`;
+    mockedRcon.execute.mockResolvedValue(value);
+
+    expect(await squadRcon.getSquads()).toMatchSnapshot();
+  });
+
+  it('getNextMap: mapvote', async () => {
+    mockedRcon.execute.mockResolvedValue("Next map is not defined");
+
+    expect(await squadRcon.getSquads()).toMatchSnapshot();
+  });
+
+  // todo: test next map when defined.
+  // todo: check ban/kick/disolve squad when incorrect parameters
+  //       or when player already left the server.
 });

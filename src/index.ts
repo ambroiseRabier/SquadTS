@@ -2,7 +2,7 @@ import { SquadServer } from './squad-server';
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 import { Rcon } from './rcon/rcon';
-import { RconSquad } from './rcon/rcon-squad';
+import { RconSquad } from './rcon-squad/rcon-squad';
 import chalk from 'chalk';
 import { loadConfigFiles } from './config/load-config';
 import { resolveConfigsPath } from './config/resolve-configs-path';

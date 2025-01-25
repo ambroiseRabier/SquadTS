@@ -1,4 +1,4 @@
-import { RconSquad } from './rcon/rcon-squad';
+import { RconSquad } from './rcon-squad/rcon-squad';
 import { Logger } from "pino";
 
 
@@ -14,8 +14,10 @@ export class SquadServer {
     await this.rcon.connect();
 
     // console.log(await this.rcon.getCurrentMap());
-    console.log(await this.rcon.getListPlayers());
+    // console.log(await this.rcon.getListPlayers());
     // console.log(await this.rcon.getSquads());
+    // console.log(await this.rcon.getNextMap());
+    // console.log(await this.rcon.broadcast("coucou dit l'oiseau"));
 
     // await this.rcon.getCurrentMap()
     // await this.rcon.getListPlayers()

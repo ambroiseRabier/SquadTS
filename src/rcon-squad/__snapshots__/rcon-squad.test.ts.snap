@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`rcon-squad getListPlayers 1`] = `
+[
+  {
+    "eosID": "0002fac23f7e47a682750a2b969b3701",
+    "isLeader": false,
+    "playerID": 3,
+    "squadID": null,
+    "steamID": "76561198080109192",
+    "teamID": 1,
+  },
+  {
+    "eosID": "0002d291d3f04069b0f5d3f11be15888",
+    "isLeader": false,
+    "playerID": 12,
+    "squadID": 1,
+    "steamID": "76561198012236668",
+    "teamID": 1,
+  },
+  {
+    "eosID": "000245c2ab79457c8f5c1d36e38e2f12",
+    "isLeader": false,
+    "playerID": 16,
+    "squadID": null,
+    "steamID": "76561198002231710",
+    "teamID": 2,
+  },
+  {
+    "eosID": "0002ece389164a229f1a11e2722df6be",
+    "isLeader": true,
+    "playerID": 1,
+    "squadID": 1,
+    "steamID": "76561199394112353",
+    "teamID": 2,
+  },
+]
+`;
+
+exports[`rcon-squad getSquads 1`] = `
+[
+  {
+    "creatorName": "stefjimanez76",
+    "creator_ids": " EOS: 0002d1a8ee534edab8f366b826c1abf3 steam: 76561198214250793",
+    "eosID": "0002d1a8ee534edab8f366b826c1abf3",
+    "locked": "False",
+    "size": "3",
+    "squadID": 1,
+    "squadName": "Squad 1",
+    "steamID": "76561198214250793",
+    "teamID": null,
+    "teamName": null,
+  },
+  {
+    "creatorName": "Pika !!!",
+    "creator_ids": " EOS: 00020817daeb4e2faf717bdeeb18a9da steam: 76561197996303481",
+    "eosID": "00020817daeb4e2faf717bdeeb18a9da",
+    "locked": "False",
+    "size": "3",
+    "squadID": 2,
+    "squadName": "TWS",
+    "steamID": "76561197996303481",
+    "teamID": null,
+    "teamName": null,
+  },
+  {
+    "creatorName": "Amzer",
+    "creator_ids": " EOS: 0002eca389864a621f1a51e2722df6be steam: 76561199594212551",
+    "eosID": "0002eca389864a621f1a51e2722df6be",
+    "locked": "False",
+    "size": "9",
+    "squadID": 1,
+    "squadName": "SPEC OPS TWS",
+    "steamID": "76561199594212551",
+    "teamID": null,
+    "teamName": null,
+  },
+  {
+    "creatorName": "kilmol",
+    "creator_ids": " EOS: 00021617235142d796774a04ed3d82fd steam: 76561199579221103",
+    "eosID": "00021617235142d796774a04ed3d82fd",
+    "locked": "False",
+    "size": "8",
+    "squadID": 2,
+    "squadName": "Squad 2",
+    "steamID": "76561199579221103",
+    "teamID": null,
+    "teamName": null,
+  },
+]
+`;
