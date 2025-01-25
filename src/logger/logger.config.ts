@@ -11,7 +11,9 @@ export const loggerOptionsSchema = z.object({
     SquadServer: pinoLevelSchema.default('info'),
     LogParser: pinoLevelSchema.default('info'),
     RCON: pinoLevelSchema.default('info')
-  }).describe(`Define the log levels for each logger, available levels: ${logLevels.join(', ')}`),
+  }).describe(
+    `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
+    `To disable a logger, set it to 'silent'.`),
 
   // todo: Not worth it ? Also need to provide proper error response if wrong color given.
   // colors: z.object({

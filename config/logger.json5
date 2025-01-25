@@ -1,5 +1,6 @@
 {
-  // Define the log levels for each logger, available levels: trace, debug, info, warn, error, fatal
+  // Define the log levels for each logger, available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to 'silent'.
   verboseness: {
     SquadServer: 'info',
     LogParser: 'info',

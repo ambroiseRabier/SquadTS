@@ -66,3 +66,7 @@ log parsing lib or some better way to handle logs ?
 ---
 
 find a way to automatically detect unparsed logs or variation of logs (when Squad update)
+
+---
+
+for ci, ts-node generateconfig.ts -f

@@ -57,7 +57,11 @@ export function addCommentJson5Zod(
       // If a description is available, add it as a comment
       if (description) {
         const indent = getIndent(line); // Match the current line's indentation
-        commentedLines.push(`${indent}// ${description}`); // Add comment
+        const multiLineDescription = description
+          .split("\n")
+          .map(line => `${indent}// ${line}`)
+          .join("\n");
+        commentedLines.push(multiLineDescription); // Add comment(s)
       }
     }
 

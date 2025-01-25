@@ -28,13 +28,12 @@ interface Player {
 export class RconSquad {
   public readonly events: SquadEvents<{player: Player}>;
   public readonly chatCommandEvent: EventEmitter = new EventEmitter();
-  public players: Player[] = [];
+  public players: Player[] = []; // todo: how about making a behavior subject to cache value, with a regular update
   // eosId and Date
   private adminsInAdminCam = new Map<string, Date>();
 
   constructor(
-    private readonly rcon: Rcon,
-    private readonly logger: Logger)
+    private readonly rcon: Rcon)
   {
 
     // Populate events dictionary with Subject

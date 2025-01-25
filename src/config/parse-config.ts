@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { rconOptionsSchema } from '../rcon/rcon';
-import { loggerOptionsSchema } from './logger.config';
+import { loggerOptionsSchema } from '../logger/logger.config';
+import { rconOptionsSchema } from '../rcon/rcon.config';
 
 export const optionsSchema = z.object({
   rcon: rconOptionsSchema,
