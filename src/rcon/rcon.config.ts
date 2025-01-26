@@ -1,12 +1,8 @@
 import { z } from 'zod';
-
-const ipRegex = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+import { ipv4Schema } from '../config/common-validators';
 
 export const rconOptionsSchema = z.object({
-  host: z
-    .string()
-    .min(1, "Host is required")
-    .regex(ipRegex, "Invalid IPv4")
+  host: ipv4Schema
     .describe("The IP of the server."),
   port: z
     .number()

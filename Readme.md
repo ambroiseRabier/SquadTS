@@ -73,3 +73,22 @@ find a way to automatically detect unparsed logs or variation of logs (when Squa
 ---
 
 for ci, ts-node generateconfig.ts -f
+
+
+---
+
+license, stay the same
+
+---
+
+le double package.json se discute, mais possible ss type module ?
+
+---
+
+IMPORTANT:
+Il faut que je change ftp-tail pour non pas pour avoir un sleep, mais pour calculer
+le sleep en function du temps que le readFile et downloadfile on prit.
+
+---
+
+any duplicate in reading log regarding rcon execute ?
