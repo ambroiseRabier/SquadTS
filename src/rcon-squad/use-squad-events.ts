@@ -22,6 +22,7 @@ export function useSquadEvents(chatPacketEvent: Subject<string>) {
 
   configEvents();
 
+  // todo: ts les pipe faut les renvoyer sinon cela fait rien, c comme concat ds array...
   function configEvents() {
     // get player for each.
     for (let event of Object.values(events) as Subject<any>[]) { // Typing break here sadly

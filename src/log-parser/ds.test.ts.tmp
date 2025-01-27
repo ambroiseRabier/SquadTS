@@ -1,0 +1,24 @@
+import { it } from '@jest/globals';
+import { map, Subject } from 'rxjs';
+
+it('should ', () => {
+  const sub: Subject<number> = new Subject();
+  const sub2 = sub.pipe(
+    map(count => {return ''})
+  );
+
+  sub2.subscribe(count => {console.log(typeof count)})
+  sub.subscribe(count => {console.log(typeof count)})
+  sub.next(1);
+});
+
+/*"C:\Program Files\nodejs\node.exe" --require "C:\Program Files\JetBrains\WebStorm 2018.3.6\plugins\javascript-plugin\helpers\jest-intellij\lib\jest-intellij-stdin-fix.js" L:\PROJECTS_3\WEB\SquadTS\node_modules\jest-cli\bin\jest.js --colors --reporters "C:\Program Files\JetBrains\WebStorm 2018.3.6\plugins\javascript-plugin\helpers\jest-intellij\lib\jest-intellij-reporter.js" --verbose "--testNamePattern=^should $" --runTestsByPath L:\PROJECTS_3\WEB\SquadTS\src\log-parser\ds.test.ts
+  console.log
+    string
+
+      at Object.next (src/log-parser/ds.test.ts:10:36)
+
+  console.log
+    number
+
+      at Object.next (src/log-parser/ds.test.ts:11:35)*/

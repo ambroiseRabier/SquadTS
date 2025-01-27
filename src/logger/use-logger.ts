@@ -32,6 +32,10 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     rconLogger: logger.child({}, {
       msgPrefix: chalk.cyanBright('[RCON] '),
       level: verboseness.RCON
+    }),
+    logParserLogger: logger.child({}, {
+      msgPrefix: chalk.blueBright('[LogParser] '),
+      level: verboseness.LogParser
     })
   };
 }

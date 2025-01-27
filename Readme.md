@@ -92,3 +92,19 @@ le sleep en function du temps que le readFile et downloadfile on prit.
 ---
 
 any duplicate in reading log regarding rcon execute ?
+
+---
+
+breaking change note: yen a plein, j'ai arreter de compter... bref, bon j'enleve les "raw" des logs, c pas une bonne pratique.
+si le format de squad server change, c l'intermediare squadTS/JS qui doit s'en occuper pas les plugins.
+
+---
+
+bug fix (Todo): on devrait plus avoir de undefined.tmp sur le serveur avec ftp-tail
+ftp-tail le typing etait chiant a ajouter en d.ts, je suis pas sur la tsconfig qui va bien.
+faut changer le sleep dedans pour prendre en compte le temps de downlaod et read.
+faut changer la methode watch pr enelver son param comme dit plus haut
+
+---
+
+plugin: roulette russe ? (kick) hehe
