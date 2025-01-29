@@ -1,74 +1,44 @@
 import { Logger } from "pino";
 import { RconSquad } from './rcon-squad/use-rcon-squad';
-import { Options } from './config/parse-config';
-import { LogParser, logParserRules } from './log-parser/use-log-parser';
-import { Subject } from 'rxjs';
-import { Player } from './rcon-squad/use-squad-events';
+import { Options } from './config/config.schema';
+import { LogParser } from './log-parser/use-log-parser';
+import { filter, map } from 'rxjs';
+import { isEvent } from './log-parser/log-parser-helpers';
 
-
-type ExtractGroupNames<T extends string> =
-  T extends `${string}(?<${infer GroupName}>${string})${infer Rest}`
-    ? GroupName | ExtractGroupNames<Rest>
-    : never;
-
-type ObjectFromRegexStr<T extends string> = {
-  [K in ExtractGroupNames<T>]: string;
-};
-
-// type CasesToEvents<TCases extends Record<string, string>> = {
-//   [K in keyof TCases]: Subject<ObjectFromRegexStr<TCases[K]>>;
-// };
-//
-// type CasesToEvents2<TCases extends [string, string][]> = {
-//   [K in keyof TCases[number][0]]: Subject<ObjectFromRegexStr<TCases[number][1]>>;
-// };
-
-// type Helper<T extends typeof logRules[number][0]> = Extract<
-//   typeof logRules[number],
-//   [T, string]
-// >;
-
-export type SquadServer = ReturnType<typeof useSquadServer>;
-
-//
-// type CasesToEvents<TCases extends Record<string, string>, AdditionalData> = {
-//   [K in keyof TCases]: Subject<{
-//     date: Date;
-//     chainID: string;
-//     data: ObjectFromRegexStr<TCases[K]>
-//   }>;
-// };
-
-type CasesToEvents2<TCases extends ReadonlyArray<readonly [string, string]>> = {
-  [K in TCases[number] as K[0]]: Subject<ObjectFromRegexStr<K[1]>>;
-};
-
-
-// export type SquadLogEvents = CasesToEvents2<typeof logParserRules>;
-export type SquadLogEvents = {
-  [K in (typeof logParserRules)[number] as K[0]]: ObjectFromRegexStr<K[1]>;
-};
-// const j: SquadLogEvents;
-// j.adminBroadcast.next(v =>{
-//   v
-// })
-// j.roundEnded.next(v => {v.})
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
 export function useSquadServer(logger: Logger, rcon: RconSquad, logParser: LogParser, options: Options) {
-  // const events = Object.fromEntries(logRules.map(([eventName, pattern]) => [eventName, new Subject<ObjectFromRegexStr<Helper<typeof eventName>>>()]));
-
-  // const events: CasesToEvents2<typeof logRules>;
-  // const events = Object.fromEntries(
-  //   // Can't tell why c is seen as any by typescript, the type of eventName is correctly found though.
-  //   logParserRules.map((eventName: any) => [eventName, new Subject()])
-  // ) as SquadLogEvents<{player: Player}>;
+  // const players = [];
+  //
+  // function getPlayerByName(name: string) {
+  //   return players.find(player => player.name === name);
+  // }
 
   return {
-    // ...events,
     rcon,
-    events: logParser.events,
+    events: {
+      ...logParser.events,
+      playerWounded: logParser.events.playerWounded.pipe(
+        // todo async map ok ?
+        map(async data => {
+          return {
+            ...data,
+            victim: await getPlayerByName(data.victimName),
+            // attacker: await getPlayerByEOSID(data.attackerIDs)
+          };
+
+          // data
+          // data.teamkill = data.victim.teamID === data.attacker.teamID && data.victim.eosID !== data.attacker.eosID;
+        })
+      ),
+      teamKill: logParser.events.playerWounded.pipe(
+        map(data => {
+          // data
+          // data.teamkill = data.victim.teamID === data.attacker.teamID && data.victim.eosID !== data.attacker.eosID;
+        })
+      ),
+    },
     watch: async () => {
       logger.info(`Beginning to watch ${options.rcon.host}:${options.rcon.port}...`);
       await rcon.connect();
@@ -87,10 +57,10 @@ export function useSquadServer(logger: Logger, rcon: RconSquad, logParser: LogPa
       // pingSquadJSAPI interessant, recup info sur qui utiliser quel plugin.
 
       // console.log(await this.rcon.getCurrentMap());
-      console.log(await rcon.getListPlayers());
+      // console.log(await rcon.getListPlayers());
       // console.log(await this.rcon.getSquads());
       // console.log(await this.rcon.getNextMap());
-      // console.log(await this.rcon.broadcast("coucou dit l'oiseau"));
+      // console.log(await rcon.broadcast("coucou dit l'oiseau"));
 
       // await this.rcon.getCurrentMap()
       // await this.rcon.getListPlayers()
@@ -98,11 +68,14 @@ export function useSquadServer(logger: Logger, rcon: RconSquad, logParser: LogPa
 
       // await logParser.watch();
 
-      logParser.events.subscribe((next) => {
+      logParser.events.adminBroadcast.subscribe((next) => {
         logger.debug(next);
       })
 
       await logParser.watch();
+
+      // console.log(await rcon.broadcast("bonjour lui répond la corneille"));
+
     },
     unwatch: rcon.disconnect
   } as const;

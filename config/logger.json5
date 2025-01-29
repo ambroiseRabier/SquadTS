@@ -6,4 +6,20 @@
     LogParser: 'info',
     RCON: 'info',
   },
+  // Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP.
+  debugFTP: false,
+  debugLogMatching: {
+    // Enable log matching debug logs, matched line will show as DEBUG, unmatched line will show as WARN.
+    // verboseness.LogParser HAS TO BE set to 'debug' for this to work.
+    // Use this to find test cases for log matching, or to find a potential new event create (after an update of Squad).
+    // Warning: very verbose, only use in development.
+    enabled: false,
+    // Regex used to match line that will be ignored instead of being logged as non matched line.
+    // Reduce the verboseness by ignoring logs you know are not useful to us.
+    // Use this with caution.
+    ignoreRegexMatch: [
+      '^LogEOS: Verbose: \\[LogEOSAntiCheat\\]',
+      '^LogEOSNetworkAuth',
+    ],
+  },
 }

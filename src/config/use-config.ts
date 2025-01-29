@@ -1,9 +1,10 @@
 import { Logger } from 'pino';
 import { resolveConfigsPath } from './resolve-configs-path';
 import { loadConfigFiles } from './load-config';
-import { parseConfig } from './parse-config';
+import { optionsSchema } from './config.schema';
 
-export async function useConfig(logger: Logger, ) {
+
+export async function useConfig(logger: Logger) {
   const configFolder = resolveConfigsPath(process.env.SQUAD_JS_CONFIG_PATH);
 
   // Files loading
@@ -14,8 +15,28 @@ export async function useConfig(logger: Logger, ) {
 
   // Validation
   logger.info('Validating Configuration...');
-  const parsedConfig = await parseConfig(configs);
-  logger.info('Configuration validated.');
 
-  return parsedConfig;
+
+  const parsed = await optionsSchema.safeParseAsync(configs);
+
+
+  // This ridiculous code duplication actually make TS aware that when parsed.success
+  // is true, the config object is not undefined.
+  if (parsed.success) {
+    return {
+      valid: parsed.success,
+      config: parsed.data
+    }
+  } else {
+    const errorMessages = parsed.error.issues.map(
+      (issue) => `- ${issue.path.join('.')}: ${issue.message}`
+    ).join('\n');
+
+    logger.error(errorMessages);
+
+    return {
+      valid: parsed.success,
+      config: parsed.data
+    }
+  }
 }

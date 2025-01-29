@@ -8,10 +8,10 @@ import { Client, StringEncoding } from 'basic-ftp';
 
 // Define the options interface
 interface FTPOptions {
-  host?: string;
-  port?: number;
-  username?: string;
-  password?: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
   secure?: boolean;
   encoding?: string;
   timeout?: number;
@@ -42,12 +42,9 @@ export class FTPTail extends EventEmitter {
     // Set default options.
     this.options = {
       fetchInterval: 1000,
-      tailLastBytes: 10 * 1000,
+      tailLastBytes: 10 * 1024, // todo 1000 or 1024, internet is inconsistent on that x.x
       log: false,
       ...options,
-      ftp: {
-        ...options.ftp,
-      },
     };
 
     // Initialize basic-ftp client.
@@ -76,10 +73,8 @@ export class FTPTail extends EventEmitter {
 
   /**
    * Starts watching a file on the FTP server.
-   * @param filePath Path of the file to watch.
    */
   async watch(): Promise<void> {
-
     // Generate a temporary file path.
     this.tmpFilePath = path.join(
       process.cwd(),
@@ -117,18 +112,24 @@ export class FTPTail extends EventEmitter {
       try {
         const fetchStartTime = Date.now();
 
+        const waitBasedOnStartTime = () => {
+          const howMuchItTook = Date.now() - fetchStartTime;
+          this.log(`It took ${howMuchItTook}ms to fetch.`);
+          return Math.max(0, this.options.fetchInterval - howMuchItTook);
+        };
+
         // Reconnect to the FTP server if disconnected.
         await this.connect();
 
         // Get the file size.
         this.log('Fetching size of file...');
-        const fileSize = await this.client.size(this.options.filepath!);
+        const fileSize = await this.client.size(this.options.filepath);
         this.log(`File size is ${fileSize}.`);
 
         // Skip fetching data if the file size hasn't changed.
         if (fileSize === this.lastByteReceived) {
           this.log('File has not changed.');
-          await this.sleep(this.options.fetchInterval);
+          await this.sleep(waitBasedOnStartTime());
           continue;
         }
 
@@ -142,7 +143,7 @@ export class FTPTail extends EventEmitter {
         this.log(`Downloading file with offset ${this.lastByteReceived}...`);
         await this.client.downloadTo(
           fs.createWriteStream(this.tmpFilePath, { flags: 'w' }),
-          this.options.filepath!,
+          this.options.filepath,
           this.lastByteReceived
         );
 
@@ -156,7 +157,7 @@ export class FTPTail extends EventEmitter {
 
         if (data.length === 0) {
           this.log('No data was fetched.');
-          await this.sleep(this.options.fetchInterval);
+          await this.sleep(waitBasedOnStartTime());
           continue;
         }
 
@@ -168,9 +169,7 @@ export class FTPTail extends EventEmitter {
 
         const fetchTime = Date.now() - fetchStartTime;
         this.log(`Fetch loop took ${fetchTime}ms.`);
-        // todo: just wanna check
-        console.log(`Fetch loop took ${fetchTime}ms.`);
-        await this.sleep(Math.min(0, this.options.fetchInterval - fetchTime));
+        await this.sleep(waitBasedOnStartTime());
       } catch (error) {
         this.emit('error', error);
         this.log(`Error in fetch loop: ${(error as Error).stack}`);
@@ -192,7 +191,10 @@ export class FTPTail extends EventEmitter {
     if (!this.client.closed) return;
 
     this.log('Connecting to FTP server...');
-    await this.client.access(this.options.ftp);
+    await this.client.access({
+      user: this.options.ftp.username,
+      ...this.options.ftp
+    });
     this.emit('connected');
     this.log('Connected to FTP server.');
   }

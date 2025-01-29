@@ -6,7 +6,8 @@
   "scripts": {
     "run": "ts-node src/index.ts",
     "watch": "ts-node-dev --respawn src/index.ts",
-    "test": "jest",
+    "test": "jest --maxWorkers=50%",
+    "test:ci": "jest --runInBand",
     "build": "tsc",
     "run:js": "node dist/index.js",
     "lint": "eslint ./src",

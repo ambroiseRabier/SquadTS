@@ -26,7 +26,8 @@
   },
   "include": [
     "src",
-    "scripts"
+    "scripts",
+    "plugins"
   ],
   "exclude": [
     "**/*.test.ts",

@@ -1,4 +1,4 @@
-import { optionsSchema } from '../src/config/parse-config';
+import { optionsSchema } from '../src/config/config.schema';
 import { z } from 'zod';
 import { generateJson5Commented } from './generate-config/generate-json5-commented';
 import fs from 'node:fs';
@@ -32,7 +32,7 @@ async function saveFiles() {
   for (const key in optionsSchema.shape) {
     const field = (optionsSchema as z.ZodObject<any>).shape[key];
 
-    if (field instanceof z.ZodObject) {
+    if (field instanceof z.ZodObject || field instanceof z.ZodDiscriminatedUnion) {
       const json5Commented = generateJson5Commented(field);
 
       // Define the file path
@@ -59,7 +59,7 @@ async function saveFiles() {
       fs.writeFileSync(filePath, json5Commented, 'utf8');
       console.log(`File saved: ${chalk.blue.bold(filePath)}`);
     } else {
-      throw new Error(`Unsupported field type (only use objects at base level of Zod options schema): ${JSON.stringify(field)}`);
+      throw new Error(`[Config generator] Unsupported ZOD field type (${(field as any).constructor.name}): ${JSON.stringify(field)}`);
     }
   }
 }

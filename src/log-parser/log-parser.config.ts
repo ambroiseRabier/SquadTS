@@ -2,7 +2,7 @@ import { z } from 'zod';
 import fs from 'node:fs';
 import { ipv4Schema } from '../config/common-validators';
 
-const isValidFilePath = (filePath: string) => {
+const isValidLocalFilePath = (filePath: string) => {
   try {
     // Use path and fs modules to check if it's a valid path
     return fs.existsSync(filePath); // Ensure the file path exists
@@ -20,50 +20,59 @@ const fetchIntervalSchema = z
 const maxTempFileSizeSchema = z
   .number()
   .int()
-  .default(5 * 1000 * 1000)
+  .default(5 * 1000 * 1024)
   .describe("The maximum temporary file size in bytes. (probably leave default ?)")
 
-export const logParserSchema = z.object({
-  logFile: z
+
+const logFileSchema = z
+  .string()
+  .nonempty()
+  .describe(
+    `The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"`
+  );
+
+const ftpSchema = z.object({
+  host: ipv4Schema,
+  port: z
+    .number()
+    .int()
+    .default(21)
+    .describe("FTP server port usually is 21. SFTP is 22."),
+  username: z
     .string()
-    .nonempty()
-    .refine(isValidFilePath, "Invalid file path. File does not exist.")
-    .describe(`The folder where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs"`),
-  ftp: z.object({
-    host: ipv4Schema,
-    port: z
-      .number()
-      .int()
-      .default(21),
-    username: z
-      .string()
-      .nonempty(),
-    password: z
-      .string(),
-    fetchInterval: fetchIntervalSchema,
-    maxTempFileSize: maxTempFileSizeSchema,
-  }).describe("FTP configuration for reading logs remotely."),
-  sftp: z.object({
-    host: ipv4Schema,
-    port: z
-      .number()
-      .int()
-      .default(22),
-    username: z
-      .string()
-      .nonempty(),
-    password: z
-      .string(),
-    fetchInterval: fetchIntervalSchema,
-    maxTempFileSize: maxTempFileSizeSchema,
-  }).describe("SFTP configuration for reading logs remotely."),
-  mode: z
-    .enum(['tail','sftp', 'ftp'])
-    .default('ftp')
-    .describe(`If you use a hosted server like awn.gg, you should use ftp or sftp, if the server run locally, use tail:
+    .nonempty(),
+  password: z
+    .string(),
+  fetchInterval: fetchIntervalSchema,
+  maxTempFileSize: maxTempFileSizeSchema,
+}).describe("FTP or SFTP configuration for reading logs remotely.");
+
+
+// Discriminated Union for the `mode` field
+export const logParserSchema = z.discriminatedUnion("mode", [
+  // Place FTP as first item, because zod-empty will only take first element of discriminatedUnion,
+  // Meaning that the documentation (`describe()`) should be placed on first element.
+  z.object({
+    mode: z
+      .literal("ftp")
+      .describe(`If you use a hosted server like awn.gg, you should use ftp or sftp, if the server run locally, use tail:
 - "tail" will read from a local log file
 - "ftp" will read from a remote log file using the FTP protocol 
 - "sftp" will read from a remote log file using the SFTP protocol`),
-});
+    logFile: logFileSchema,
+    ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
+  }),
+  z.object({
+    mode: z.literal("sftp"),
+    logFile: logFileSchema,
+    ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
+  }),
+  z.object({
+    mode: z.literal("tail"),
+    logFile: logFileSchema.refine(isValidLocalFilePath, 'Invalid local file path. File should exist in "tail" mode.'),
+  }),
+]);
 
 export type LogParserConfig = z.infer<typeof logParserSchema>;
+
+

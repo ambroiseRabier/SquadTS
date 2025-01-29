@@ -1,6 +1,6 @@
 import pretty from 'pino-pretty';
 import { Logger, pino } from 'pino';
-import { Options } from '../config/parse-config';
+import { Options } from '../config/config.schema';
 import chalk from 'chalk';
 
 const isDev = process.env.NODE_ENV !== 'production';

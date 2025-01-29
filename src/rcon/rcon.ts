@@ -49,9 +49,6 @@ export class Rcon {
     this.client.on('data', this.decodeData.bind(this));
     this.client.on('close', this.onClose.bind(this));
     this.client.on('error', this.onError.bind(this));
-
-    // Internal variables
-    // ... todo ?
   }
 
 

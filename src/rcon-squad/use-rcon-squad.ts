@@ -8,7 +8,8 @@ export type RconSquad = ReturnType<typeof useRconSquad>;
 
 export function useRconSquad(rcon: Rcon) {
   return {
-    ...useRconSquadExecute(rcon.execute),
+    // Since rcon is a class, it needs to be passed his own context, or this inside execute will be undefined.
+    ...useRconSquadExecute(rcon.execute.bind(rcon)),
     ...useSquadEvents(rcon.chatPacketEvent), // todo event here instead of overriding in
 
     connect: async () => {

@@ -108,3 +108,52 @@ faut changer la methode watch pr enelver son param comme dit plus haut
 ---
 
 plugin: roulette russe ? (kick) hehe
+PLYUGIN: auto balance, sur vote, et place les gens de meme team ensemble en options 
+
+
+## Log parser max file size
+
+your probably want to reduce to 1MB instead o 10MB when developping.
+
+---
+
+prio:
+
+```
+[
+    "AltChecker",
+    "CBLInfo",
+    "DiscordAdminBroadcast",
+    "DiscordAdminCamLogs",
+    "DiscordAdminRequest",
+    "DiscordChat",
+    "DiscordFOBHABExplosionDamage",
+    "DiscordKillFeed",
+    "DiscordRcon",
+    "DiscordRoundWinner",
+    "DiscordRoundEnded",
+    "DiscordServerStatus",
+    "DiscordSquadCreated",
+    "DiscordTeamkill",
+    "PersistentEOSIDtoSteamID",
+    "SquadNameValidator",
+    "FileLogger",
+    "SocketIOAPI",
+    "Switch",
+    "MaxPlayerInSquad"
+]
+```
+knife truc aussi
+
+
+---
+
+unmount inutile, ou.. file watch et enlever plugin ?
+
+---
+
+plugin, supporter ancien plugins ou pas ?
+entre les deux, faire un adapter pour supporter les anciens plugins, en supportant un format plus neuf aussi.
+
+bon, le shema zod, on va le req pour les nouveaux plugins.
+permet d'envoyer le shema ds la fc composition direct

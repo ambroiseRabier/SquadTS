@@ -3,7 +3,7 @@ import JSON5 from 'json5';
 import { addCommentJson5Zod } from './add-comment-json5-zod';
 import { z } from 'zod';
 
-export function generateJson5Commented(schema: z.ZodObject<any>) {
+export function generateJson5Commented(schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>) {
   /**
    * See https://github.com/colinhacks/zod/discussions/1953
    *

@@ -40,13 +40,11 @@ describe('Squad server', () => {
   // We are just making sure fields are available to plugins developer.
   // TS should not transpile if there is anything wrong, but once TS is fixed this test should always pass.
   it('dev API', async () => {
-    // useSquadServer(jest.fn(), jest.fn(), jest.fn(), jest.fn())
-    // expect(sum(1, 2)).toBe(3);
     await squadServer.rcon.getListPlayers();
     await squadServer.rcon.broadcast('hello');
 
     squadServer.events.adminBroadcast.subscribe((broad) => {
-      broad.message
+      broad.message.charAt(0); // is string...
     });
     // todo test will pass if jest is not set to fail on missing expect ?
   });

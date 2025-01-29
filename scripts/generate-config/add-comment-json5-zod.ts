@@ -1,7 +1,8 @@
 // Generate a description map
 import { z } from 'zod';
 
-function getDescriptionsFromSchema(schema: z.ZodObject<any>, prefix = ""): Record<string, string> {
+/*function getDescriptionsFromSchema(schema: z.ZodObject<any>, prefix = ""): Record<string, string> {
+  const shape2: z.ZodDiscriminatedUnion<any, any>;
   const shape = schema.shape;
   const descriptions: Record<string, string> = {};
 
@@ -20,6 +21,40 @@ function getDescriptionsFromSchema(schema: z.ZodObject<any>, prefix = ""): Recor
   }
 
   return descriptions;
+}*/
+
+function getDescriptionsFromSchema(
+  schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>,
+  prefix = ""
+): Record<string, string> {
+  const descriptions: Record<string, string> = {};
+
+  if (schema instanceof z.ZodDiscriminatedUnion) {
+    // Handle discriminated unions by iterating through all its options
+    for (const option of schema.options) {
+      const nestedDescriptions = getDescriptionsFromSchema(option, prefix); // Recursively collect descriptions for each option
+      Object.assign(descriptions, nestedDescriptions);
+    }
+  } else if (schema instanceof z.ZodObject) {
+    // Handle Zod objects
+    const shape = schema.shape;
+
+    for (const key in shape) {
+      const field = shape[key];
+
+      if (field?._def?.description) {
+        descriptions[prefix + key] = field._def.description; // Add field description
+      }
+
+      // If the field is a nested Zod object or a discriminated union, handle it
+      if (field instanceof z.ZodObject || field instanceof z.ZodDiscriminatedUnion) {
+        const nestedDescriptions = getDescriptionsFromSchema(field, `${prefix}${key}.`);
+        Object.assign(descriptions, nestedDescriptions);
+      }
+    }
+  }
+
+  return descriptions;
 }
 
 // Helper to get indentation of a line
@@ -33,7 +68,7 @@ function getIndent(line: string): string {
  * Only work on pretty JSON.
  */
 export function addCommentJson5Zod(
-  schema: z.ZodObject<any>,
+  schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>,
   json5String: string
 ): string {
   // Generate description map from the schema
