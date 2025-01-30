@@ -1,5 +1,5 @@
 import { LogParserConfig } from './log-parser.config';
-import { filter, map, Subject, tap } from 'rxjs';
+import { filter, map, share, Subject, tap } from 'rxjs';
 import { Logger } from 'pino';
 import { parse } from 'date-fns';
 import { logParserRules } from './rules';
@@ -74,6 +74,9 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
     tap(match => {
       // this.linesPerMinute++;
     }),
+    // `share` ensure everything above is called once, regardless of how many downstream subscriptions there are.
+    // There is no need to repeat aboves steps for every stream, and we don't want multiple times the same logs.
+    share()
   );
 
   return {
