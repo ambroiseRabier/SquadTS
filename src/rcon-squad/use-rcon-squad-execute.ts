@@ -1,6 +1,7 @@
 import { Rcon } from '../rcon/rcon';
 import { extractIDs } from '../rcon/id-parser';
 import { omit } from 'lodash';
+import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
 
 
 export function useRconSquadExecute(execute: Rcon['execute']) {
@@ -23,20 +24,21 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
 
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
+      const regexStr = "^ID: (?<playerID>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<name>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$"
+      const regex = new RegExp(regexStr);
 
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
       return (response ?? '')
         .split('\n')
         .map((line) => (
-          line.match(
-            /^ID: (?<playerID>\d+) \| Online IDs:(?<ids>[^|]+)\| Name: (?<name>.+) \| Team ID: (?<teamID>\d|N\/A) \| Squad ID: (?<squadID>\d+|N\/A) \| Is Leader: (?<isLeader>True|False) \| Role: (?<role>.+)$/
-          )
+          regex.exec(line)
         ))
-        .filter((match): match is RegExpMatchArray => match !== null)
+        .filter((match): match is NonNullable<typeof match> => match !== null)
         .map((match) => {
-          const {ids, isLeader, playerID, squadID, teamID} = match!.groups!;
+          const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
+          const { isLeader, teamID, squadID, ids } = groups;
           return {
-            playerID: playerID,
+            ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
             teamID: teamID !== 'N/A' ? teamID : null,
             squadID: squadID !== 'N/A' ? squadID : null,
@@ -46,35 +48,47 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
     },
 
     getSquads: async () => {
-      const responseSquad = await execute('ListSquads');
+      const response = await execute('ListSquads');
+      const regexStr = "ID: (?<squadID>\\d+) \\| Name: (?<squadName>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)";
+      const regex = new RegExp(regexStr);
+      let side: {
+        teamID: string;
+        teamName: string;
+      };
 
-      if (!responseSquad || responseSquad.length < 1) {
-        return [];
-      }
-
-      const squadRegex = /ID: (?<squadID>\d+) \| Name: (?<squadName>.+) \| Size: (?<size>\d+) \| Locked: (?<locked>True|False) \| Creator Name: (?<creatorName>.+) \| Creator Online IDs:(?<creator_ids>[^|]+)/;
 
       // Using functional approach (.map) is preferred as typing can be inferred.
-      return responseSquad
+      // Each line is either a player or a Team. (and there is only two teams)
+      return (response ?? '')
         .split('\n')
+        // Assume map run in order.
         .map((line) => {
-          const match = line.match(squadRegex);
+          const match = regex.exec(line);
           const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
+
+          if (matchSide) {
+            // check for yourself, this is ok. Let's keep it simple here
+            side = matchSide.groups! as any;
+          }
 
           if (!match) {
             // same as continue in a for loop when combined with filter null bellow
             return null;
           }
 
+          const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
+
           return {
-            ...omit(match.groups!, 'squadID'),
-            squadID: match.groups!.squadID,
-            teamID: matchSide && matchSide.groups!.teamID,
-            teamName: matchSide && matchSide.groups!.teamName,
-            // ...extractIDs(match.groups!.creator_ids, 'creator'),
-            // todo breaking change (you may revert using git history if necessary), note: I kind of like to specify creator, as
-            // it could easily be confused with squad leader (supposing there is actually a difference)
-            ...extractIDs(match.groups!.creator_ids),
+            ...omit(groups, ['creator_ids', 'creatorName', 'size', 'locked']),
+            size: parseInt(groups.size),
+            locked: groups.locked === 'True',
+            // assume that map process in order.
+            ...side,
+            // creator ids is not to be confused with squad leader ids.
+            creator: {
+              ...extractIDs(groups.creator_ids),
+              name: groups.creatorName,
+            },
           };
         })
         // Remove null entries
