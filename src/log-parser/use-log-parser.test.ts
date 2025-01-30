@@ -33,7 +33,7 @@ describe('Log Parser events', () => {
           username: 'user',
           password: 'pass',
           fetchInterval: 300,
-          maxTempFileSize: 1024,
+          initialTailSize: 1024,
         },
         mode: 'ftp',
       },

@@ -15,7 +15,7 @@
     password: '',
     // The interval in milliseconds to fetch new logs. If you come from SquadJS, default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.
     fetchInterval: 1000,
-    // The maximum temporary file size in bytes. (probably leave default ?)
-    maxTempFileSize: 5120000,
+    // Initial tail size in bytes. Default is 5MB. This is only used when SquadTS start.
+    initialTailSize: 5120000,
   },
 }

@@ -17,11 +17,13 @@ const fetchIntervalSchema = z
   .default(1000) // todo: voir readme, faut retravailler ftp-tail
   .describe("The interval in milliseconds to fetch new logs. If you come from SquadJS, default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.")
 
-const maxTempFileSizeSchema = z
+// Note: Compare to SquadJS, maxTempFileSize was badly name, as actually, it only is used on first tail,
+// after that, if you have for example, a 30min disconnect, even if the file to download is 80mb it will do it.
+const initialTailSizeSchema = z
   .number()
   .int()
   .default(5 * 1000 * 1024)
-  .describe("The maximum temporary file size in bytes. (probably leave default ?)")
+  .describe("Initial tail size in bytes. Default is 5MB. This is only used when SquadTS start.")
 
 
 const logFileSchema = z
@@ -44,7 +46,7 @@ const ftpSchema = z.object({
   password: z
     .string(),
   fetchInterval: fetchIntervalSchema,
-  maxTempFileSize: maxTempFileSizeSchema,
+  initialTailSize: initialTailSizeSchema,
 }).describe("FTP or SFTP configuration for reading logs remotely.");
 
 

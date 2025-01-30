@@ -16,6 +16,11 @@ describe('parseConfig', () => {
           LogParser: 'info',
           RCON: 'info',
           SquadServer: 'info'
+        },
+        debugFTP: false,
+        debugLogMatching: {
+          enabled: false,
+          ignoreRegexMatch: ['^LogEOS:']
         }
       },
       logParser: {
@@ -26,7 +31,7 @@ describe('parseConfig', () => {
           username: 'exampleUser',
           password: 'examplePassword',
           fetchInterval: 5000,
-          maxTempFileSize: 1048576
+          initialTailSize: 1048576
         },
         mode: 'ftp'
       }

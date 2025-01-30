@@ -21,6 +21,9 @@ export const logParserRules = [
   ["playerDied", "^LogSquadTrace: \\[DedicatedServer](?:ASQSoldier::)?Die\\(\\): Player:(?<victimName>.+) KillingDamage=(?:-)*(?<damage>[0-9.]+) from (?<attackerPlayerController>[A-z_0-9]+) \\(Online IDs:(?<ids>[^)|]+)\\| Contoller ID: ([\\w\\d]+)\\) caused by (?<weapon>[A-z_0-9-]+)_C"],
 
   ["playerDisconnected", "^LogNet: UChannel::Close: Sending CloseBunch\\. ChIndex == [0-9]+\\. Name: \\[UChannel\\] ChIndex: [0-9]+, Closing: [0-9]+ \\[UNetConnection\\] RemoteAddr: (?<ip>[\\d.]+):[\\d]+, Name: EOSIpNetConnection_[0-9]+, Driver: GameNetDriver EOSNetDriver_[0-9]+, IsServer: YES, PC: (?<playerController>[^ ]+PlayerController_C_[0-9]+), Owner: [^ ]+PlayerController_C_[0-9]+, UniqueId: RedpointEOS:(?<eosID>[\\d\\w]+)"],
+
+  // todo: Ok so this one is strange, in SquadJS, it get transform into playerConnected
+  // seems like it want to track player that try to join but fail ?
   ["playerJoinSucceeded", "^LogNet: Join succeeded: (?<playerSuffix>.+)"],
   ["playerPossess", "^LogSquadTrace: \\[DedicatedServer](?:ASQPlayerController::)?OnPossess\\(\\): PC=(?<playerSuffix>.+) \\(Online IDs:(?<ids>[^)]+)\\) Pawn=(?<possessClassname>[A-z0-9_]+)_C"],
 

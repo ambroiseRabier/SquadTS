@@ -18,8 +18,15 @@
     // Reduce the verboseness by ignoring logs you know are not useful to us.
     // Use this with caution.
     ignoreRegexMatch: [
-      '^LogEOS: Verbose: \\[LogEOSAntiCheat\\]',
-      '^LogEOSNetworkAuth',
+      '^LogEOS:',
+      '^LogEOSNetworkAuth:',
+      '^LogSquadCommon: SQCommonStatics Check Permissions',
+      '^LogEOSAntiCheat::',
+      '^LogSquad: RotorWashEffectListener::EndPlay \\(reason 0\\)',
+      "^LogEOSSessionListening: Verbose: Session 'GameSession'",
+      '^LogSquadOnlineServices: Icmp ping failed',
+      '^LogRCONServer: \\d+:FRCONSocket::CloseConnection\\(\\):',
+      '^LogRCONServer: \\d+:FRCONSocket::Run\\(\\):',
     ],
   },
 }

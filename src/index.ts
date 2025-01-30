@@ -5,6 +5,7 @@ import { useConfig } from './config/use-config';
 import { useRconSquad } from './rcon-squad/use-rcon-squad';
 import { useLogParser } from './log-parser/use-log-parser';
 import { useLogReader } from './log-parser/use-log-reader';
+import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -33,9 +34,10 @@ async function main() {
   const squadRcon = useRconSquad(rcon);
   const logReader = useLogReader(config.logParser, config.logger.debugFTP);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
+  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser);
 
   logger.info('Creating SquadServer...');
-  const server = useSquadServer(squadServerLogger, squadRcon, logParser, config);
+  const server = useSquadServer(squadServerLogger, squadRcon, logParser, cachedGameStatus, config);
 
   // todo:
   // - connectors

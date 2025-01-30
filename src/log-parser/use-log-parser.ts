@@ -6,6 +6,8 @@ import { logParserRules } from './rules';
 import { isEvent, parseLogLine } from './log-parser-helpers';
 import { LogReader } from './use-log-reader';
 import { LoggerOptions } from '../logger/logger.config';
+import { extractIDs } from '../rcon/id-parser';
+import { omit } from 'lodash';
 
 
 export type LogParser = ReturnType<typeof useLogParser>;
@@ -91,7 +93,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       ),
       playerConnected: events.pipe(
         filter((obj) => isEvent(obj, 'playerConnected')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => ({
+          ...omit(lineObj, ['ids']),
+          ...extractIDs(lineObj.ids)
+        }))
       ),
       playerDamaged: events.pipe(
         filter((obj) => isEvent(obj, 'playerDamaged')),
@@ -123,15 +128,11 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       ),
       playerWounded: events.pipe(
         filter((obj) => isEvent(obj, 'playerWounded')),
-        map(([eventName, lineObj]) => lineObj)
-      ),
-      teamKill: events.pipe(
-        filter((obj) => isEvent(obj, 'playerWounded')),
         map(([eventName, lineObj]) => lineObj),
-        map(data => {
-          // data
-          // data.teamkill = data.victim.teamID === data.attacker.teamID && data.victim.eosID !== data.attacker.eosID;
-        })
+        map(data => ({
+          ...omit(data, ['attackerIDs']),
+          attacker: extractIDs(data.attackerIDs),
+        }))
       ),
       roundEnded: events.pipe(
         filter((obj) => isEvent(obj, 'roundEnded')),

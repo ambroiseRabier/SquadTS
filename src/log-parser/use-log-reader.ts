@@ -20,7 +20,7 @@ export function useLogReader(options: LogParserConfig, debugFTP: boolean) {
         sftp: options.ftp,
         filepath: fixedFilePath,
         fetchInterval: options.ftp.fetchInterval,
-        tailLastBytes: options.ftp.maxTempFileSize,
+        tailLastBytes: options.ftp.initialTailSize,
         log: debugFTP ? console.log : undefined // if you need to debug ftp-tail
       });
     case 'ftp':
@@ -28,7 +28,7 @@ export function useLogReader(options: LogParserConfig, debugFTP: boolean) {
         ftp: options.ftp,
         filepath: fixedFilePath,
         fetchInterval: options.ftp.fetchInterval,
-        tailLastBytes: options.ftp.maxTempFileSize,
+        tailLastBytes: options.ftp.initialTailSize,
         log: debugFTP ? console.log : undefined // if you need to debug ftp-tail
       });
     default:

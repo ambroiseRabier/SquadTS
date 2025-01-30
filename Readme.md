@@ -157,3 +157,11 @@ entre les deux, faire un adapter pour supporter les anciens plugins, en supporta
 
 bon, le shema zod, on va le req pour les nouveaux plugins.
 permet d'envoyer le shema ds la fc composition direct
+
+---
+
+no mount or dismount on plugins, unmount never used, restart server after change
+
+---
+
+id are not number but string now.

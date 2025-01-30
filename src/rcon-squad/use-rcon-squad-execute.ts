@@ -24,35 +24,25 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
 
-      const players: {
-        playerID: number;
-        isLeader: boolean;
-        teamID: number|null;
-        squadID: number|null;
-      }[] = [];
-
-      if (!response || response.length < 1) {
-        return players;
-      }
-
-      for (const line of response.split('\n')) {
-        const match = line.match(
-          /^ID: (?<playerID>\d+) \| Online IDs:(?<ids>[^|]+)\| Name: (?<name>.+) \| Team ID: (?<teamID>\d|N\/A) \| Squad ID: (?<squadID>\d+|N\/A) \| Is Leader: (?<isLeader>True|False) \| Role: (?<role>.+)$/
-        );
-        if (!match) continue;
-
-        const {ids, isLeader, playerID, squadID, teamID} = match.groups!;
-
-        players.push({
-          playerID: parseInt(playerID),
-          isLeader: isLeader === 'True',
-          teamID: teamID !== 'N/A' ? parseInt(teamID) : null,
-          squadID: squadID !== 'N/A' ? parseInt(squadID) : null,
-          ...extractIDs(ids)
+      // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
+      return (response ?? '')
+        .split('\n')
+        .map((line) => (
+          line.match(
+            /^ID: (?<playerID>\d+) \| Online IDs:(?<ids>[^|]+)\| Name: (?<name>.+) \| Team ID: (?<teamID>\d|N\/A) \| Squad ID: (?<squadID>\d+|N\/A) \| Is Leader: (?<isLeader>True|False) \| Role: (?<role>.+)$/
+          )
+        ))
+        .filter((match): match is RegExpMatchArray => match !== null)
+        .map((match) => {
+          const {ids, isLeader, playerID, squadID, teamID} = match!.groups!;
+          return {
+            playerID: playerID,
+            isLeader: isLeader === 'True',
+            teamID: teamID !== 'N/A' ? teamID : null,
+            squadID: squadID !== 'N/A' ? squadID : null,
+            ...extractIDs(ids)
+          };
         });
-      }
-
-      return players;
     },
 
     getSquads: async () => {
@@ -78,8 +68,8 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
 
           return {
             ...omit(match.groups!, 'squadID'),
-            squadID: parseInt(match.groups!.squadID),
-            teamID: matchSide && parseInt(matchSide.groups!.teamID),
+            squadID: match.groups!.squadID,
+            teamID: matchSide && matchSide.groups!.teamID,
             teamName: matchSide && matchSide.groups!.teamName,
             // ...extractIDs(match.groups!.creator_ids, 'creator'),
             // todo breaking change (you may revert using git history if necessary), note: I kind of like to specify creator, as
