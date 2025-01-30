@@ -7,7 +7,7 @@ type ExtractGroupNames<T extends string> =
     ? GroupName | ExtractGroupNames<Rest>
     : never;
 
-export type ObjectFromRegexStr<T extends string> = {
+type ObjectFromRegexStr<T extends string> = {
   [K in ExtractGroupNames<T>]: string;
 };
 
