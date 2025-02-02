@@ -9,9 +9,49 @@ describe('rcon-squad-execute', () => {
 
   beforeAll(() => {
     execute = jest.fn();
-    rc = useRconSquadExecute(execute as any)
+    rc = useRconSquadExecute(
+      execute as any,
+      false,
+      {
+        trace: console.log,
+        debug: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+      } as any);
   })
 
+  it('does not call execute on game modifying command when dry run is enabled', async () => {
+    const localExecute = jest.fn();
+    const loggerInfo = jest.fn();
+    const localRcon = useRconSquadExecute(localExecute as any, true, {
+      info: loggerInfo
+    } as any);
+
+    // todo params check or error, will have to udpate the test here.
+    await localRcon.broadcast('hello');
+    await localRcon.kick('', '');
+    await localRcon.ban('','', '');
+    await localRcon.warn('', '');
+    await localRcon.forceTeamChange('');
+    await localRcon.disbandSquad('', '');
+    expect(localExecute).not.toHaveBeenCalled();
+    expect(loggerInfo).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
+  });
+
+  it('does call execute on non game modifying command when dry run is enabled', async () => {
+    const localExecute = jest.fn();
+    const loggerInfo = jest.fn();
+    const localRcon = useRconSquadExecute(localExecute as any, true, {
+      info: loggerInfo
+    } as any);
+
+    await localRcon.getListPlayers();
+    await localRcon.getSquads();
+    await localRcon.getCurrentMap();
+    await localRcon.getNextMap();
+    expect(localExecute).toHaveBeenCalledTimes(4);
+  });
 
   it('getCurrentMap', async () => {
     execute.mockResolvedValue("Current level is Sumari Bala, layer is Sumari_Seed_v1, factions INS WPMC");
@@ -76,7 +116,7 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
         locked: false,
         size: 3,
         squadID: "1",
-        squadName: "Squad 1",
+        name: "Squad 1",
         teamID: "1",
         teamName: "Irregular Battle Group"
       },
@@ -89,7 +129,7 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
         locked: false,
         size: 3,
         squadID: "2",
-        squadName: "TWS",
+        name: "TWS",
         teamID: "1",
         teamName: "Irregular Battle Group"
       },
@@ -102,7 +142,7 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
         locked: true,
         size: 9,
         squadID: "1",
-        squadName: "SPEC OPS TWS",
+        name: "SPEC OPS TWS",
         teamID: "2",
         teamName: "Manticore Security Task Force"
       },
@@ -115,7 +155,7 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
         locked: false,
         size: 8,
         squadID: "2",
-        squadName: "Squad 2",
+        name: "Squad 2",
         teamID: "2",
         teamName: "Manticore Security Task Force"
       }

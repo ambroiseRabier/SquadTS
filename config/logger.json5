@@ -1,10 +1,12 @@
 {
   // Define the log levels for each logger, available levels: trace, debug, info, warn, error, fatal.
-  // To disable a logger, set it to 'silent'.
+  // To disable a logger, set it to silent.
   verboseness: {
     SquadServer: 'info',
     LogParser: 'info',
     RCON: 'info',
+    RCONSquad: 'info',
+    CachedGameStatus: 'info',
   },
   // Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP.
   debugFTP: false,

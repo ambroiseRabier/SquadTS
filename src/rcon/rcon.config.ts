@@ -17,7 +17,7 @@ export const rconOptionsSchema = z.object({
     .number()
     .nonnegative("AutoReconnectDelay must be a non-negative number")
     .min(1000, "AutoReconnectDelay minimum is 1000ms") // don't DOS yourself
-    .default(5000),
+    .default(5000)
 });
 
 export type RconOptions = z.infer<typeof rconOptionsSchema>;

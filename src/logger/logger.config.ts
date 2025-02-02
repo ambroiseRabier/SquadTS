@@ -7,6 +7,7 @@ const logLevels = Object.keys(pino.levels.values);
 const pinoLevelSchema = z.enum(logLevels as [string, ...string[]]);
 
 export const loggerOptionsSchema = z.object({
+  // todo replace by verbosity, more common english
   verboseness: z.object({
     SquadServer: pinoLevelSchema.default('info'),
     LogParser: pinoLevelSchema.default('info'),
@@ -15,7 +16,7 @@ export const loggerOptionsSchema = z.object({
     CachedGameStatus: pinoLevelSchema.default('info')
   }).describe(
     `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
-    `To disable a logger, set it to 'silent'.`),
+    `To disable a logger, set it to silent.`),
   debugFTP: z.boolean().default(false).describe("Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP."),
   debugLogMatching: z.object({
     enabled: z.boolean().default(false)

@@ -2,9 +2,19 @@ import { Rcon } from '../rcon/rcon';
 import { extractIDs } from '../rcon/id-parser';
 import { omit } from 'lodash';
 import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
+import { Logger } from 'pino';
 
 
-export function useRconSquadExecute(execute: Rcon['execute']) {
+export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
+
+  function dryRunExecute(command: string): Promise<string> {
+    if (dryRun) {
+      logger.info(`Dry run: ${command}`);
+      return Promise.resolve('This is a dry run, no command was executed.');
+    } else {
+      return execute(command);
+    }
+  }
 
   return {
    getCurrentMap: async () => {
@@ -50,7 +60,7 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
     getSquads: async () => {
       const response = await execute('ListSquads');
       // Attention: creator name is without clan tag here...
-      const regexStr = "ID: (?<squadID>\\d+) \\| Name: (?<squadName>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)";
+      const regexStr = "ID: (?<squadID>\\d+) \\| Name: (?<name>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)";
       const regex = new RegExp(regexStr);
       let side: {
         teamID: string;
@@ -97,32 +107,32 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
     },
 
     broadcast: async (message: string) => {
-      await execute(`AdminBroadcast ${message}`);
+      await dryRunExecute(`AdminBroadcast ${message}`);
     },
 
     setFogOfWar: async (mode: string) => {
-      await execute(`AdminSetFogOfWar ${mode}`);
+      await dryRunExecute(`AdminSetFogOfWar ${mode}`);
     },
 
     warn: async (anyID: string, message: string) => {
-      await execute(`AdminWarn "${anyID}" ${message}`);
+      await dryRunExecute(`AdminWarn "${anyID}" ${message}`);
     },
 
     // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
     ban: async  (anyID: string, banLength: string, message: string) => {
-      await execute(`AdminBan "${anyID}" ${banLength} ${message}`);
+      await dryRunExecute(`AdminBan "${anyID}" ${banLength} ${message}`);
     },
 
     disbandSquad: async (teamID: string, squadID: string) => {
-      await execute(`AdminDisbandSquad ${teamID} ${squadID}`);
+      await dryRunExecute(`AdminDisbandSquad ${teamID} ${squadID}`);
     },
 
     kick: async (anyID: string, reason: string) => {
-      await execute(`AdminKick "${anyID}" ${reason}`);
+      await dryRunExecute(`AdminKick "${anyID}" ${reason}`);
     },
 
     forceTeamChange: async (anyID: string) => {
-      await execute(`AdminForceTeamChange "${anyID}"`);
+      await dryRunExecute(`AdminForceTeamChange "${anyID}"`);
     },
   };
 }

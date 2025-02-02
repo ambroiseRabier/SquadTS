@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { pluginBaseOptionsSchema } from '../src/plugin-loader/plugin-base.config';
 
-export const autoTKWarnSchema = z.object({
+export const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
   attackerMessage: z
     .string()
     .optional()
@@ -16,5 +17,3 @@ export const autoTKWarnSchema = z.object({
 });
 
 export type AutoTKWarnOptions = z.infer<typeof autoTKWarnSchema>;
-
-// export AutoTKWarnConfig

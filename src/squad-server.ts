@@ -9,23 +9,19 @@ import { CachedGameStatus } from './cached-game-status/use-cached-game-status';
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
 export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: LogParser, cachedGameStatus: CachedGameStatus, options: Options) {
-
-
-  // todo idea: enrichir ds useCached, genre victim et attacker, puis ajouter ici des subevents ?
-
   /**
    * Exclude suicide
    */
-  const teamKill = logParser.events.playerWounded.pipe(
-    // filter(({attacker, victim}) =>
-    //   attacker?...teamID === victim?.teamID && attacker?.eosID !== victim?.eosID) // todo, si attacker et victim undef
+  const teamKill = cachedGameStatus.events.playerWounded.pipe(
+    filter(({attacker, victim}) =>
+      attacker.teamID === victim.teamID && attacker.eosID !== victim.eosID)
   );
 
   /**
    * Same player
    */
-  const suicide = logParser.events.playerWounded.pipe(
-    // filter(({victim, attacker}) => attacker?.eosID === victim?.eosID)
+  const suicide = cachedGameStatus.events.playerWounded.pipe(
+    filter(({attacker, victim}) => attacker.eosID === victim.eosID)
   );
 
   return {

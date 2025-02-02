@@ -28,7 +28,11 @@ describe('rcon-squad', () => {
       info: console.info,
       warn: console.warn,
       error: console.error,
-    } as any, mockedRcon);
+    } as any,
+      mockedRcon,
+      // Note, as for now, config only used by mocked sub modules.
+      {} as any
+    );
   });
 
 

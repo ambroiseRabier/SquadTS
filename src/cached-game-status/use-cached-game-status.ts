@@ -1,30 +1,25 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import {
-  BehaviorSubject, catchError,
-  concatMap, EMPTY,
+  BehaviorSubject,
+  catchError,
+  concatMap,
+  EMPTY,
   exhaustMap,
   filter,
   interval,
   map,
-  Observable, startWith, Subject,
+  Observable,
+  startWith,
+  Subject,
   tap,
   timeout
 } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
-import { merge, omit, pick } from 'lodash';
+import { merge, omit } from 'lodash';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';
 
-
-// interface Player {
-//   teamID: string;
-//   squadID: string;
-//   name: string;
-//   isLeader: string;
-//   eoID: string;
-//   steamID: string;
-// }
 
 // todo rcon fields that can be undefined ?
 type Player = {
@@ -41,64 +36,47 @@ type Player = {
   teamID: string;
 
   // (provided by log)
-  name: string;
+  name?: string;
 
   // (provided by rcon)
+  // Be careful, because a player can change clan tag middle game...
   nameWithClanTag?: string;
 
-  // (provided by rcon) (unless this player just created a squad)
+  // (provided by rcon) (defaulted to false in log connect) (unless this player just created a squad)
   isLeader: boolean;
 
-  // todo: remettre !
   // null means no squad
-  // (provided by rcon) (unless this player just created a squad)
+  // (provided by rcon) (defaulted to null in log connect) (unless this player just created a squad)
   squadID: string | null;
-
-  // Design note: We want to avoid some confusion at usage, a Squad["squadID"] does not change in a Squad lifetime (unless disband, recreate with same name).
-  //              When we do `player.squad`, we are most likely thinking of the squad that `player` is currently in.
-  //              Imagine a plugin saving a bunch of players, every 30sec you check the squad they are in, you most likely don't want stale data.
-  //              To make it easier to see that the data is not stale, we use a function like `getSquad()` instead of `squad`.
-  //
-  // null means no squad
-  getSquad(): Readonly<{
-    // (provided by rcon) (unless this player just created a squad)
-    teamID: string;
-    // (provided by rcon) (unless this player just created a squad)
-    squadID: string;
-    // (provided by rcon) (unless this player just created a squad)
-    name: string;
-  }> | null;
 
   // (provided by log/rcon)
   controller: string;
 
   // (provided by log)
-  ip: string;
+  ip?: string;
 };
+
+// todo: rn, only rcon provide squad, we are not using squad created log.
+interface Squad {
+  // (provided by rcon) (unless this player just created a squad)
+  teamID: string;
+  // (provided by rcon) (unless this player just created a squad)
+  squadID: string;
+  // (provided by rcon) (unless this player just created a squad)
+  name: string;
+}
+
+// Design note: We want to avoid some confusion at usage, a Squad["squadID"] does not change in a Squad lifetime (unless disband, recreate with same name).
+//              When we do `player.squad`, we are most likely thinking of the squad that `player` is currently in.
+//              Imagine a plugin saving a bunch of players, every 30sec you check the squad they are in, you most likely don't want stale data.
+//              To make it easier to see that the data is not stale, we use a function like `getSquad()` instead of `squad`.
+//
+// null means no squad
 
 
 // Utility type to infer the emitted type from an Observable
 // Work like Awaited for promises
 type ObservableValue<T> = T extends Observable<infer V> ? V : never;
-
-// Explicit typing, some we won't have to manually update Player,
-// but in the end, only steamID and eosID are guaranteed.
-// en fait, c l'un ou l'autre ou les deux.
-// type Player2 =
-//   ( | Awaited<ReturnType<RconSquad['getListPlayers']>>[number]
-//   | ObservableValue<LogParser['events']['playerConnected']>
-// ) & (
-//   Partial<Awaited<ReturnType<RconSquad['getListPlayers']>>[number]>
-//   & Partial<ObservableValue<LogParser['events']['playerConnected']>>
-//   );
-//
-// var j: Player2; // pas mal mais ignore ce qui se passe ds la pipe, genre ajout de squad: {}
-// var k = j.;
-
-// todo maybe there is a way not to have to deal with potential null value in plugin on player ?
-// at the cost of slightly longer update time ?
-
-// Player info when passed may be slightly out of date ? Yes, on events based on logs or rcon
 
 export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
 
@@ -124,17 +102,6 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
   >([]);
   const squads$ = new BehaviorSubject<Awaited<ReturnType<typeof rconSquad.getSquads>>>([]);
 
-
-  // I've got both logs and and rcon to get player list.
-  // logs should everything I need. But I may start squadTS in the middle of the game
-  // meaning I first need to retrieve full player list with rcon at each start,
-  // and enhance the data with logs
-  // I can then base myself entirely on logs to update the player list.
-  //
-  // However, this only is possible if logs actually provide all the necessary data.
-  // how do I know who is leader ?
-  // how do I know who joined a squad ? team ?
-  // I don't see any logs for that.
 
   // Update squads
   const squadUpdate$ = interval(config.updateInterval.playersAndSquads * 1000)
@@ -287,18 +254,33 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
         steamID: playerConnected.steamID,
         ip: playerConnected.ip,
         teamID: playerAddedToTeam.teamID,
-        id: playerInitialized.id - 1 // Seems like the log we get, is offset by one
+        id: (parseInt(playerInitialized.id) - 1).toString(), // Seems like the log we get, is offset by one
+        // When you join a game, you aren't leader
+        isLeader: false,
+        // When you join a game, you aren't in a squad
+        squadID: null
       }
     ]);
   });
 
+
   // todo idea, behaviorSubject per player ? following actions per ID and name ?
 
-  // todo wip
+  // Note that we may have player disconnected events without ever having a connect event, because logs
+  // can start being read at any time.
   logParser.events.playerDisconnected.subscribe(playerDisconnected => {
     // todo track disconnected, and reuse their data if reconnect
     players$.next(players$.getValue().filter(player => player.eosID !== playerDisconnected.eosID));
   });
+
+  function getSquad(squadID: string, teamID: string) {
+    return squads$.getValue().find(
+      // We need to check both id, because each team can have a squad one for example.
+      squad =>
+        squad.teamID === teamID &&
+        squad.squadID === squadID
+    );
+  }
 
 
   // todo, suad created event du tchat depuis rcon, existe aussi en logs ? le tchat c juste rcon ou logs aussi ?
@@ -309,21 +291,43 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
 
   // todo: disconnectplayer, garder info sur eux et re-utiliser si reconnect.
 
-  // todo in which case it will not find the player ?
-  // we do rcon get list of players when logging in
+  // todo: suspicion que l'on ait par defaut un espace avant le name ds les logs (corriger les logs alors)
   function getPlayerByName(name: string) {
+    // todo undef === undef, peut vraiment ^€tre undef ds la liste de players ?
     // `player.name` can be undefined, we don't want to match undefined in find and return a player
     // when `name` is undefined.
     if (name === undefined) {
       return undefined;
     }
-    return players$.getValue().find(player => (player as any).name === name); // todo tmp
+    return players$.getValue().find(player => player.name === name);
+  }
+  function getPlayerByNameWithClanTag(nameWithClanTag: string) {
+    // todo undef === undef, peut vraiment ^€tre undef ds la liste de players ?
+    // `player.nameWithClanTag` can be undefined, we don't want to match undefined in find and return a player
+    // when `nameWithClanTag` is undefined.
+    if (nameWithClanTag === undefined) {
+      return undefined;
+    }
+    return players$.getValue().find(player => player.nameWithClanTag === nameWithClanTag); // todo tmp
   }
   function getPlayerByEOSID(eosID: string) {
+    // Guard against dev mistakes
+    if (eosID === undefined) {
+      throw new Error('Provided eosID is undefined');
+    }
+    return players$.getValue().find(player => player.eosID === eosID);
+  }
+  // todo: maybe stop mixing undef and null ?
+  function getPlayerSquad(eosID: string) {
     if (eosID === undefined) {
       return undefined;
     }
-    return players$.getValue().find(player => player.eosID === eosID);
+    const player = getPlayerByEOSID(eosID);
+    if (player === undefined || !player.squadID) {
+      return undefined;
+    } else {
+      return getSquad(player.squadID, player.teamID);
+    }
   }
 
   return {
@@ -333,14 +337,21 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
     events: {
       ...logParser.events,
       playerChangedSquad,
+
+      // todo, saving up-to-date player controller from playerWounded ? (getPlayerByEOSID return stale controller)
+      //     may not be expected !
       playerWounded: logParser.events.playerWounded.pipe(
         map(data => {
-          return {
-            ...data,
-            victim: getPlayerByName(data.victim.nameWithClanTag),
-            attacker: getPlayerByEOSID(data.attacker.eosID),
-          }
-        })
+          // todo: bon si on prend les logs du passé, on risque d'avoir player undef,
+          //       sinon, on devrait forcément avoir quelqu'un
+          const attacker = getPlayerByEOSID(data.attacker.eosID)!;
+          // todo: stupid case where two players have the same name ... ?
+          const victim = getPlayerByNameWithClanTag(data.victim.nameWithClanTag)!;
+
+          // Send back augmented data, but playerWounded log event data has priority as it is the most up-to-date.
+          // This concerns attacker.controller and victim.nameWithClanTag
+          return merge({attacker, victim}, data);
+        }),
       )
     },
     chatEvents: {
@@ -399,9 +410,18 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
       )
     },
     // todo maybe export them from servers as "helpers"
+    getPlayerByNameWithClanTag,
     getPlayerByName,
     getPlayerByEOSID,
+    // You may subscribe to only one player by using pipe and filter by eosID
     players$,
+    // Note that data is immutable and won't be updated by reference, to get non stale data,
+    // call players each time, or getPlayerByEOSID
+    // Example:
+    // Up-To-Date: if (getPlayerByEOSID(savedEOSID).isLeader) ...
+    // Stale:  if (savedPlayer.isLeader) ...
+    //
+    // You may also use players$ stream.
     players: players$.getValue(),
     squads$,
     squads: squads$.getValue(),
@@ -410,25 +430,8 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
      * (todo: nope) For maximum efficiency. Should be called after rcon is connected but before logs are downloaded.
      */
     watch: async () => {
-
       // subscribing will start the interval of squad/players RCON updates.
       playerUpdate$.subscribe();
-
-      // todo (logs vient du passé au début, faut corriger)
-      // bon plus simple de ne pas géré pour l'instant.
-      //
-      // Initial logs are taken from the PAST, so the source of truth is rconSquad.getListPlayers
-      /// ....
-
-      // Initialise players$ data,
-      // rconSquad.getListPlayers will give us up-to-date data on players.
-      //
-      //
-      // We may also not get enough logs to have a complete list of players.
-      // However, once SquadTS is started, we retrieve all logs and logs will be the source of true.
-      // players$.next(await rconSquad.getListPlayers()); todo tmp
-
-      // todo, maybe I actually should call this before getting logs from past ?
     },
   };
 }

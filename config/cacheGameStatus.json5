@@ -1,0 +1,13 @@
+{
+  // Interval in seconds between each update of RCON provided data.
+  // May impact how fast some plugins react to changes.
+  // May also impact performances (not measured yet, might be negligible).
+  updateInterval: {
+    // --> about players and squads.
+    playersAndSquads: 5,
+    // --> about layer info.
+    layerInfo: 60,
+    // --> about server info.
+    serverInfo: 30,
+  },
+}

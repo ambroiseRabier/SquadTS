@@ -11,7 +11,7 @@ describe('rcon-squad-events', () => {
 
   beforeAll(() => {
     chatPacketEvent = new ReplaySubject<string>(1);
-    events = useSquadEvents({debug: jest.fn()} as any, chatPacketEvent, config.updateInterval);
+    events = useSquadEvents({debug: jest.fn()} as any, chatPacketEvent);
   })
 
   beforeAll(() => {
