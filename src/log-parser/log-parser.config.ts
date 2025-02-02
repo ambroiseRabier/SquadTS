@@ -51,7 +51,7 @@ const ftpSchema = z.object({
 
 
 // Discriminated Union for the `mode` field
-export const logParserSchema = z.discriminatedUnion("mode", [
+export const logParserOptionsSchema = z.discriminatedUnion("mode", [
   // Place FTP as first item, because zod-empty will only take first element of discriminatedUnion,
   // Meaning that the documentation (`describe()`) should be placed on first element.
   z.object({
@@ -75,6 +75,6 @@ export const logParserSchema = z.discriminatedUnion("mode", [
   }),
 ]);
 
-export type LogParserConfig = z.infer<typeof logParserSchema>;
+export type LogParserConfig = z.infer<typeof logParserOptionsSchema>;
 
 

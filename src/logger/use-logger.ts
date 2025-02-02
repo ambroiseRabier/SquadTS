@@ -36,6 +36,14 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     logParserLogger: logger.child({}, {
       msgPrefix: chalk.blueBright('[LogParser] '),
       level: verboseness.LogParser
+    }),
+    rconSquadLogger: logger.child({}, {
+      msgPrefix: chalk.blue('[RCONSquad] '),
+      level: verboseness.RCONSquad
+    }),
+    useCachedGameStatusLogger: logger.child({}, {
+      msgPrefix: chalk.blue('[CachedGameStatus] '),
+      level: verboseness.CachedGameStatus
     })
   };
 }

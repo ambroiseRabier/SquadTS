@@ -29,12 +29,12 @@ async function main() {
     throw new Error('Config is null');
   }
 
-  const { squadServerLogger, rconLogger, logParserLogger } = useSubLogger(logger, config.logger.verboseness);
+  const { squadServerLogger, rconLogger, logParserLogger, rconSquadLogger, useCachedGameStatusLogger } = useSubLogger(logger, config.logger.verboseness);
   const rcon = new Rcon(config.rcon, rconLogger);
-  const squadRcon = useRconSquad(rcon);
+  const squadRcon = useRconSquad(rconSquadLogger, rcon);
   const logReader = useLogReader(config.logParser, config.logger.debugFTP);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
-  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser);
+  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser, config.cacheGameStatus, config.logParser, useCachedGameStatusLogger);
 
   logger.info('Creating SquadServer...');
   const server = useSquadServer(squadServerLogger, squadRcon, logParser, cachedGameStatus, config);

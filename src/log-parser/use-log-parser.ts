@@ -21,14 +21,16 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   });
   const events = queue.pipe(
     tap(line => {
-      logger.trace(`Matching on line: ${line}`);
+      logger.trace(`Receiving: ${line}`);
     }),
     map(line => {
       const regex = /^\[(?<date>[0-9.:-]+)]\[(?<chainID>[ 0-9]*)](?<data>.*)/;
       const matchDate = regex.exec(line);
 
+      // On startup, we may not start reading the server log file at a line start. Ending up with an incomplete line.
+      // Just ignore it and start processing from second line.
       if (!matchDate) {
-        logger.warn(`Log with no date: ${line}`); // todo often ? should be ignored or not ?
+        logger.info(`Log with no date, THIS IS OK if it happens once at startup: ${line}`);
         return null;
       }
 
@@ -41,7 +43,7 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         data,
       };
     }),
-    filter((value): value is NonNullable<typeof value> => !!value),  // todo never happen ? (see matchDate)
+    filter((value): value is NonNullable<typeof value> => !!value),
     map(lineObj => {
       // il envoit parsed date et chain id et logParser selon la regex qui touche.
       // selon la regex qui touche, c'est basé sur les résultats du group
@@ -54,13 +56,12 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       const obj = parseLogLine(logParserRules, lineObj.data);
 
       if (debugLogMatching.enabled) {
-
         if (!obj) {
           // ignoreRegexMatch allow us to reduce verboseness of logs we know are not useful to us
           // use with caution because a wrong regex may hide useful information.
           const verbosenessLimiter = !debugLogMatching.ignoreRegexMatch.some((strRegex) => new RegExp(strRegex).test(lineObj.data))
           if (verbosenessLimiter) {
-            logger.warn(`No match on line: ${lineObj.raw}`); // todo: often ? is there a lot we should ignore, or not ?
+            logger.warn(`No match on line: ${lineObj.raw}`);
           } // else don't log anything to limit verboseness.
         } else {
           logger.debug(`Match on line: ${lineObj.data}`);
@@ -90,8 +91,16 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         filter((obj) => isEvent(obj, 'deployableDamaged')),
         map(([eventName, lineObj]) => lineObj)
       ),
+      loginRequest: events.pipe(
+        filter((obj) => isEvent(obj, 'loginRequest')),
+        map(([eventName, lineObj]) => lineObj)
+      ),
       newGame: events.pipe(
         filter((obj) => isEvent(obj, 'newGame')),
+        map(([eventName, lineObj]) => lineObj)
+      ),
+      playerAddedToTeam: events.pipe(
+        filter((obj) => isEvent(obj, 'playerAddedToTeam')),
         map(([eventName, lineObj]) => lineObj)
       ),
       playerConnected: events.pipe(
@@ -103,14 +112,39 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       ),
       playerDamaged: events.pipe(
         filter((obj) => isEvent(obj, 'playerDamaged')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => lineObj),
+        map(data => ({
+          ...omit(data, ['attackerIDs', 'attackerController', 'attackerNameWithClanTag', 'victimNameWithClanTag']),
+          attacker: {
+            ...extractIDs(data.attackerIDs),
+            controller: data.attackerController,
+            nameWithClanTag: data.attackerNameWithClanTag
+          },
+          victim: {
+            nameWithClanTag: data.victimNameWithClanTag
+          }
+        }))
       ),
       playerDied: events.pipe(
         filter((obj) => isEvent(obj, 'playerDied')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => lineObj),
+        map(data => ({
+          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag']),
+          attacker: {
+            ...extractIDs(data.attackerIDs),
+            controller: data.attackerController
+          },
+          victim: {
+            nameWithClanTag: data.victimNameWithClanTag
+          }
+        }))
       ),
       playerDisconnected: events.pipe(
         filter((obj) => isEvent(obj, 'playerDisconnected')),
+        map(([eventName, lineObj]) => lineObj)
+      ),
+      playerInitialized: events.pipe(
+        filter((obj) => isEvent(obj, 'playerInitialized')),
         map(([eventName, lineObj]) => lineObj)
       ),
       playerJoinSucceeded: events.pipe(
@@ -119,22 +153,46 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       ),
       playerPossess: events.pipe(
         filter((obj) => isEvent(obj, 'playerPossess')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => lineObj),
+        map(data => ({
+          ...omit(data, ['ids']),
+          ...extractIDs(data.ids),
+        }))
       ),
       playerRevived: events.pipe(
         filter((obj) => isEvent(obj, 'playerRevived')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => lineObj),
+        map(data => ({
+          reviver: {
+            ...extractIDs(data.reviverIDs),
+            nameWithClanTag: data.reviverNameWithClanTag
+          },
+          revived: {
+            ...extractIDs(data.revivedIDs),
+            nameWithClanTag: data.revivedNameWithClanTag
+          }
+        }))
       ),
       playerUnPossess: events.pipe(
         filter((obj) => isEvent(obj, 'playerUnPossess')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj]) => lineObj),
+        map(data => ({
+          ...omit(data, ['ids']),
+          ...extractIDs(data.ids),
+        }))
       ),
       playerWounded: events.pipe(
         filter((obj) => isEvent(obj, 'playerWounded')),
         map(([eventName, lineObj]) => lineObj),
         map(data => ({
-          ...omit(data, ['attackerIDs']),
-          attacker: extractIDs(data.attackerIDs),
+          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag']),
+          attacker: {
+            ...extractIDs(data.attackerIDs),
+            controller: data.attackerController
+          },
+          victim: {
+            nameWithClanTag: data.victimNameWithClanTag
+          }
         }))
       ),
       roundEnded: events.pipe(
@@ -143,10 +201,6 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       ),
       roundTicket: events.pipe(
         filter((obj) => isEvent(obj, 'roundTicket')),
-        map(([eventName, lineObj]) => lineObj)
-      ),
-      roundWinner: events.pipe(
-        filter((obj) => isEvent(obj, 'roundWinner')),
         map(([eventName, lineObj]) => lineObj)
       ),
       serverTickRate: events.pipe(

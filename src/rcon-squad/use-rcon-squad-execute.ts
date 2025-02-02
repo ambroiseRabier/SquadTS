@@ -24,7 +24,7 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
 
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
-      const regexStr = "^ID: (?<playerID>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<name>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$"
+      const regexStr = "^ID: (?<playerID>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$"
       const regex = new RegExp(regexStr);
 
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
@@ -49,6 +49,7 @@ export function useRconSquadExecute(execute: Rcon['execute']) {
 
     getSquads: async () => {
       const response = await execute('ListSquads');
+      // Attention: creator name is without clan tag here...
       const regexStr = "ID: (?<squadID>\\d+) \\| Name: (?<squadName>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)";
       const regex = new RegExp(regexStr);
       let side: {

@@ -16,6 +16,16 @@ export type ObjectFromRegexStr<T extends string> = {
   [K in ExtractGroupNames<T>]: string;
 };
 
+// todo plusieurs endroit ou on peut refactor avec cela.
+export function matchWithRegex<T extends string>(
+  body: string,
+  regexStr: T
+): ObjectFromRegexStr<T> | null {
+  // If needed we can cache the regex in a Map, to avoid GC.
+  const match = (new RegExp(regexStr)).exec(body);
+  return match ? (match.groups as ObjectFromRegexStr<T>) : null;
+}
+
 /**
  * Replace "as const" in parseLogLine, it give a more narrow type to properly narrow
  * the relationship between the first element of each tuple (the event name) and its corresponding regex type.

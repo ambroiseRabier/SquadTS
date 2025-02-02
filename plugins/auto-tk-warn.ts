@@ -4,7 +4,7 @@ import { AutoTKWarnOptions, autoTKWarnSchema } from './auto-tk-warn.schema';
 import { Plugin } from '../src/plugin-loader/plugin.interface';
 import { SquadServer } from '../src/squad-server';
 
-export default function autoTKWarn(server: SquadServer, options: AutoTKWarnOptions): Plugin {
+export default function autoTKWarn(server: SquadServer, options: AutoTKWarnOptions)/*: Plugin*/ {
   server.events.teamKill.subscribe(async (info) => {
     if (info.attacker && options.attackerMessage) {
       await server.rcon.warn(info.attacker.eosID, options.attackerMessage);

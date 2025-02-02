@@ -14,24 +14,23 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
   // todo idea: enrichir ds useCached, genre victim et attacker, puis ajouter ici des subevents ?
 
   /**
-   * Same team, but different player
+   * Exclude suicide
    */
-  const teamKill = cachedGameStatus.events.playerWounded.pipe(
-    filter(({attacker, victim}) =>
-      attacker?.teamID === victim?.teamID && attacker?.eosID !== victim?.eosID) // todo, si attacker et victim undef
+  const teamKill = logParser.events.playerWounded.pipe(
+    // filter(({attacker, victim}) =>
+    //   attacker?...teamID === victim?.teamID && attacker?.eosID !== victim?.eosID) // todo, si attacker et victim undef
   );
 
   /**
    * Same player
    */
-  const suicide = cachedGameStatus.events.playerWounded.pipe(
-    filter(({victim, attacker}) => attacker?.eosID === victim?.eosID)
+  const suicide = logParser.events.playerWounded.pipe(
+    // filter(({victim, attacker}) => attacker?.eosID === victim?.eosID)
   );
 
   return {
     events: {
       ...logParser.events,
-      // Same team, different player
       teamKill,
       suicide
     },
@@ -92,9 +91,14 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       logParser.events.adminBroadcast.subscribe((next) => {
         logger.debug(next);
       })
+      // rconSquad.chatEvent.subscribe((next) => {
+      //   logger.debug('chatevent (tmp):', next);
+      // })
 
-      await logParser.watch();
+      // Call before logParser starts, so we can get enriched data
+      // First log download will be past logs (depend on max file size of logs)
       await cachedGameStatus.watch()
+      await logParser.watch();
     },
     unwatch: rconSquad.disconnect.bind(rconSquad)
   } as const;

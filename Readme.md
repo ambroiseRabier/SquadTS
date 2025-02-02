@@ -165,3 +165,13 @@ no mount or dismount on plugins, unmount never used, restart server after change
 ---
 
 id are not number but string now.
+
+---
+
+interessant: https://github.com/Squad-Wiki/squad-wiki-pipeline-map-data
+
+---
+
+note about tests: name and ids have been scrambled, and may not be coherent from appear test to test (same player name with different eosID).
+
+todo, ya moyen de s'assurer que les plugins modifie pas ce qui leur aient donné par référence ?
