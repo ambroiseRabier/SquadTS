@@ -1,4 +1,5 @@
 import { SquadServer } from '../squad-server';
 import { PluginBaseOptions } from './plugin-base.config';
+import { Logger } from 'pino';
 
-export type Plugin<PluginOptions extends PluginBaseOptions> = (server: SquadServer, options: PluginOptions) => void;
+export type SquadTSPlugin<PluginOptions extends PluginBaseOptions> = (server: SquadServer, logger: Logger, options: PluginOptions) => void;

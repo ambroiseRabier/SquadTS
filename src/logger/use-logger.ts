@@ -42,11 +42,11 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
       level: verboseness.RCONSquad
     }),
     cachedGameStatusLogger: logger.child({}, {
-      msgPrefix: chalk.blue('[CachedGameStatus] '),
+      msgPrefix: chalk.greenBright('[CachedGameStatus] '),
       level: verboseness.CachedGameStatus
     }),
     pluginLoaderLogger: logger.child({}, {
-      msgPrefix: chalk.blue('[PluginLoader] '),
+      msgPrefix: chalk.magenta('[PluginLoader] '),
       level: verboseness.PluginLoader
     })
   };

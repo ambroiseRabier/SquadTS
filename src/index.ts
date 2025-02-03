@@ -30,6 +30,7 @@ async function main() {
     throw new Error('Config is null');
   }
 
+  // Wiring dependencies part
   const {
     squadServerLogger,
     rconLogger,
@@ -43,20 +44,16 @@ async function main() {
   const logReader = useLogReader(config.logParser, config.logger.debugFTP);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
   const cachedGameStatus = useCachedGameStatus(squadRcon, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger);
-  const pluginLoader = usePluginLoader(pluginLoaderLogger);
-
-  logger.info('Creating SquadServer...');
   const server = useSquadServer(squadServerLogger, squadRcon, logParser, cachedGameStatus, config);
-
+  const pluginLoader = usePluginLoader(server, pluginLoaderLogger);
 
 
   // todo:
   // - connectors
   // - plugins
 
+  logger.info('Creating SquadServer...');
   await server.watch();
-
-
   await pluginLoader.load();
 }
 
