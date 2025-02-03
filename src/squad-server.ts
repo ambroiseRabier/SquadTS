@@ -91,10 +91,17 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       //   logger.debug('chatevent (tmp):', next);
       // })
 
-      // Call before logParser starts, so we can get enriched data
-      // First log download will be past logs (depend on max file size of logs)
-      await cachedGameStatus.watch()
+      // todo: make cachedGameStatus ready before, and enrich data ? but prevent old logs to emit events.
+      // todo: make a ignore log if date is too far ? but not in tests. Could have avantage on restarting SquadTS middle game
+      //       it would still react to the previous 10sec ? without reacting to the 5min it was down ?
+      //       not worth it ?
+
+      // First log download will be past logs (depend on max file size of logs) (of any date)
       await logParser.watch();
+
+
+      // Call after logParser starts
+      cachedGameStatus.watch()
     },
     unwatch: rconSquad.disconnect.bind(rconSquad)
   } as const;

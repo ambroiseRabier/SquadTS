@@ -248,8 +248,7 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
     squads$,
     squads: squads$.getValue(),
     /**
-     * Call before logParser are watching.
-     * (todo: nope) For maximum efficiency. Should be called after rcon is connected but before logs are downloaded.
+     * Call after logParser are watching.
      */
     watch: () => {
       // Will start adding and removing player in cache, from logs
