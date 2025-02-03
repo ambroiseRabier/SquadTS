@@ -1,6 +1,6 @@
 import { LogParser } from '../log-parser/use-log-parser';
 import { LogParserConfig } from '../log-parser/log-parser.config';
-import { catchError, concatMap, EMPTY, filter, map, Subject, tap, timeout } from 'rxjs';
+import { catchError, concatMap, EMPTY, filter, map, Subject, Subscription, tap, timeout } from 'rxjs';
 import { Logger } from 'pino';
 import { Player, Squad } from './use-cached-game-status';
 
@@ -117,13 +117,19 @@ export function useLogUpdates({
       players$.next(getPlayers().filter(player => player.eosID !== playerDisconnected.eosID));
     })
   );
+  const sub: Subscription[] = [];
 
   return {
     players$,
     watch: () => {
       // Will start adding and removing player in cache
-      addPlayer$.subscribe()
-      removePlayer$.subscribe();
+      sub.push(
+        addPlayer$.subscribe(),
+        removePlayer$.subscribe()
+      );
+    },
+    unwatch() {
+      sub.forEach(sub => sub.unsubscribe());
     }
   };
 }

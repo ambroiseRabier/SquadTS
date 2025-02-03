@@ -79,8 +79,8 @@ function createMockLogParser(override: DeepPartial<LogParser>, connectedLogPlaye
 
 function mockRconSquad(override: DeepPartial<RconSquad>): RconSquad {
   const base = {
-    getSquads: jest.fn(),
-    getListPlayers: jest.fn(),
+    getSquads: jest.fn<any>().mockResolvedValue([]),
+    getListPlayers: jest.fn<any>().mockResolvedValue([]),
     chatEvents: {
       message: of(),
       command: of(),
@@ -163,6 +163,7 @@ describe('use-cached-game-status', () => {
     );
 
     cachedGameStatus.watch();
+    cachedGameStatus.unWatch();
 
     expect(
       cachedGameStatus.getPlayerByEOSID(playerYuca.eosID)
@@ -215,6 +216,8 @@ describe('use-cached-game-status', () => {
       },
       weapon: 'weapon0'
     });
+
+    cachedGameStatus.unWatch();
 
     expect(result).toEqual({
       // Since I got the player from the logs udpates, nameWithClanTag is unavailable.
@@ -290,7 +293,8 @@ describe('use-cached-game-status', () => {
 
     cachedGameStatus.watch();
 
-    await new Promise((resolve) => setTimeout(resolve,1100));
+    // starWith(0) used on RCON update loop, needs one frame to take effect
+    await new Promise((resolve) => setImmediate(resolve));
 
     let result: any = undefined;
     cachedGameStatus.events.playerWounded.subscribe(playerWounded =>  {
@@ -309,6 +313,8 @@ describe('use-cached-game-status', () => {
       },
       weapon: 'weapon0'
     });
+
+    cachedGameStatus.unWatch();
 
     expect(result).toEqual({
       // Since I got the player from the logs udpates, nameWithClanTag is unavailable.

@@ -261,5 +261,13 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
       rconUpdates.squads$.subscribe(squads$.next.bind(squads$));
       rconUpdates.watch();
     },
+    unWatch: () => {
+      logUpdates.players$.unsubscribe();
+      logUpdates.unwatch();
+
+      rconUpdates.players$.unsubscribe();
+      rconUpdates.squads$.unsubscribe();
+      rconUpdates.unwatch();
+    }
   };
 }

@@ -1,4 +1,4 @@
-import { concatMap, exhaustMap,  interval, map, startWith, Subject, tap } from 'rxjs';
+import { concatMap, exhaustMap, interval, map, startWith, Subject, Subscription, tap } from 'rxjs';
 import { merge } from 'lodash';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
@@ -74,13 +74,19 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
       players$.next([...updatedPrevious, ...newPlayers]);
     })
   );
+  const sub: Subscription[] = [];
 
   return {
     players$,
     squads$,
     watch: () => {
       // Subscribing will start the interval of squad/players RCON updates.
-      playerUpdate$.subscribe();
+      sub.push(
+        playerUpdate$.subscribe()
+      );
+    },
+    unwatch() {
+      sub.forEach(sub => sub.unsubscribe());
     }
   };
 }
