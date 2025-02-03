@@ -45,18 +45,21 @@ export type Player = {
   // Be careful, because a player can change clan tag middle game...
   nameWithClanTag?: string;
 
-  // (provided by rcon) (defaulted to false in log connect) (unless this player just created a squad)
+  // (provided by rcon) (defaulted to false in log connect)
   isLeader: boolean;
 
   // null means no squad
-  // (provided by rcon) (defaulted to null in log connect) (unless this player just created a squad)
+  // (provided by rcon) (defaulted to null in log connect)
   squadID: string | null;
 
-  // (provided by log/rcon)
-  controller: string;
+  // (provided by log)
+  controller?: string;
 
   // (provided by log)
   ip?: string;
+
+  // (provided by rcon)
+  role?: string;
 };
 
 // todo: rn, only rcon provide squad, we are not using squad created log.

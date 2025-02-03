@@ -1,5 +1,5 @@
-import { concatMap, exhaustMap, interval, map, startWith, Subject, tap } from 'rxjs';
-import { merge, omit } from 'lodash';
+import { concatMap, exhaustMap,  interval, map, startWith, Subject, tap } from 'rxjs';
+import { merge } from 'lodash';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { Player, Squad } from './use-cached-game-status';
@@ -35,7 +35,7 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
       //   // todo also get last controller from logParser ?
       // Map players to include squad info from latest squads$
       return players.map(player => ({
-        ...omit(player, ['squadID']),
+        ...player,
         squad: getSquads().find(
           // We need to check both id, because each team can have a squad one for example.
           squad =>
@@ -44,7 +44,7 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
         )
       }));
     }),
-    tap(updatedPlayers => {
+    tap(currentPlayers => {
 
       // wip todo (change squad et change leader, ce serait bien d'avoir le previous non aussi?
       // const playersWithDifferentSquadID = players$.getValue()
@@ -57,15 +57,21 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
       //
       // playerChangedSquad.next(playersWithDifferentSquadID);
 
+      // We update players already in cache.
+      const updatedPrevious = getPlayers().map(player => (
+        // Find the corresponding player in updatedPlayers, and deep merge it.
+        // If no player is found, ignore, probably a disconnect, log parser will handle this
+        merge(player, currentPlayers.find(p => p.eosID === player.eosID) || {})
+      ));
+
+      const newPlayers: Player[] = currentPlayers.filter(
+        player => !getPlayers().find(p => p.eosID === player.eosID
+      ));
+
+      // todo: Let logs handle disconnected players for now ?
 
       // Update `players$` after squads$ so we always take advantage of squads$ updates immediately.
-      players$.next(
-        getPlayers().map(player => (
-          // Find the corresponding player in updatedPlayers, and deep merge it.
-          // If no player is found, ignore, probably a disconnect, log parser will handle this
-          merge(player, updatedPlayers.find(p => p.eosID === player.eosID) || {})
-        ))
-      );
+      players$.next([...updatedPrevious, ...newPlayers]);
     })
   );
 
