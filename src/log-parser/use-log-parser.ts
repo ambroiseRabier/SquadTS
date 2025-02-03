@@ -12,6 +12,7 @@ import { omit } from 'lodash';
 
 export type LogParser = ReturnType<typeof useLogParser>;
 
+// todo, should LogParserConfig have debug options instead ?
 export function useLogParser(logger: Logger, logReader: LogReader, options: LogParserConfig, debugLogMatching: LoggerOptions['debugLogMatching']) {
   const queue = new Subject<string>();
 
@@ -185,7 +186,8 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         filter((obj) => isEvent(obj, 'playerWounded')),
         map(([eventName, lineObj]) => lineObj),
         map(data => ({
-          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag']),
+          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag', 'damage']),
+          damage: parseFloat(data.damage),
           attacker: {
             ...extractIDs(data.attackerIDs),
             controller: data.attackerController

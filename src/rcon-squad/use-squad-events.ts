@@ -114,9 +114,13 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
       playerBanned: chatPacketEvent.pipe(
         map(body => matchWithRegex(
           body,
-          "Banned player (?<playerID>[0-9]+)\\. \\[Online IDs=(?<ids>[^\\]]+)\\] (?<name>.*) for interval (?<interval>.*)"
+          "Banned player (?<id>[0-9]+)\\. \\[Online IDs=(?<ids>[^\\]]+)\\] (?<name>.*) for interval (?<interval>.*)"
         )),
         filter((obj): obj is NonNullable<typeof obj> => !!obj),
+        map(obj => ({
+          ...omit(obj, 'ids'),
+          ...extractIDs(obj.ids)
+        })),
         map(addTime)
       )
     },

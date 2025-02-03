@@ -108,6 +108,8 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     return getPlayers().filter(player => player.nameWithClanTag === nameWithClanTag);
   }
 
+  // todo precise likeliness of having undefined ?
+  // low: unless your eosID is wrong or not a player on the server ?
   function getPlayerByEOSID(eosID: string) {
     // Guard against plugin dev mistakes
     if (!eosID) {

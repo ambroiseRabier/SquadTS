@@ -20,7 +20,7 @@ export const logParserRules = [
   ["playerAddedToTeam", "^LogSquad: (?<name>.+) added to team (?<teamID>[0-9]+)"],
 
   // Called between loginRequest and playerJoinSucceeded
-  ["playerConnected", "^LogSquad: PostLogin: NewPlayer: BP_PlayerController_C .+PersistentLevel\\.(?<playerController>[^\\s]+) \\(IP: (?<ip>[\\d.]+) \\| Online IDs:(?<ids>[^)|]+)\\)"],
+  ["playerConnected", "^LogSquad: PostLogin: NewPlayer: BP_PlayerController_C .+PersistentLevel\\.(?<controller>[^\\s]+) \\(IP: (?<ip>[\\d.]+) \\| Online IDs:(?<ids>[^)|]+)\\)"],
 
   // todo: Player Controller ID usage compared to playerDied is confusing
   ["playerDamaged", "^LogSquad: Player:(?<victimNameWithClanTag>.+) ActualDamage=(?<damage>[0-9.]+) from (?<attackerNameWithClanTag>.+) \\(Online IDs:(?<attackerIDs>[^|]+)\\| Player Controller ID: (?<attackerController>[^ ]+)\\)caused by (?<weapon>[A-z_0-9-]+)_C"],
