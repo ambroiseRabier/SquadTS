@@ -1,8 +1,12 @@
-import { AutoTKWarnOptions } from './auto-tk-warn.schema';
+import { AutoTKWarnOptions } from './auto-tk-warn.config';
 import { SquadServer } from '../src/squad-server';
+import { SquadTSPlugin } from '../src/plugin-loader/plugin.interface';
+import { Logger } from 'pino';
 
-export default function autoTKWarn(server: SquadServer, options: AutoTKWarnOptions){
+
+const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = (server: SquadServer, logger: Logger, options: AutoTKWarnOptions) => {
   server.events.teamKill.subscribe(async (info) => {
+    logger.info(`TK Warn: ${info.attacker.nameWithClanTag ?? info.attacker.name} (eosID: ${info.attacker.eosID})`);
     if (info.attacker && options.attackerMessage) {
       await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
     }
@@ -11,4 +15,7 @@ export default function autoTKWarn(server: SquadServer, options: AutoTKWarnOptio
     }
   });
 };
+
+// noinspection JSUnusedGlobalSymbols
+export default autoTKWarn;
 

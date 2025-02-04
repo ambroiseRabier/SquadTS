@@ -72,7 +72,7 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       // pingSquadJSAPI interessant, recup info sur qui utiliser quel plugin.
 
       // console.log(await this.rcon.getCurrentMap());
-      console.log(await rconSquad.getListPlayers());
+      // console.log(await rconSquad.getListPlayers());
       // console.log(await this.rcon.getSquads());
       // console.log(await this.rcon.getNextMap());
       // console.log(await rcon.broadcast("coucou dit l'oiseau"));

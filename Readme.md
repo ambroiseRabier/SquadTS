@@ -175,3 +175,8 @@ interessant: https://github.com/Squad-Wiki/squad-wiki-pipeline-map-data
 note about tests: name and ids have been scrambled, and may not be coherent from appear test to test (same player name with different eosID).
 
 todo, ya moyen de s'assurer que les plugins modifie pas ce qui leur aient donné par référence ?
+
+---
+
+todo: si je fais rien des logs initial (potentiellement de la veille...) (on veut pas agir 2 fois sur les meme logs si on 
+restart squadJS plusieurs fois de suite aussi !!), aussi bien enlever non ?

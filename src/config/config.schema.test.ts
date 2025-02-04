@@ -15,11 +15,15 @@ describe('parseConfig', () => {
         verboseness: {
           LogParser: 'info',
           RCON: 'info',
-          SquadServer: 'info'
+          SquadServer: 'info',
+          CachedGameStatus: 'info',
+          PluginLoader: 'info',
+          RCONSquad: 'info'
         },
         debugFTP: false,
         debugLogMatching: {
-          enabled: false,
+          showMatching: false,
+          showNonMatching: false,
           ignoreRegexMatch: ['^LogEOS:']
         }
       },

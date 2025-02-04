@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../src/plugin-loader/plugin-base.config';
 
-export const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
+const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
+  // todo optional delay
   attackerMessage: z
     .string()
     .optional()
@@ -12,8 +13,11 @@ export const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
     .string()
     .nullable()
     .optional()
-    .describe('The message that will be sent to the victim. null value mean no message sent.')
+    .describe('The message that will be sent to the victim. null value means no message sent.')
     .default(null),
 });
 
 export type AutoTKWarnOptions = z.infer<typeof autoTKWarnSchema>;
+
+// noinspection JSUnusedGlobalSymbols
+export default autoTKWarnSchema;

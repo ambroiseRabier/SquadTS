@@ -10,38 +10,16 @@ import fs from 'fs/promises';
 import JSON5 from 'json5';
 import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
+import { pathToFileURL } from 'node:url';
+import { register } from 'node:module';
 
 
 export function usePluginLoader(server: SquadServer, logger: Logger) {
-  // Any reason to support custom paths ?
-  const pluginsPath = path.join(__dirname, '..', 'plugins');
-
-  async function validate(options: any, pluginName: string)  {
-    const parsed = await optionsSchema.safeParseAsync(options);
-
-    if (parsed.success) {
-      return {
-        valid: true,
-      }
-    } else {
-      const errorMessages = parsed.error.issues.map(
-        (issue) => `- ${issue.path.join('.')}: ${issue.message}`
-      ).join('\n');
-
-      logger.error(`${pluginName} plugin is misconfigured:\n ${errorMessages}`);
-
-      return {
-        valid: false,
-        message: errorMessages
-      }
-    }
-  }
-
 
   return {
     load: async () => {
       logger.info('Loading plugins...');
-      const pluginsPair = await loadPlugins('../plugins', logger);
+      const pluginsPair = await loadPlugins(logger);
 
       // Inform there is no plugins loaded if user put them in wrong folder
       logger.info(`${pluginsPair.length} plugins discovered and imported.`);
@@ -69,7 +47,7 @@ export function usePluginLoader(server: SquadServer, logger: Logger) {
 
       // ---------- Loading JSON5 and validating ----------
       for (let pair of validConfigPairs) {
-        logger.info(`Loading config for ${pair.name}...`);
+        logger.info(`Loading config for ${pair.name} (${pair.configJSON5FilePath}).`);
 
         let json5;
         try {
@@ -122,8 +100,10 @@ async function loadJSON5(filePath: string) {
   }
 }
 
-async function loadPlugins(folderPath: string, logger: Logger) {
-  const pluginsDirectory = resolve(__dirname, folderPath);
+async function loadPlugins(logger: Logger) {
+  // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
+  // ts-node at runtime.
+  const pluginsDirectory = path.join(__dirname, '..', '..', 'plugins');
   const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
 
   const pluginPairs: {
@@ -142,8 +122,8 @@ async function loadPlugins(folderPath: string, logger: Logger) {
 
     const configSchemaFileName = file.replace('.ts', '.config.ts');
     const configJSON5FileName = file.replace('.ts', '.json5');
-    const pluginPath = resolve(pluginsDirectory, file);
-    const configSchemaPath = resolve(pluginsDirectory, configSchemaFileName);
+    const pluginPath = path.join(pluginsDirectory, file);
+    const configSchemaPath = path.join(pluginsDirectory, configSchemaFileName);
 
     // Inform which plugin have been seen and will be loaded.
     logger.info(`Plugin discovered: ${file} (${pluginPath})`);
@@ -155,8 +135,26 @@ async function loadPlugins(folderPath: string, logger: Logger) {
 
     logger.info(`Importing plugin files: ${file} and ${configSchemaFileName}`);
 
-    const plugin = await import(pluginPath);
-    const configSchema = await import(configSchemaPath);
+    // todo: ok on linux ? and mac ?
+    let plugin, configSchema;
+
+    try {
+      register("ts-node/esm", pathToFileURL(pluginPath))
+      // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
+      plugin = require(pluginPath); // .replace(/\\/g, '/')
+    } catch (e: any) {
+      logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
+      continue;
+    }
+
+    try {
+      register("ts-node/esm", pathToFileURL(configSchemaPath))
+      // configSchema = await import(pathToFileURL(configSchemaPath).href);
+      configSchema = require(configSchemaPath);
+    } catch (e: any) {
+      logger.error(`Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`, e);
+      continue;
+    }
 
     if (typeof plugin.default !== 'function') {
       logger.error(`Plugin ${file} should have a function as default export. Got ${typeof plugin.default}. (${pluginPath}).`);
@@ -164,7 +162,7 @@ async function loadPlugins(folderPath: string, logger: Logger) {
     }
 
     // We could probably also support zod discriminate union, maybe a search for Zod in constructor would be enough ?
-    if (typeof configSchema.default !== 'object' || configSchema.constructor.name !== 'ZodObject') {
+    if (typeof configSchema.default !== 'object' || configSchema.default.constructor.name !== 'ZodObject') {
       logger.error(`Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof plugin.default} and ${plugin.default.constructor.name}. (${pluginPath}).`);
       continue;
     }
@@ -174,7 +172,7 @@ async function loadPlugins(folderPath: string, logger: Logger) {
       plugin,
       configSchema,
       configJSON5FileName,
-      configJSON5FilePath: resolve(pluginsDirectory, configJSON5FileName),
+      configJSON5FilePath: path.join(pluginsDirectory, configJSON5FileName),
     });
   }
 

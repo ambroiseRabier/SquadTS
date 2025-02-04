@@ -15,6 +15,7 @@ export type LogParser = ReturnType<typeof useLogParser>;
 // todo, should LogParserConfig have debug options instead ?
 export function useLogParser(logger: Logger, logReader: LogReader, options: LogParserConfig, debugLogMatching: LoggerOptions['debugLogMatching']) {
   const queue = new Subject<string>();
+  let skipOnce = true;
 
   // /!\ Do not simplify it as logReader.on('line', queue.next) or readable errors messages in pipe will go away.
   logReader.on('line', (s) => {
@@ -31,7 +32,11 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       // On startup, we may not start reading the server log file at a line start. Ending up with an incomplete line.
       // Just ignore it and start processing from second line.
       if (!matchDate) {
-        logger.info(`Log with no date, THIS IS OK if it happens once at startup: ${line}`);
+        if (skipOnce) {
+          skipOnce = false;
+        } else {
+          logger.warn(`Log with no date (will be ignored): ${line}`);
+        }
         return null;
       }
 
@@ -56,19 +61,16 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       // const match = rules.find(rule => rule.regex.exec(content));
       const obj = parseLogLine(logParserRules, lineObj.data);
 
-      if (debugLogMatching.enabled) {
-        if (!obj) {
-          // ignoreRegexMatch allow us to reduce verboseness of logs we know are not useful to us
-          // use with caution because a wrong regex may hide useful information.
-          const verbosenessLimiter = !debugLogMatching.ignoreRegexMatch.some((strRegex) => new RegExp(strRegex).test(lineObj.data))
-          if (verbosenessLimiter) {
-            logger.warn(`No match on line: ${lineObj.raw}`);
-          } // else don't log anything to limit verboseness.
-        } else {
-          logger.debug(`Match on line: ${lineObj.data}`);
-        }
+      if (debugLogMatching.showNonMatching && !obj) {
+        // ignoreRegexMatch allow us to reduce verboseness of logs we know are not useful to us
+        // use with caution because a wrong regex may hide useful information.
+        const verbosenessLimiter = !debugLogMatching.ignoreRegexMatch.some((strRegex) => new RegExp(strRegex).test(lineObj.data))
+        if (verbosenessLimiter) {
+          logger.warn(`No match on line: ${lineObj.raw}`);
+        } // else don't log anything to limit verboseness.
+      } else if (debugLogMatching.showMatching) {
+        logger.debug(`Match on line: ${lineObj.data}`);
       }
-
 
       return obj;
     }),

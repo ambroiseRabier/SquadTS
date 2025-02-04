@@ -52,7 +52,6 @@ async function main() {
   // - connectors
   // - plugins
 
-  logger.info('Creating SquadServer...');
   await server.watch();
   await pluginLoader.load();
 }

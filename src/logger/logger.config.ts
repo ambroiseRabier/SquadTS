@@ -20,11 +20,14 @@ export const loggerOptionsSchema = z.object({
     `To disable a logger, set it to silent.`),
   debugFTP: z.boolean().default(false).describe("Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP."),
   debugLogMatching: z.object({
-    enabled: z.boolean().default(false)
-      .describe("Enable log matching debug logs, matched line will show as DEBUG, unmatched line will show as WARN.\n" +
+    showMatching: z.boolean().default(false)
+      .describe("Log matched logs, that will be turned into events. They show at DEBUG log level.\n" +
         "verboseness.LogParser HAS TO BE set to 'debug' for this to work.\n" +
-        "Use this to find test cases for log matching, or to find a potential new event create (after an update of Squad).\n" +
         "Warning: very verbose, only use in development."),
+    showNonMatching: z.boolean().default(false).describe("Log non matched logs. They show at WARN log level.\n" +
+      "You can use this to find new logs, that could be turned into events !\n" +
+      "If however, the log appear useless, you can add it to ignoreRegexMatch to reduce the verboseness.\n" +
+      "Warning: very verbose, only use in development."),
     ignoreRegexMatch: z.array(z.string()).default([
       '^LogEOS:',
       '^LogEOSNetworkAuth:',
@@ -35,8 +38,9 @@ export const loggerOptionsSchema = z.object({
       '^LogSquadOnlineServices: Icmp ping failed',
       '^LogRCONServer: \\d+:FRCONSocket::CloseConnection\\(\\):',
       '^LogRCONServer: \\d+:FRCONSocket::Run\\(\\):',
+      '^LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.',
     ])
-      .describe("Regex used to match line that will be ignored instead of being logged as non matched line.\n" +
+      .describe("Every non matched line that will be additionally tested, if it match it will not be logged.\n" +
         "Reduce the verboseness by ignoring logs you know are not useful to us.\n" +
         "Use this with caution.")
   })
