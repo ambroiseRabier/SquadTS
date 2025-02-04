@@ -178,7 +178,7 @@ async function loadPlugins(logger: Logger) {
 
     try {
       logger.info(`Importing TS file: ${file}`);
-      register("ts-node/esm", pathToFileURL(pluginPath))
+      // register("ts-node/esm", pathToFileURL(pluginPath))
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       plugin = require(pluginPath); // .replace(/\\/g, '/')
     } catch (e: any) {
@@ -188,7 +188,7 @@ async function loadPlugins(logger: Logger) {
 
     try {
       logger.info(`Importing TS file: ${configSchemaFileName}`);
-      register("ts-node/esm", pathToFileURL(configSchemaPath))
+      // register("ts-node/esm", pathToFileURL(configSchemaPath))
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
       configSchema = require(configSchemaPath);
     } catch (e: any) {
