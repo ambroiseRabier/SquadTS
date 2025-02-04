@@ -102,7 +102,8 @@ export function useLogUpdates({
           // When you join a game, you aren't leader
           isLeader: false,
           // When you join a game, you aren't in a squad
-          squadID: null
+          squadID: undefined,
+          squad: undefined,
         }
       ]);
     })

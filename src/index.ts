@@ -43,7 +43,8 @@ async function main() {
   const squadRcon = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
   const logReader = useLogReader(config.logParser, config.logger.debugFTP);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
-  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger);
+  const serverInfo = await squadRcon.showServerInfo();
+  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger, serverInfo);
   const server = useSquadServer(squadServerLogger, squadRcon, logParser, cachedGameStatus, config);
   const pluginLoader = usePluginLoader(server, pluginLoaderLogger);
 

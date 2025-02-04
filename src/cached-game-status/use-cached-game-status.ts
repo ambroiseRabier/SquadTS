@@ -1,27 +1,14 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import {
-  BehaviorSubject,
-  catchError,
-  concatMap,
-  EMPTY,
-  exhaustMap,
-  filter,
-  interval,
-  map,
-  Observable,
-  startWith,
-  Subject,
-  tap,
-  timeout
-} from 'rxjs';
+import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
-import { merge, omit } from 'lodash';
+import { merge } from 'lodash';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';
 import { usePlayerGet } from './use-player-get';
 import { useRconUpdates } from './use-rcon-updates';
 import { useLogUpdates } from './use-log-updates';
+import { useServerInfoUpdates } from './use-server-info-updates';
 
 
 // todo rcon fields that can be undefined ?
@@ -48,9 +35,8 @@ export type Player = {
   // (provided by rcon) (defaulted to false in log connect)
   isLeader: boolean;
 
-  // null means no squad
   // (provided by rcon) (defaulted to null in log connect)
-  squadID: string | null;
+  squadID?: string;
 
   // (provided by log)
   controller?: string;
@@ -60,7 +46,36 @@ export type Player = {
 
   // (provided by rcon)
   role?: string;
+
+  // (provided by rcon)
+  squad?: Squad;
 };
+
+/**
+ * Squad lead helper type.
+ */
+export type PlayerSL = Player & {squad: NonNullable<Squad>, squadID: NonNullable<Player['squadID']>} & {isLeader: true};
+
+/**
+ * Convenience method that will adjust Player type when isLeader is true.
+ * @param player
+ */
+export function isSL(player: Player): player is PlayerSL {
+  return player.isLeader;
+}
+
+/**
+ * Unassigned helper type.
+ */
+export type UnassignedPlayer = Omit<Player, 'squadID' | 'squad'>;
+
+/**
+ * Convenience method that will adjust Player type when they are unassigned.
+ * @param player
+ */
+export function isUnassigned(player: Player): player is UnassignedPlayer {
+  return !!player.squadID; // or squad, both are updated at the same time.
+}
 
 // todo: rn, only rcon provide squad, we are not using squad created log.
 // interface Squad {
@@ -85,15 +100,21 @@ export type Squad = Awaited<ReturnType<RconSquad['getSquads']>>[number];
 // Work like Awaited for promises
 type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 
+// export type CachedGameStatus = Awaited<ReturnType<typeof useCachedGameStatus>>;
 export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
 
 /**
  * Keep track of the game status, like players, layers, squad list.
  */
-export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, config: CachedGameStatusOptions, logParserConfig: LogParserConfig, logger: Logger) {
+export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, config: CachedGameStatusOptions, logParserConfig: LogParserConfig, logger: Logger, initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>) {
   const players$ = new BehaviorSubject<Player[]>([]);
   const squads$ = new BehaviorSubject<Squad[]>([]);
-  const rconUpdates = useRconUpdates(rconSquad, config.updateInterval, players$.getValue.bind(players$), squads$.getValue.bind(squads$)); // bind( missing ?)
+  const rconUpdates = useRconUpdates(
+    rconSquad,
+    config.updateInterval,
+    players$.getValue.bind(players$),
+    squads$.getValue.bind(squads$)
+  );
   const logUpdates = useLogUpdates({
     logParser,
     logParserConfig,
@@ -101,6 +122,7 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
     getPlayers: players$.getValue.bind(players$),
     getSquads: squads$.getValue.bind(squads$),
   });
+  const serverInfoUpdates = useServerInfoUpdates(rconSquad, config.updateInterval, initialServerInfo);
 
   const playerChangedSquad = new Subject<Player[]>();
 
@@ -116,12 +138,38 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
     tryGetPlayerByNameWithClanTag
   } = playerGet;
 
-  function getSquad(squadID: string, teamID: string) {
+  function getSquad(teamID: string, squadID: string) {
+    // Guard against plugin dev mistakes
+    if (!squadID) {
+      throw new Error('Provided squadID is nullish');
+    }
+    // Guard against plugin dev mistakes
+    if (!teamID) {
+      throw new Error('Provided teamID is nullish');
+    }
+
     return squads$.getValue().find(
       // We need to check both id, because each team can have a squad one for example.
       squad =>
         squad.teamID === teamID &&
         squad.squadID === squadID
+    );
+  }
+
+  function getPlayersInSquad(teamID: string, squadID: string) {
+    // Guard against plugin dev mistakes
+    if (!squadID) {
+      throw new Error('Provided squadID is nullish');
+    }
+    // Guard against plugin dev mistakes
+    if (!teamID) {
+      throw new Error('Provided teamID is nullish');
+    }
+
+    return players$.getValue().filter(
+      player =>
+        player.squadID === squadID &&
+        player.teamID === teamID
     );
   }
 
@@ -146,12 +194,14 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
     if (player === undefined || !player.squadID) {
       return undefined;
     } else {
-      return getSquad(player.squadID, player.teamID);
+      return getSquad(player.teamID, player.squadID);
     }
   }
 
 
+
   return {
+    serverInfo: serverInfoUpdates.serverInfo$.getValue(),
     /**
      * Events enriched in data using existing saved game status.
      */
@@ -171,7 +221,9 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
           // This concerns attacker.controller and victim.nameWithClanTag
           return merge({attacker, victim}, data);
         }),
-      )
+      ),
+      // Prevent accidentally using next by passing Subject as Observable.
+      playersSquadChange: rconUpdates.playersSquadChange$.asObservable(),
     },
     chatEvents: {
       ...rconSquad.chatEvents,
@@ -234,7 +286,14 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
         }))
       )
     },
-    ...playerGet,
+    getters: {
+      isSL, // Passed as part of server for convenience of finding the method :)
+      isUnassigned,
+      getSquad,
+      getPlayerSquad,
+      getPlayersInSquad,
+      ...playerGet,
+    },
     // You may subscribe to only one player by using pipe and filter by eosID
     players$,
     // Note that data is immutable and won't be updated by reference, to get non stale data,
@@ -251,6 +310,8 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
      * Call after logParser are watching.
      */
     watch: () => {
+      serverInfoUpdates.watch();
+
       // Will start adding and removing player in cache, from logs
       logUpdates.players$.subscribe(players$.next.bind(players$));
       logUpdates.watch();
@@ -261,6 +322,8 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
       rconUpdates.watch();
     },
     unWatch: () => {
+      serverInfoUpdates.unwatch();
+
       logUpdates.players$.unsubscribe();
       logUpdates.unwatch();
 

@@ -14,3 +14,7 @@ yarn-error.log*
 # build folder
 dist
 dev-config
+
+
+# Root .tmp file create by SquadTS when reading logs
+/*.tmp

@@ -5,7 +5,6 @@ import { from, Observable, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit, pick } from 'lodash';
-import { undefined } from 'zod';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
@@ -13,8 +12,11 @@ type DeepPartial<T> = {
 
 type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 
+// We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
+type UnassignedPlayer = Required<Omit<Player, 'squad' | 'squadID'>> & {squad: any; squadID: any}; // squad should actually be undefined. (typing to be improved...)
+
 // ---- team 1 ----
-const playerYuca: Required<Player> = {
+const playerYuca: UnassignedPlayer = {
   controller: "controller0",
   eosID: "eosYuca",
   id: "0",
@@ -22,14 +24,15 @@ const playerYuca: Required<Player> = {
   isLeader: false,
   name: "Yuca",
   nameWithClanTag: "-TWS- Yuca",
-  squadID: null,
+  squadID: undefined,
+  squad: undefined,
   steamID: "steamYuca",
   teamID: "1",
   role: "WPMC_Engineer_01" // invented
 };
 
 // ---- team 2 ----
-const playerPika: Required<Player> = {
+const playerPika: UnassignedPlayer = {
   controller: "controller0",
   eosID: "eosPika",
   id: "0", // if on another team, the id can be the same, it is called id by squad but work more like an index.
@@ -37,7 +40,8 @@ const playerPika: Required<Player> = {
   isLeader: false,
   name: "Pika",
   nameWithClanTag: "-TWS- Pika",
-  squadID: null,
+  squadID: undefined,
+  squad: undefined,
   steamID: "steamPika",
   teamID: "2",
   role: "WPMC_Engineer_01" // invented
@@ -81,6 +85,7 @@ function mockRconSquad(override: DeepPartial<RconSquad>): RconSquad {
   const base = {
     getSquads: jest.fn<any>().mockResolvedValue([]),
     getListPlayers: jest.fn<any>().mockResolvedValue([]),
+    showServerInfo: jest.fn<any>().mockResolvedValue({}), // not this is invalid data for server info...
     chatEvents: {
       message: of(),
       command: of(),
@@ -160,13 +165,14 @@ describe('use-cached-game-status', () => {
       },
       logParserConfig,
       mockLogger,
+      {} as any
     );
 
     cachedGameStatus.watch();
     cachedGameStatus.unWatch();
 
     expect(
-      cachedGameStatus.getPlayerByEOSID(playerYuca.eosID)
+      cachedGameStatus.getters.getPlayerByEOSID(playerYuca.eosID)
     ).toEqual(
       omit(playerYuca, 'nameWithClanTag', 'role') // only fields provided by logs
     );
@@ -195,6 +201,7 @@ describe('use-cached-game-status', () => {
       },
       logParserConfig,
       mockLogger,
+      {} as any
     );
 
     cachedGameStatus.watch();
@@ -265,8 +272,8 @@ describe('use-cached-game-status', () => {
     ];
 
     // Make sure it is coherent with empty squad list.
-    console.assert(playerPika.squadID === null, 'playerPika should not be in a squad');
-    console.assert(playerYuca.squadID === null, 'playerYuca should not be in a squad');
+    console.assert(!playerPika.squadID, 'playerPika should not be in a squad');
+    console.assert(!playerYuca.squadID, 'playerYuca should not be in a squad');
 
     const rconSquads: Awaited<ReturnType<RconSquad['getSquads']>> = [
 
@@ -289,6 +296,7 @@ describe('use-cached-game-status', () => {
       },
       logParserConfig,
       mockLogger,
+      {} as any
     );
 
     cachedGameStatus.watch();

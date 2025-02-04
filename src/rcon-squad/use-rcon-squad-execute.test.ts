@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { MockedFunction } from 'jest-mock';
+import { gameServerInfoKeys } from './server-info.type';
 
 describe('rcon-squad-execute', () => {
   let execute: MockedFunction<Rcon['execute']>;
@@ -78,7 +79,7 @@ ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277
         role: "INS_Sapper_01",
         isLeader: false,
         playerID: "3",
-        squadID: null,
+        squadID: undefined,
         steamID: "76561198080109192",
         teamID: "1",
       },
@@ -160,6 +161,33 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
         teamName: "Manticore Security Task Force"
       }
     ]);
+  });
+
+  it('should detect changes in ShowServerInfo', async () => {
+    const localExecute = jest.fn<Rcon['execute']>();
+    const loggerWarn = jest.fn();
+    const localRcon = useRconSquadExecute(localExecute as any, true, {
+      info: console.log,
+      warn: loggerWarn,
+      trace: console.log,
+      debug: console.log,
+      error: console.error,
+      fatal: console.error,
+    } as any);
+
+    const obj = Object.fromEntries(gameServerInfoKeys.map(key => [key, ''] as const));
+    obj['new_key_that_should_be_detected'] = '';
+    delete obj[gameServerInfoKeys[0]];
+
+    localExecute.mockResolvedValue(obj as any)
+
+    await localRcon.showServerInfo();
+    expect(loggerWarn).toHaveBeenCalledWith(
+      'Missing keys found in server info (this log is aimed at SquadTS developers): MaxPlayers',
+    );
+    expect(loggerWarn).toHaveBeenCalledWith(
+      'Extra keys found in server info (this log is aimed at SquadTS developers): new_key_that_should_be_detected',
+    );
   });
 
   // todo something incorrect with that.

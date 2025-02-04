@@ -1,0 +1,17 @@
+{
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'warn',
+  enabled: true,
+  // List of squad types for which we limit player count
+  squadTypes: [],
+  // Message sent to the squad leader and entering squad member when max player count is exceeded.
+  // Available variables: %warn_count%, %squadType%, %max%
+  message: 'Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.',
+  // In seconds, how often you want to warn the squad leader
+  warnRate: 60,
+  // How many times the squad leader can be warned before disbanding
+  maxWarnBeforeDisband: 5,
+  // You most likely don't want this enabled in seed, unless for testing purposes.
+  enabledInSeed: false,
+}

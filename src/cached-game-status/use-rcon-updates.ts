@@ -6,8 +6,10 @@ import { Player, Squad } from './use-cached-game-status';
 
 
 export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameStatusOptions["updateInterval"], getPlayers: () => Player[], getSquads: () => Squad[]) {
+  // Note: we cannot place behaviorSubject here, data from logs will be merged into player and maybe also squad infos.
   const squads$ = new Subject<Awaited<ReturnType<typeof rconSquad.getSquads>>>();
   const players$ = new Subject<Player[]>();
+  const playersSquadChange$ = new Subject<Player[]>();
 
   // Update squads
   const squadUpdate$ = interval(updateInterval.playersAndSquads * 1000)
@@ -44,7 +46,9 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
         )
       }));
     }),
-    tap(currentPlayers => {
+    // Not quite sure why I need to type it Player for some errors to disappear,
+    // TS should be able to find currentPlayers type to be compatible with Player by itself.
+    tap((currentPlayers: Player[]) => {
 
       // wip todo (change squad et change leader, ce serait bien d'avoir le previous non aussi?
       // const playersWithDifferentSquadID = players$.getValue()
@@ -56,6 +60,22 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
       //   });
       //
       // playerChangedSquad.next(playersWithDifferentSquadID);
+
+      const playerStillConnected = currentPlayers
+        .map(playerNow => [playerNow, getPlayers().find(p => p.eosID === playerNow.eosID)] as const)
+        .filter((playerNow): playerNow is readonly[playerNow: Player, playerBefore: Player] => !!playerNow[1]);
+
+      // Check both for different squad ID, and also if the "id" is the same but he changed team.
+      const playersWithDifferentSquadID = playerStillConnected
+        .filter(([playerNow, playerBefore]) => playerBefore.squadID !== playerNow.squadID
+      || (playerBefore.squadID === playerNow.squadID && playerBefore.teamID !== playerNow.teamID))
+
+      playersSquadChange$.next(
+        playersWithDifferentSquadID.map(
+          ([playerNow, playerBefore]) => merge(playerBefore, playerNow)
+        )
+      );
+
 
       // We update players already in cache.
       const updatedPrevious = getPlayers().map(player => (
@@ -77,6 +97,7 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
   const sub: Subscription[] = [];
 
   return {
+    playersSquadChange$,
     players$,
     squads$,
     watch: () => {

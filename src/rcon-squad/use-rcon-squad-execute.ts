@@ -3,13 +3,14 @@ import { extractIDs } from '../rcon/id-parser';
 import { omit } from 'lodash';
 import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
 import { Logger } from 'pino';
+import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
 
 
 export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
 
   function dryRunExecute(command: string): Promise<string> {
     if (dryRun) {
-      logger.info(`Dry run: ${command}`);
+      logger.warn(`Dry run: ${command}`);
       return Promise.resolve('This is a dry run, no command was executed.');
     } else {
       return execute(command);
@@ -52,7 +53,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
             ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
             teamID: teamID, // teamID !== 'N/A' ? teamID : null, // todo: actually possible ? admin cam perhaps ?
-            squadID: squadID !== 'N/A' ? squadID : null,
+            squadID: squadID !== 'N/A' ? squadID : undefined,
             ...extractIDs(ids)
           };
         });
@@ -107,6 +108,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         .filter((squad): squad is NonNullable<typeof squad> => squad !== null);
     },
 
+    // todo: renvoie quoi ? quoi que ce soit utile ?
     broadcast: async (message: string) => {
       await dryRunExecute(`AdminBroadcast ${message}`);
     },
@@ -134,6 +136,52 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
     forceTeamChange: async (anyID: string) => {
       await dryRunExecute(`AdminForceTeamChange "${anyID}"`);
+    },
+
+    showServerInfo: async () => {
+      const infoStr = await execute(`ShowServerInfo`);
+      const info = JSON.parse(infoStr) as GameServerInfo;
+
+      // We check for change in returned data, and inform user/dev that something changed.
+      const infoKeys = Object.keys(info);
+      const missingKeys = gameServerInfoKeys.filter(key => !infoKeys.includes(key));
+      const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
+
+      if (missingKeys.length > 0) {
+        logger.warn(`Missing keys found in server info (this log is aimed at SquadTS developers): ${missingKeys.join(',')}`)
+      }
+      if (extraKeys.length > 0) {
+        logger.warn(`Extra keys found in server info (this log is aimed at SquadTS developers): ${extraKeys.join(',')}`);
+      }
+
+      function getMatchStartTimeByPlaytime(playtime: number) {
+        return new Date(Date.now() - playtime * 1000);
+      }
+
+      return {
+        raw: info,
+        serverName: info.ServerName_s,
+
+        maxPlayers: info.MaxPlayers,
+        publicQueueLimit: parseInt(info.PublicQueueLimit_I),
+        reserveSlots: parseInt(info.PlayerReserveCount_I),
+
+        playerCount: parseInt(info.PlayerCount_I),
+        a2sPlayerCount: parseInt(info.PlayerCount_I),
+        publicQueue: parseInt(info.PublicQueue_I),
+        reserveQueue: parseInt(info.ReservedQueue_I),
+
+        currentLayer: info.MapName_s,
+        nextLayer: info.NextLayer_s,
+        isSeed: info.MapName_s.search(/seed/i) !== -1,
+
+        teamOne: info.TeamOne_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+        teamTwo: info.TeamTwo_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+
+        matchTimeout: info.MatchTimeout_d,
+        matchStartTime: getMatchStartTimeByPlaytime(parseInt(info.PLAYTIME_I)),
+        gameVersion: info.GameVersion_s
+      };
     },
   };
 }

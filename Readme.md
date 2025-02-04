@@ -180,3 +180,7 @@ todo, ya moyen de s'assurer que les plugins modifie pas ce qui leur aient donné
 
 todo: si je fais rien des logs initial (potentiellement de la veille...) (on veut pas agir 2 fois sur les meme logs si on 
 restart squadJS plusieurs fois de suite aussi !!), aussi bien enlever non ?
+
+---
+
+when doing a plugins, you may want to add playerTreshold (kick unassigned) and enabledInSeed (squad name validator...)

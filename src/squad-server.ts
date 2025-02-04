@@ -25,35 +25,16 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
   );
 
   return {
+    info: cachedGameStatus.serverInfo,
+    players: cachedGameStatus.players$.getValue(),
+    squads: cachedGameStatus.squads$.getValue(),
     events: {
-      ...logParser.events,
+      ...cachedGameStatus.events,
       teamKill,
       suicide
     },
-    // cachedGameStatus, // todo à voir, pas watch pour sûr.
+    ...cachedGameStatus.getters,
     rcon: rconSquad,
-    // events: {
-    //   ...logParser.events,
-    //   playerWounded: logParser.events.playerWounded.pipe(
-    //     // todo async map ok ?
-    //     map(async data => {
-    //       return {
-    //         ...data,
-    //         victim: await getPlayerByName(data.victimName),
-    //         // attacker: await getPlayerByEOSID(data.attackerIDs)
-    //       };
-    //
-    //       // data
-    //       // data.teamkill = data.victim.teamID === data.attacker.teamID && data.victim.eosID !== data.attacker.eosID;
-    //     })
-    //   ),
-    //   teamKill: logParser.events.playerWounded.pipe(
-    //     map(data => {
-    //       // data
-    //       // data.teamkill = data.victim.teamID === data.attacker.teamID && data.victim.eosID !== data.attacker.eosID;
-    //     })
-    //   ),
-    // },
     watch: async () => {
       logger.info(`Beginning to watch ${options.rcon.host}:${options.rcon.port}...`);
       await rconSquad.connect();
@@ -75,6 +56,7 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       // console.log(await rconSquad.getListPlayers());
       // console.log(await this.rcon.getSquads());
       // console.log(await this.rcon.getNextMap());
+      // console.log(await rconSquad.showServerInfo());
       // console.log(await rcon.broadcast("coucou dit l'oiseau"));
 
       // await this.rcon.getCurrentMap()
@@ -84,9 +66,9 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       // await logParser.watch();
 
 
-      logParser.events.adminBroadcast.subscribe((next) => {
-        logger.debug(next);
-      })
+      // logParser.events.adminBroadcast.subscribe((next) => {
+      //   logger.debug(next);
+      // })
       // rconSquad.chatEvent.subscribe((next) => {
       //   logger.debug('chatevent (tmp):', next);
       // })
