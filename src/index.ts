@@ -40,12 +40,17 @@ async function main() {
     pluginLoaderLogger,
   } = useSubLogger(logger, config.logger.verboseness);
   const rcon = new Rcon(config.rcon, rconLogger);
-  const squadRcon = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
+  const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
   const logReader = useLogReader(config.logParser, config.logger.debugFTP);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
-  const serverInfo = await squadRcon.showServerInfo();
-  const cachedGameStatus = useCachedGameStatus(squadRcon, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger, serverInfo);
-  const server = useSquadServer(squadServerLogger, squadRcon, logParser, cachedGameStatus, config);
+
+  // I need to connect to RCON early to get serverInfo and avoid having to deal with empty or undefined data in BehaviorSubject
+  // inside cachedGameStatus...
+  await rconSquad.connect();
+
+  const serverInfo = await rconSquad.showServerInfo();
+  const cachedGameStatus = useCachedGameStatus(rconSquad, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger, serverInfo);
+  const server = useSquadServer(squadServerLogger, rconSquad, logParser, cachedGameStatus, config);
   const pluginLoader = usePluginLoader(server, pluginLoaderLogger);
 
 

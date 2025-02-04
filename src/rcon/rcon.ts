@@ -349,7 +349,7 @@ export class Rcon {
     return new Promise(
       (resolve, reject) => {
       if (!this.connected) {
-        reject(new Error('Not connected.'));
+        reject(new Error('Not connected. (Are you making RCON request before connecting?)'));
         return;
       }
 

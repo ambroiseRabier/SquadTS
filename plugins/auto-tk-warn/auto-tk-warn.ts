@@ -1,6 +1,6 @@
 import { AutoTKWarnOptions } from './auto-tk-warn.config';
-import { SquadServer } from '../src/squad-server';
-import { SquadTSPlugin } from '../src/plugin-loader/plugin.interface';
+import { SquadServer } from '../../src/squad-server';
+import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 
 

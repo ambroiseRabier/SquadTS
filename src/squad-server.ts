@@ -36,8 +36,6 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
     ...cachedGameStatus.getters,
     rcon: rconSquad,
     watch: async () => {
-      logger.info(`Beginning to watch ${options.rcon.host}:${options.rcon.port}...`);
-      await rconSquad.connect();
 
       // todo: useful for plugins where you don oh way, admin can't be kicked ...
       // based on permission: "canseeadminchat",

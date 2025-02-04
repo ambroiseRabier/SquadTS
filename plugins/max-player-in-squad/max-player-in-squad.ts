@@ -1,8 +1,8 @@
-import { SquadServer } from '../src/squad-server';
-import { SquadTSPlugin } from '../src/plugin-loader/plugin.interface';
+import { SquadServer } from '../../src/squad-server';
+import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import { Player, PlayerSL } from '../src/cached-game-status/use-cached-game-status';
+import { Player, PlayerSL } from '../../src/cached-game-status/use-cached-game-status';
 import { exhaustMap, filter, interval, map } from 'rxjs';
 
 interface TransgressorDetails {

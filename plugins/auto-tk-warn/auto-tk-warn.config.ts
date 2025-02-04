@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { pluginBaseOptionsSchema } from '../src/plugin-loader/plugin-base.config';
+import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
 const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
   // todo optional delay

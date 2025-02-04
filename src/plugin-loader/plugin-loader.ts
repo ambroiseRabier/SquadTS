@@ -1,7 +1,7 @@
 import path, { basename, resolve } from 'node:path';
 import { optionsSchema } from '../config/config.schema';
 import { Logger } from 'pino';
-import { existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { SquadServer } from '../squad-server';
 import chalk from 'chalk';
 import { PluginBaseOptions } from './plugin-base.config';
@@ -47,7 +47,7 @@ export function usePluginLoader(server: SquadServer, logger: Logger) {
 
       // ---------- Loading JSON5 and validating ----------
       for (let pair of validConfigPairs) {
-        logger.info(`Loading config for ${pair.name} (${pair.configJSON5FilePath}).`);
+        logger.info(`Loading config for ${pair.name}.`);
 
         let json5;
         try {
@@ -100,11 +100,52 @@ async function loadJSON5(filePath: string) {
   }
 }
 
+/**
+ * Finds files with a specific extension inside subfolders of a given directory.
+ * @param directory Path to the base directory.
+ * @param extension File extension to filter for (e.g., ".ts").
+ * @returns Array of file paths matching the extension.
+ */
+function findFilesInSubfolders(directory: string, extension: string): string[] {
+  const subfolders = readdirSync(directory).filter(subfolder => {
+    const subfolderPath = path.join(directory, subfolder);
+    return statSync(subfolderPath).isDirectory(); // Only include directories
+  });
+
+  const files: string[] = [];
+  subfolders.forEach(subfolder => {
+    const subfolderPath = path.join(directory, subfolder);
+    const filteredFiles = readdirSync(subfolderPath)
+      .filter(file => file.endsWith(extension)) // Only include files with the desired extension
+      .map(file => path.join(subfolder, file)); // Maintain relative paths
+    files.push(...filteredFiles);
+  });
+
+  return files;
+}
+
+/**
+ * Finds files whose names (without extensions) match their parent directory name.
+ * e.g "C:/.../auto-tk-warn/auto-tk-warn.ts" match "auto-tk-warn.ts"
+ * @param fileList List of file paths to process.
+ * @returns Array of matching file paths.
+ */
+function findFilesMatchingParentDirectory(fileList: string[]): string[] {
+  return fileList.filter(filePath => {
+    const fileName = path.basename(filePath, path.extname(filePath)); // File name without extension
+    const parentDir = path.basename(path.dirname(filePath)); // Name of the parent directory
+    return fileName === parentDir; // Check if file name matches parent directory name
+  });
+}
+
 async function loadPlugins(logger: Logger) {
   // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
   // ts-node at runtime.
   const pluginsDirectory = path.join(__dirname, '..', '..', 'plugins');
-  const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
+  // Instead of putting every file inside plugins, better having a folder for each plugin since we require 3 files per plugin !
+  // const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
+  const allTSFiles = findFilesInSubfolders(pluginsDirectory, '.ts');
+  const pluginMainFiles = findFilesMatchingParentDirectory(allTSFiles);
 
   const pluginPairs: {
     name: string;
@@ -114,7 +155,7 @@ async function loadPlugins(logger: Logger) {
     configJSON5FilePath: string;
   }[] = [];
 
-  for (const file of pluginFiles) {
+  for (const file of pluginMainFiles) {
     // Skip config files initially
     if (file.endsWith('.config.ts')) {
       continue
@@ -128,17 +169,15 @@ async function loadPlugins(logger: Logger) {
     // Inform which plugin have been seen and will be loaded.
     logger.info(`Plugin discovered: ${file} (${pluginPath})`);
 
-    if (!pluginFiles.includes(configSchemaFileName)) {
+    if (!allTSFiles.includes(configSchemaFileName)) {
       logger.error(`configSchema file for "${file}" not found. Skipping this plugin.`);
       continue;
     }
 
-    logger.info(`Importing plugin files: ${file} and ${configSchemaFileName}`);
-
-    // todo: ok on linux ? and mac ?
     let plugin, configSchema;
 
     try {
+      logger.info(`Importing TS file: ${file}`);
       register("ts-node/esm", pathToFileURL(pluginPath))
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       plugin = require(pluginPath); // .replace(/\\/g, '/')
@@ -148,6 +187,7 @@ async function loadPlugins(logger: Logger) {
     }
 
     try {
+      logger.info(`Importing TS file: ${configSchemaFileName}`);
       register("ts-node/esm", pathToFileURL(configSchemaPath))
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
       configSchema = require(configSchemaPath);

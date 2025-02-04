@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { pluginBaseOptionsSchema } from '../src/plugin-loader/plugin-base.config';
+import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
 const maxPlayerInSquadSchema = pluginBaseOptionsSchema.extend({
   squadTypes: z.array(
@@ -9,7 +9,13 @@ const maxPlayerInSquadSchema = pluginBaseOptionsSchema.extend({
         'E.g both "INF" or "inf" will validate "Infantry" or "INF".'),
       maxPlayers: z.number().min(1).max(9).describe('Maximum number of players for the given squad type.'),
     })
-  ).nonempty().describe('List of squad types for which we limit player count'),
+  )
+    .nonempty()
+    .default([{
+      containWord: 'MBT',
+      maxPlayers: 4
+    }])
+    .describe('List of squad types for which we limit player count'),
   message: z.string()
     .default(
       `Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.`
