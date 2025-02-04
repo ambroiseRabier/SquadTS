@@ -17,7 +17,8 @@ export const logParserRules = [
   ["loginRequest", "^LogNet: Login request: \\?Name=(?<name>.*) userId: RedpointEOS:(?<eosID>0002a10386d9114496bf20d22d3860ba) platform: RedpointEOS"],
 
   // Called right before join succeeded and player initialize it seems
-  ["playerAddedToTeam", "^LogSquad: (?<name>.+) added to team (?<teamID>[0-9]+)"],
+  // Yes, there is two spaces after Player, probably a mistake from Squad devs.
+  ["playerAddedToTeam", "^LogSquad: Player  (?<name>.+) has been added to Team (?<teamID>[0-9]+)"],
 
   // Called between loginRequest and playerJoinSucceeded
   ["playerConnected", "^LogSquad: PostLogin: NewPlayer: BP_PlayerController_C .+PersistentLevel\\.(?<controller>[^\\s]+) \\(IP: (?<ip>[\\d.]+) \\| Online IDs:(?<ids>[^)|]+)\\)"],

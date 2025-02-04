@@ -116,6 +116,8 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       playerDamaged: events.pipe(
         filter((obj) => isEvent(obj, 'playerDamaged')),
         map(([eventName, lineObj]) => lineObj),
+        // Filter out bots
+        filter(data => data.attackerNameWithClanTag !== 'nullptr'),
         map(data => ({
           ...omit(data, ['attackerIDs', 'attackerController', 'attackerNameWithClanTag', 'victimNameWithClanTag']),
           attacker: {
@@ -187,6 +189,8 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       playerWounded: events.pipe(
         filter((obj) => isEvent(obj, 'playerWounded')),
         map(([eventName, lineObj]) => lineObj),
+        // Filter out bots
+        filter(data => data.attackerController !== 'nullptr'),
         map(data => ({
           ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag', 'damage']),
           damage: parseFloat(data.damage),

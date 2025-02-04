@@ -38,6 +38,16 @@ describe('parseConfig', () => {
           initialTailSize: 1048576
         },
         mode: 'ftp'
+      },
+      cacheGameStatus: {
+        updateInterval: {
+          serverInfo: 1000,
+          layerInfo: 1000,
+          playersAndSquads: 1000,
+        }
+      },
+      rconSquad: {
+        dryRun: false,
       }
     };
 
