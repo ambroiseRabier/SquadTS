@@ -1,5 +1,4 @@
-import path, { basename, resolve } from 'node:path';
-import { optionsSchema } from '../config/config.schema';
+import path, { basename } from 'node:path';
 import { Logger } from 'pino';
 import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { SquadServer } from '../squad-server';
@@ -10,11 +9,10 @@ import fs from 'fs/promises';
 import JSON5 from 'json5';
 import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
-import { pathToFileURL } from 'node:url';
-import { register } from 'node:module';
+import { DiscordConnector } from '../connectors/use-discord.connector';
 
 
-export function usePluginLoader(server: SquadServer, logger: Logger) {
+export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger) {
 
   return {
     load: async () => {
@@ -75,14 +73,26 @@ export function usePluginLoader(server: SquadServer, logger: Logger) {
 
         logger.info(`Starting plugin ${pair.name}.`);
 
-        pair.plugin.default(
+        if (parseConfig.requireConnectors.includes('discord') && !connectors.discord) {
+          logger.error(`Skipping ${pair.name} plugin. Discord connector has not been enabled in connectors config, or check above for errors related to Discord (like an invalid token).`)
+          continue;
+        }
+
+        // Note, we don't want to run them in parallel, it would be hard to debug from the console
+        // if logs are mixed between plugins.
+        await pair.plugin.default(
           server,
+          // this typing is correct, as long as the plugin correctly fill requireConnectors field...
+          connectors as Required<typeof connectors>,
           logger.child({}, {
             msgPrefix: chalk.magentaBright(`[${pair.name}] `),
             level: parseConfig.loggerVerbosity
           }),
           parseConfig
-        );
+        ).catch(error => {
+          // A failing plugin should not stop SquadTS completely.
+          logger.error(`Failed to start plugin ${pair.name}. Error: ${error.message}\n${error.stack}`, error);
+        });
       }
     }
   };
@@ -201,9 +211,8 @@ async function loadPlugins(logger: Logger) {
       continue;
     }
 
-    // We could probably also support zod discriminate union, maybe a search for Zod in constructor would be enough ?
-    if (typeof configSchema.default !== 'object' || configSchema.default.constructor.name !== 'ZodObject') {
-      logger.error(`Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof plugin.default} and ${plugin.default.constructor.name}. (${pluginPath}).`);
+    if (typeof configSchema.default !== 'object' || !['ZodObject', 'ZodDiscriminatedUnion'].includes(configSchema.default.constructor.name)) {
+      logger.error(`Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof configSchema.default} and ${configSchema.default.constructor.name}.`);
       continue;
     }
 

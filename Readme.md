@@ -190,3 +190,20 @@ when doing a plugins, you may want to add playerTreshold (kick unassigned) and e
 
 idea: envoyer l user vers un dossier de config different pour plugins et squadTS, pour pouvoir facilement update le projet
 ss avoir a merge avec git les config ? puis en dev, je veux une config plugins differentes.
+
+---
+
+lequel ?
+server.helper.getByEOSID() ?
+server.getByEOSID() ?
+
+pr explorer l'api, c un peu chiant d'avoir plei nde getter partout
+
+server.events
+server.rcon.chatEvents
+huumm pas naturel ?
+
+---
+
+la CI ou pre-commit hook, devrait regenerer la config (on peut tjrs enlever le hook pr des commit WIP).
+si rien a changé tt est bon,si quelque chose a chngé le dev doit faire un commit.

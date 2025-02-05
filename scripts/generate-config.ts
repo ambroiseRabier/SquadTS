@@ -44,7 +44,7 @@ async function saveFiles() {
         if (!shouldOverride && !asked) {
           asked = true;
           const emphasizedMessage = `An existing config file (${chalk.blue.bold(`${key}.json5`)}) has been found in the folder,` +
-            ` do you want to override ${chalk.red.bold("ALL CONFIG FILES")} in the folder? Type ${chalk.red.bold('"yes"')} to confirm: `;
+            ` do you want to ${chalk.red.bold("OVERRIDE ALL CONFIG FILES")} in the folder? Type ${chalk.red.bold('"yes"')} to confirm: `;
 
           shouldOverride = await askUser(emphasizedMessage);
         }

@@ -6,16 +6,21 @@ import { pino } from 'pino';
 const logLevels = Object.keys(pino.levels.values);
 
 export const pluginBaseOptionsSchema = z.object({
+  enabled: z
+    .boolean()
+    .default(true),
+
   loggerVerbosity: z
     .string()
-    .default('warn')
+    .default('info')
     .describe(
       `Available levels: ${logLevels.join(', ')}.\n` +
       `To disable a logger, set it to silent.`),
 
-  enabled: z
-    .boolean()
-    .default(true)
+  requireConnectors: z
+    .array(z.enum(['discord']))
+    .describe('If set, the plugin will only be loaded if the connectors are available.\n' +
+      "This means you won't have to deal with missing connectors errors."),
 });
 
 export type PluginBaseOptions = z.infer<typeof pluginBaseOptionsSchema>;

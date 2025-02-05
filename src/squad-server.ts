@@ -4,6 +4,7 @@ import { Options } from './config/config.schema';
 import { LogParser } from './log-parser/use-log-parser';
 import { filter } from 'rxjs';
 import { CachedGameStatus } from './cached-game-status/use-cached-game-status';
+import { omit } from "lodash";
 
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
@@ -33,8 +34,11 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
       teamKill,
       suicide
     },
-    ...cachedGameStatus.getters,
-    rcon: rconSquad,
+    chatEvents: cachedGameStatus.chatEvents,
+    adminsInAdminCam: rconSquad.adminsInAdminCam,
+    helpers: cachedGameStatus.getters,
+    // Omit chatEvent as cachedGameStatus enrich them with player, and this one should be used by plugins.
+    rcon: omit(rconSquad, ['chatEvents', 'adminsInAdminCam']),
     watch: async () => {
 
       // todo: useful for plugins where you don oh way, admin can't be kicked ...

@@ -19,7 +19,7 @@ const SQUAD_TYPE_KEY = "%squadType%";
 const MAX_KEY = "%max%";
 const WARN_COUNT_KEY = "%warn_count%";
 
-const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = (server: SquadServer, logger: Logger, options: MaxPlayerInSquadOptions) => {
+const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (server, connectors, logger, options) => {
   const transgressors = new Map<string, TransgressorDetails>();
 
   interval(options.warnRate * 1000).pipe(
@@ -96,13 +96,13 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = (server: SquadS
 
   async function updateTrackingList() {
     for (const [squadLead_eosID, transgressorDetails] of transgressors) {
-      const sl = server.getPlayerByEOSID(squadLead_eosID);
+      const sl = server.helpers.getPlayerByEOSID(squadLead_eosID);
       logger.info(
         `Checking tracked SL: ${squadLead_eosID} ${JSON.stringify(transgressorDetails)}`
       );
 
       // Not connected or not SL anymore
-      if (!sl || !server.isSL(sl)) {
+      if (!sl || !server.helpers.isSL(sl)) {
         transgressors.delete(squadLead_eosID);
         continue;
       }
@@ -114,7 +114,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = (server: SquadS
       }
 
       // Note: since we checked that player is SL, he cannot have a null/undef squadID/squad
-      const squad = server.getSquad(sl.teamID, sl.squadID)!;
+      const squad = server.helpers.getSquad(sl.teamID, sl.squadID)!;
 
       // Squad name changed (but IDs are the same)
       if (transgressorDetails.squadName !== squad.name) {
@@ -129,7 +129,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = (server: SquadS
         continue;
       }
 
-      const playersInSquad = server.getPlayersInSquad(transgressorDetails.teamID, transgressorDetails.squadID);
+      const playersInSquad = server.helpers.getPlayersInSquad(transgressorDetails.teamID, transgressorDetails.squadID);
       const tooManyPlayers = playersInSquad.length > transgressorDetails.maxPlayerInSquad;
 
       if (tooManyPlayers) {

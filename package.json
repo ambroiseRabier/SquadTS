@@ -16,6 +16,7 @@
   "dependencies": {
     "basic-ftp": "^5.0.5",
     "chalk": "^4.1.2",
+    "discord.js": "^14.17.3",
     "json5": "^2.2.3",
     "lodash": "^4.17.21",
     "pino": "^9.6.0",

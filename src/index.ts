@@ -7,14 +7,15 @@ import { useLogParser } from './log-parser/use-log-parser';
 import { useLogReader } from './log-parser/use-log-reader';
 import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
 import { usePluginLoader } from './plugin-loader/plugin-loader';
+import { useDiscordConnector } from './connectors/use-discord.connector';
 
-const isDev = process.env.NODE_ENV !== 'production';
 
 // todo, may use some kind or DI, why not place logParser inside squadServer ?
 // because: logParser is being sent to server, now, useSquadServer can easily be tested
 // with logParser being mocked.
 async function main() {
   const logger = useLogger();
+  logger.info('Starting SquadTS');
   const {valid, config} = await useConfig(logger);
 
   if (valid) {
@@ -51,7 +52,13 @@ async function main() {
   const serverInfo = await rconSquad.showServerInfo();
   const cachedGameStatus = useCachedGameStatus(rconSquad, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger, serverInfo);
   const server = useSquadServer(squadServerLogger, rconSquad, logParser, cachedGameStatus, config);
-  const pluginLoader = usePluginLoader(server, pluginLoaderLogger);
+  const discordConnector = config.connectors.discord.enabled ?
+    await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
+      logger.error(`Discord connector failed to start: ${error.message}`)
+      return undefined;
+    })
+    : undefined;
+  const pluginLoader = usePluginLoader(server, { discord: discordConnector }, pluginLoaderLogger);
 
 
   // todo:

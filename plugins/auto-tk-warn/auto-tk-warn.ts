@@ -4,7 +4,7 @@ import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 
 
-const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = (server: SquadServer, logger: Logger, options: AutoTKWarnOptions) => {
+const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (server: SquadServer, connectors, logger: Logger, options) => {
   server.events.teamKill.subscribe(async (info) => {
     logger.info(`TK Warn: ${info.attacker.nameWithClanTag ?? info.attacker.name} (eosID: ${info.attacker.eosID})`);
     if (info.attacker && options.attackerMessage) {

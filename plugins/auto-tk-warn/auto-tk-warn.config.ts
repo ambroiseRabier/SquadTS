@@ -15,6 +15,8 @@ const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
     .optional()
     .describe('The message that will be sent to the victim. null value means no message sent.')
     .default(null),
+
+  requireConnectors: z.tuple([]),
 });
 
 export type AutoTKWarnOptions = z.infer<typeof autoTKWarnSchema>;

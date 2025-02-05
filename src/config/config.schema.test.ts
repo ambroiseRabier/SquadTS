@@ -1,6 +1,5 @@
-import { Options } from './config.schema';
-import { describe, test, expect } from '@jest/globals';
-import { optionsSchema } from './config.schema';
+import { Options, optionsSchemaRefined } from './config.schema';
+import { describe, expect, test } from '@jest/globals';
 
 describe('parseConfig', () => {
   test('Ensure complete valid config is parsed with no errors', async () => {
@@ -37,7 +36,8 @@ describe('parseConfig', () => {
           fetchInterval: 5000,
           initialTailSize: 1048576
         },
-        mode: 'ftp'
+        mode: 'ftp',
+        debugEmitFirstDownloadedLogs: false
       },
       cacheGameStatus: {
         updateInterval: {
@@ -48,10 +48,16 @@ describe('parseConfig', () => {
       },
       rconSquad: {
         dryRun: false,
+      },
+      connectors: {
+        discord: {
+          enabled: true,
+          token: 'sdfsdf'
+        }
       }
     };
 
 
-    await expect(optionsSchema.parse(validConfig)).resolves.not.toThrow();
+    await expect(optionsSchemaRefined.parse(validConfig)).resolves.not.toThrow();
   });
 });

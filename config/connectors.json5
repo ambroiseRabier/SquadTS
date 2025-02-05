@@ -1,0 +1,6 @@
+{
+  discord: {
+    enabled: false,
+    token: '',
+  },
+}

@@ -1,7 +1,7 @@
 import { Logger } from 'pino';
 import { resolveConfigsPath } from './resolve-configs-path';
 import { loadConfigFiles } from './load-config';
-import { optionsSchema } from './config.schema';
+import { optionsSchema, optionsSchemaRefined } from './config.schema';
 
 
 export async function useConfig(logger: Logger) {
@@ -17,7 +17,7 @@ export async function useConfig(logger: Logger) {
   logger.info('Validating Configuration...');
 
 
-  const parsed = await optionsSchema.safeParseAsync(configs);
+  const parsed = await optionsSchemaRefined.safeParseAsync(configs);
 
 
   // This ridiculous code duplication actually make TS aware that when parsed.success

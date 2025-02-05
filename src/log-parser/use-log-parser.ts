@@ -14,13 +14,18 @@ export type LogParser = ReturnType<typeof useLogParser>;
 
 // todo, should LogParserConfig have debug options instead ?
 export function useLogParser(logger: Logger, logReader: LogReader, options: LogParserConfig, debugLogMatching: LoggerOptions['debugLogMatching']) {
+  const startTime = new Date();
   const queue = new Subject<string>();
   let skipOnce = true;
 
+  // Note: you can call that before or right after logReader watch, this will give the same result, as logReader
+  //       needs some extra time to download the logs while listening to an eventEmitter is instant...
+  //       So no point touching this line for debugEmitFirstDownloadedLogs
   // /!\ Do not simplify it as logReader.on('line', queue.next) or readable errors messages in pipe will go away.
   logReader.on('line', (s) => {
     queue.next(s);
   });
+
   const events = queue.pipe(
     tap(line => {
       logger.trace(`Receiving: ${line}`);
@@ -35,7 +40,7 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         if (skipOnce) {
           skipOnce = false;
         } else {
-          logger.warn(`Log with no date (will be ignored): ${line}`);
+          logger.warn(`Log with no date (will be ignored, but this isn't supposed to happen): ${line}`);
         }
         return null;
       }
@@ -50,6 +55,15 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       };
     }),
     filter((value): value is NonNullable<typeof value> => !!value),
+    filter(value => {
+      if (options.debugEmitFirstDownloadedLogs) {
+        return true;
+      } else {
+        // return only recent logs, not the logs from the game of yesterday.
+        // This also avoids acting multiple times on the same logs, if for example your restart SquadTS multiple time.
+        return value.date > startTime;
+      }
+    }),
     map(lineObj => {
       // il envoit parsed date et chain id et logParser selon la regex qui touche.
       // selon la regex qui touche, c'est basé sur les résultats du group
@@ -218,7 +232,9 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
     },
     watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);
+
       await logReader.watch();
+
       logger.info(`Watching log file.`);
     },
     unwatch: async () => {

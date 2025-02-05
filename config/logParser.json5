@@ -1,4 +1,8 @@
 {
+  // Please read carefully if you enable this: Only for devs, will emit lines on the first downloaded logs. 
+  // Theses logs can be from any time in the past, and therefore dry run should be enabled on RCON config.
+  // This is useful to act on a bunch of logs immediately and with a bit of luck catch some bugs :).
+  debugEmitFirstDownloadedLogs: false,
   // If you use a hosted server like awn.gg, you should use ftp or sftp, if the server run locally, use tail:
   // - "tail" will read from a local log file
   // - "ftp" will read from a remote log file using the FTP protocol 
