@@ -232,7 +232,7 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
           ...data,
           player: {
             // Prefer merging getPlayerByEOSID first as it can be out of date.
-            ...getPlayerByEOSID(data.player.eosID),
+            ...getPlayerByEOSID(data.player.eosID)!,
             ...data.player
           },
         }))
@@ -241,20 +241,20 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
         map(data => ({
           ...data,
           player: {
-            ...getPlayerByEOSID(data.player.eosID),
+            ...getPlayerByEOSID(data.player.eosID)!,
             ...data.player
           },
         }))
       ),
       possessedAdminCamera: rconSquad.chatEvents.possessedAdminCamera.pipe(
         map(data => ({
-          ...getPlayerByEOSID(data.eosID),
+          ...getPlayerByEOSID(data.eosID)!,
           ...data
         }))
       ),
       unPossessedAdminCamera: rconSquad.chatEvents.unPossessedAdminCamera.pipe(
         map(data => ({
-          ...getPlayerByEOSID(data.eosID),
+          ...getPlayerByEOSID(data.eosID)!,
           ...data
         }))
       ),
@@ -266,13 +266,13 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
       ),
       playerKicked: rconSquad.chatEvents.playerKicked.pipe(
         map(data => ({
-          ...getPlayerByEOSID(data.eosID),
+          ...getPlayerByEOSID(data.eosID)!,
           ...data
         }))
       ),
       playerBanned: rconSquad.chatEvents.playerBanned.pipe(
         map(data => ({
-          ...getPlayerByEOSID(data.eosID),
+          ...getPlayerByEOSID(data.eosID)!,
           ...data
         }))
       ),
@@ -280,7 +280,7 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
         map(data => ({
           ...data,
           creator: {
-            ...getPlayerByEOSID(data.creator.eosID),
+            ...getPlayerByEOSID(data.creator.eosID)!,
             ...data.creator
           }
         }))

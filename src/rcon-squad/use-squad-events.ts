@@ -59,7 +59,7 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
         filter((obj): obj is NonNullable<typeof obj> => !!obj),
         map(data => extractIDs(data.ids)),
         map(addTime),
-        tap(data => adminsInAdminCam.set(data.eosID, data.time))
+        tap(data => adminsInAdminCam.set(data.eosID, data.date))
       ),
       unPossessedAdminCamera: chatPacketEvent.pipe(
         map(body => matchWithRegex(
@@ -71,7 +71,7 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
         map(addTime),
         map(data => ({
           ...data,
-          duration: adminsInAdminCam.has(data.eosID) ? data.time.getTime() - adminsInAdminCam.get(data.eosID)!.getTime() : 0
+          duration: adminsInAdminCam.has(data.eosID) ? data.date.getTime() - adminsInAdminCam.get(data.eosID)!.getTime() : 0
         })),
         tap(data => adminsInAdminCam.delete(data.eosID))
       ),
@@ -127,6 +127,6 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
   };
 }
 
-function addTime<T>(data: T): T & { time: Date } {
-  return { ...data, time: new Date() };
+function addTime<T>(data: T): T & { date: Date } {
+  return { ...data, date: new Date() };
 }
