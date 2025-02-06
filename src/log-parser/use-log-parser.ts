@@ -65,15 +65,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       }
     }),
     map(lineObj => {
-      // il envoit parsed date et chain id et logParser selon la regex qui touche.
-      // selon la regex qui touche, c'est basé sur les résultats du group
-      // et il y a semble t-il
-      //
-      // Bon, je pense que faut reprendre de 0, cpas tres clair ce que ilfait et on dirait des meli melo
-      // genre eventStore.session il met des deployable et player dedans, ...
-      // je veux prendre des logs, ligne par ligne, et renvoyer un event pour chaque type de log. avec typage de la data.
-      // const match = rules.find(rule => rule.regex.exec(content));
-      const obj = parseLogLine(logParserRules, lineObj.data);
+      const obj = parseLogLine(logParserRules, lineObj.data, {
+        date: lineObj.date,
+        chainID: lineObj.chainID
+      });
 
       if (debugLogMatching.showNonMatching && !obj) {
         // ignoreRegexMatch allow us to reduce verboseness of logs we know are not useful to us
@@ -86,12 +81,26 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         logger.debug(`Match on line: ${lineObj.data}`);
       }
 
+      // return [obj, {
+      //   date: lineObj.date,
+      //   chainId: lineObj.chainID
+      // }] as const;
       return obj;
     }),
-    filter((obj): obj is NonNullable<typeof obj> => !!obj), // todo: see above
-    tap(match => {
-      // this.linesPerMinute++;
+    // Filter out non matching line, having a tuple make things less visible, but we are just checking `obj` from above
+    // filter((tuple): tuple is [NonNullable<typeof tuple[0]>, typeof tuple[1]] => !!tuple[0]),
+    filter((obj): obj is NonNullable<typeof obj> => !!obj),
+    tap(([eventName, lineObj, metadata]) => {
+      const keys1 = Object.keys(lineObj);
+      const keys2 = Object.keys(metadata);
+      const commonKey = keys1.some((key) => keys2.includes(key));
+      if (commonKey) {
+        throw new Error(`Regex named groups and metadata keys overlap. "date" and "chainID" are reserved.`)
+      }
     }),
+    // tap(match => {
+    //   // this.linesPerMinute++;
+    // }),
     // `share` ensure everything above is called once, regardless of how many downstream subscriptions there are.
     // There is no need to repeat aboves steps for every stream, and we don't want multiple times the same logs.
     share()
@@ -102,7 +111,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
     events: {
       adminBroadcast: events.pipe(
         filter((obj) => isEvent(obj, 'adminBroadcast')),
-        map(([eventName, lineObj]) => lineObj)
+        map(([eventName, lineObj, metadata]) => ({
+          ...lineObj,
+          ...metadata
+        }))
       ),
       deployableDamaged: events.pipe(
         filter((obj) => isEvent(obj, 'deployableDamaged')),

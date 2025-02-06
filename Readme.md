@@ -229,3 +229,7 @@ et mettre un champs en export pour indiquer ce qui est requis ?
 plugin enabled par defaut, un peu chiant. par contre c chiant d'avoir litteral(true), et de vouloir
 mettre default false... peut etre mettre ts ignore ? c bof mais bon... :////
 ou je force enabled false ailleurs ?
+
+---
+
+strucutre pas adapté a plusieurs connecteur, en particulier le required<> typing est pas bon si plusieurs connector

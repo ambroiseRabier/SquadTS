@@ -58,7 +58,7 @@ async function main() {
       return undefined;
     })
     : undefined;
-  const pluginLoader = usePluginLoader(server, { discord: discordConnector }, pluginLoaderLogger);
+  const pluginLoader = usePluginLoader(server, { discord: discordConnector }, pluginLoaderLogger, logger);
 
 
   // todo:
@@ -67,6 +67,8 @@ async function main() {
 
   await server.watch();
   await pluginLoader.load();
+
+  logger.info('SquadTS fully started.');
 }
 
 main();

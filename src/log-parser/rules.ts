@@ -2,6 +2,8 @@
  * Any rule added also needs events in use-log-parser.ts to be updated.
  *
  * Notes: haven't seen any logs for team leader change or joining a squad (that you are not creating)
+ *
+ * IMPORTANT: "date" and "chainID" named group are reserved and should not be used.
  */
 export const logParserRules = [
   ["adminBroadcast", "^LogSquad: ADMIN COMMAND: Message broadcasted <(?<message>.+)> from (?<from>.+)"],

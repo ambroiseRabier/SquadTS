@@ -12,7 +12,7 @@ import { generateJson5Commented } from '../../scripts/generate-config/generate-j
 import { DiscordConnector } from '../connectors/use-discord.connector';
 
 
-export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger) {
+export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
 
   return {
     load: async () => {
@@ -85,8 +85,8 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           // this typing is correct, as long as the plugin correctly fill requireConnectors field...
           // Although..... only if there only one connector !! (todo !)
           connectors as Required<typeof connectors>,
-          logger.child({}, {
-            msgPrefix: chalk.magentaBright(`[${pair.name}] `),
+          mainLogger.child({}, {
+            msgPrefix: chalk.magenta('[Plugin]') + chalk.magentaBright(`[${pair.name}] `),
             level: parseConfig.loggerVerbosity
           }),
           parseConfig
