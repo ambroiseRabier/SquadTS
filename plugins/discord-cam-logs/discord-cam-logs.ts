@@ -32,7 +32,7 @@ const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
       timestamp: data.date.toISOString()
     };
 
-    channel.send({embeds: [embed]});
+    await channel.send({embeds: [embed]});
   });
 
   server.chatEvents.unPossessedAdminCamera.subscribe(async (data) => {
@@ -62,7 +62,7 @@ const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
         ],
         timestamp: data.date.toISOString()
       };
-    channel.send({embeds: [embed]});
+    await channel.send({embeds: [embed]});
   });
 
 }

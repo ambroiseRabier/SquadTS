@@ -108,8 +108,10 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     return getPlayers().filter(player => player.nameWithClanTag === nameWithClanTag);
   }
 
-  // todo precise likeliness of having undefined ?
-  // low: unless your eosID is wrong or not a player on the server ?
+  /**
+   * Unless you ask for an ID of a disconnected player, or your ID is wrong, it should return a Player.
+   * @param eosID
+   */
   function getPlayerByEOSID(eosID: string) {
     // Guard against plugin dev mistakes
     if (!eosID) {
@@ -118,11 +120,24 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     return getPlayers().find(player => player.eosID === eosID);
   }
 
+  /**
+   * SteamID is dependant on RCON update loop. Logs will not provide SteamID.
+   * @param eosID
+   */
+  function getPlayerBySteamID(steamID: string) {
+    // Guard against plugin dev mistakes
+    if (!steamID) {
+      throw new Error('Provided steamID is nullish');
+    }
+    return getPlayers().find(player => player.steamID === steamID);
+  }
+
   return {
     tryGetPlayerByName,
     tryGetPlayerByNameWithClanTag,
     getPlayersByName,
     getPlayersByNameWithClanTag,
     getPlayerByEOSID,
+    getPlayerBySteamID,
   };
 }

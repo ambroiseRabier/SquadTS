@@ -103,10 +103,19 @@ type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 // export type CachedGameStatus = Awaited<ReturnType<typeof useCachedGameStatus>>;
 export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
 
+interface Props {
+  rconSquad: RconSquad;
+  logParser: LogParser;
+  config: CachedGameStatusOptions;
+  logParserConfig: LogParserConfig;
+  logger: Logger;
+  initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>;
+}
+
 /**
  * Keep track of the game status, like players, layers, squad list.
  */
-export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, config: CachedGameStatusOptions, logParserConfig: LogParserConfig, logger: Logger, initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>) {
+export function useCachedGameStatus({rconSquad, logParser, config, logParserConfig, logger, initialServerInfo}: Props) {
   const players$ = new BehaviorSubject<Player[]>([]);
   const squads$ = new BehaviorSubject<Squad[]>([]);
   const rconUpdates = useRconUpdates(
@@ -132,11 +141,14 @@ export function useCachedGameStatus(rconSquad: RconSquad, logParser: LogParser, 
   const playerGet = usePlayerGet(() => players$.getValue());
   const {
     getPlayerByEOSID,
+    getPlayerBySteamID,
     getPlayersByName,
     getPlayersByNameWithClanTag,
     tryGetPlayerByName,
     tryGetPlayerByNameWithClanTag
   } = playerGet;
+
+
 
   function getSquad(teamID: string, squadID: string) {
     // Guard against plugin dev mistakes

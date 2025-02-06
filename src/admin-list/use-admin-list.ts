@@ -2,13 +2,30 @@ import { Logger } from 'pino';
 import { AdminListConfig } from './use-admin-list.schema';
 import { extractGroupPermissions } from './extract-group-permissions';
 import { extractAdmins } from './extract-admins';
+import { AdminPerms } from './permissions';
 
+export type AdminList = ReturnType<typeof useAdminList>;
 
 export function useAdminList(logger: Logger, options: AdminListConfig) {
-  let admins: Map<string, string[]> = new Map();
+  let admins: Map<string, AdminPerms[]> = new Map();
 
   return {
     admins,
+    getAdminsWithPermissions: (permissions: AdminPerms[]) => {
+      const result: [steamId64: string, AdminPerms[]][] = [];
+
+      for (const [adminID, adminPerms] of admins.entries()) {
+        const hasAllPermissions = permissions.every(permission =>
+          adminPerms.includes(permission)
+        );
+
+        if (hasAllPermissions) {
+          result.push([adminID, adminPerms]);
+        }
+      }
+
+      return result;
+    },
     fetch: async () => {
       logger.info('Fetching admin list...');
 
@@ -52,7 +69,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
 
         // Merge
         for (let [key, value] of parsed) {
-          admins.set(key, value);
+          admins.set(key, value as any as AdminPerms[]);
         }
         logger.info(`Admin list fetched. ${admins.size} admins found.`);
       }

@@ -8,6 +8,7 @@ import { useLogReader } from './log-parser/use-log-reader';
 import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
 import { usePluginLoader } from './plugin-loader/plugin-loader';
 import { useDiscordConnector } from './connectors/use-discord.connector';
+import { useAdminList } from './admin-list/use-admin-list';
 
 
 // todo, may use some kind or DI, why not place logParser inside squadServer ?
@@ -39,6 +40,7 @@ async function main() {
     rconSquadLogger,
     cachedGameStatusLogger,
     pluginLoaderLogger,
+    adminListLogger,
   } = useSubLogger(logger, config.logger.verboseness);
   const rcon = new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
@@ -49,9 +51,23 @@ async function main() {
   // inside cachedGameStatus...
   await rconSquad.connect();
 
+  const adminList = useAdminList(adminListLogger, config.adminList);
   const serverInfo = await rconSquad.showServerInfo();
-  const cachedGameStatus = useCachedGameStatus(rconSquad, logParser, config.cacheGameStatus, config.logParser, cachedGameStatusLogger, serverInfo);
-  const server = useSquadServer(squadServerLogger, rconSquad, logParser, cachedGameStatus, config);
+  const cachedGameStatus = useCachedGameStatus({
+    rconSquad,
+    logParser,
+    config: config.cacheGameStatus,
+    logParserConfig: config.logParser,
+    logger: cachedGameStatusLogger,
+    initialServerInfo: serverInfo,
+  });
+  const server = useSquadServer({
+    logger: squadServerLogger,
+    rconSquad,
+    logParser,
+    cachedGameStatus,
+    adminList
+  });
   const discordConnector = config.connectors.discord.enabled ?
     await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
       logger.error(`Discord connector failed to start: ${error?.message}`)

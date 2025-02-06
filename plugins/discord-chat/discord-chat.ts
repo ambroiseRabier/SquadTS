@@ -10,7 +10,7 @@ const discordChat: SquadTSPlugin<DiscordChatEnabledOptions> = async (server, con
 
   server.chatEvents.message.pipe(
     filter(data => !options.excludeChat.includes(data.chat)),
-  ).subscribe((data) => {
+  ).subscribe(async (data) => {
     const embed: APIEmbed = {
       title: data.chat,
       color: 16761867, // Color in decimal
@@ -39,12 +39,12 @@ const discordChat: SquadTSPlugin<DiscordChatEnabledOptions> = async (server, con
           value: `${data.message}`,
         },
       ],
-      timestamp: data.time.toISOString(), // ISO string timestamp
+      timestamp: data.date.toISOString(), // ISO string timestamp
     };
 
     // Note: Since discord v13, we should use embeds with "s" instead of "embed",
     //       And the type has become array instead of an object.
-    channel.send({
+    await channel.send({
       embeds: [embed]
     })
   })

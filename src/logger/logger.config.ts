@@ -14,7 +14,8 @@ export const loggerOptionsSchema = z.object({
     RCON: pinoLevelSchema.default('info'),
     RCONSquad: pinoLevelSchema.default('info'),
     CachedGameStatus: pinoLevelSchema.default('info'),
-    PluginLoader: pinoLevelSchema.default('info')
+    PluginLoader: pinoLevelSchema.default('info'),
+    AdminList: pinoLevelSchema.default('info')
   }).describe(
     `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
     `To disable a logger, set it to silent.`),

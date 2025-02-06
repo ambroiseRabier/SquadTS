@@ -48,6 +48,10 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     pluginLoaderLogger: logger.child({}, {
       msgPrefix: chalk.magenta('[PluginLoader] '),
       level: verboseness.PluginLoader
+    }),
+    adminListLogger: logger.child({}, {
+      msgPrefix: chalk.greenBright('[AdminList] '),
+      level: verboseness.AdminList
     })
   };
 }

@@ -1,15 +1,26 @@
 import { Logger } from "pino";
 import { RconSquad } from './rcon-squad/use-rcon-squad';
-import { Options } from './config/config.schema';
 import { LogParser } from './log-parser/use-log-parser';
 import { filter } from 'rxjs';
-import { CachedGameStatus } from './cached-game-status/use-cached-game-status';
+import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-status';
 import { omit } from "lodash";
+import { AdminList } from './admin-list/use-admin-list';
+import { AdminPerms } from './admin-list/permissions';
 
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
-export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: LogParser, cachedGameStatus: CachedGameStatus, options: Options) {
+interface Props {
+  logger: Logger;
+  rconSquad: RconSquad;
+  logParser: LogParser;
+  cachedGameStatus: CachedGameStatus;
+  adminList: AdminList;
+}
+
+export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, adminList}: Props) {
+  const {admins, fetch: fetchAdmins, getAdminsWithPermissions} = adminList;
+
   /**
    * Exclude suicide
    */
@@ -29,6 +40,7 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
     info: cachedGameStatus.serverInfo,
     players: cachedGameStatus.players$.getValue(),
     squads: cachedGameStatus.squads$.getValue(),
+    admins,
     events: {
       ...cachedGameStatus.events,
       teamKill,
@@ -36,7 +48,18 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
     },
     chatEvents: cachedGameStatus.chatEvents,
     adminsInAdminCam: rconSquad.adminsInAdminCam,
-    helpers: cachedGameStatus.getters,
+    helpers: {
+      ...cachedGameStatus.getters,
+      getOnlineAdminsWithPermissions: (permissions: AdminPerms[]) => {
+        const steamIDAndPerms = getAdminsWithPermissions(permissions);
+        return steamIDAndPerms
+          .map(([steamId64, perms]) => ({
+            player: cachedGameStatus.getters.getPlayerBySteamID(steamId64),
+            perms
+          }))
+          .filter((obj): obj is { player: Player; perms: AdminPerms[] } => !!obj.player);
+      }
+    },
     // Omit chatEvent as cachedGameStatus enrich them with player, and this one should be used by plugins.
     rcon: omit(rconSquad, ['chatEvents', 'adminsInAdminCam']),
     watch: async () => {
@@ -82,6 +105,12 @@ export function useSquadServer(logger: Logger, rconSquad: RconSquad, logParser: 
 
       // First log download will be past logs (depend on max file size of logs) (of any date)
       await logParser.watch();
+
+      // Update admin list once at startup, and at each new game start. (arbitrary)
+      await fetchAdmins()
+      cachedGameStatus.events.newGame.subscribe(async () => {
+        await fetchAdmins()
+      });
 
 
       // Call after logParser starts
