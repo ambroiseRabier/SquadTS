@@ -21,7 +21,7 @@ const DiscordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> 
       timestamp: data.date.toISOString()
     };
     await channel.send({embeds: [embed]});
-  })
+  });
 }
 
 export default DiscordAdminBroadcast;

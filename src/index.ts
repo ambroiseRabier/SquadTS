@@ -54,7 +54,7 @@ async function main() {
   const server = useSquadServer(squadServerLogger, rconSquad, logParser, cachedGameStatus, config);
   const discordConnector = config.connectors.discord.enabled ?
     await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
-      logger.error(`Discord connector failed to start: ${error.message}`)
+      logger.error(`Discord connector failed to start: ${error?.message}`)
       return undefined;
     })
     : undefined;

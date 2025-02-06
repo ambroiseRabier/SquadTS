@@ -5,6 +5,7 @@ import { logParserOptionsSchema } from '../log-parser/log-parser.config';
 import { cachedGameStatusOptionsSchema } from '../cached-game-status/use-cached-game-status.config';
 import { rconSquadOptionsSchema } from '../rcon-squad/rcon-squad.config';
 import { connectorsOptionsSchema } from '../connectors/connectors.config';
+import { adminListOptionsSchema } from '../admin-list/use-admin-list.schema';
 
 export const optionsSchema = z.object({
   rcon: rconOptionsSchema,
@@ -12,7 +13,8 @@ export const optionsSchema = z.object({
   logParser: logParserOptionsSchema,
   cacheGameStatus: cachedGameStatusOptionsSchema,
   rconSquad: rconSquadOptionsSchema, // todo: choisir entre options et config ...
-  connectors: connectorsOptionsSchema
+  connectors: connectorsOptionsSchema,
+  adminList: adminListOptionsSchema
 })
 
 // Config generation do not support Z.object having refine, it does not add anything to the generated JSON5,

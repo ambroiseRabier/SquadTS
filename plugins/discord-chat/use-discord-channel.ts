@@ -17,7 +17,7 @@ export async function useDiscordChannel(discordClient: Client, channelID: string
     }
     return channel;
   }).catch(error => {
-    throw new Error(`Could not fetch Discord channel with channelID "${channelID}". Error: ${error.message}`);
+    throw new Error(`Could not fetch Discord channel with channelID "${channelID}". Error: ${error?.message}`);
   });
 
   if (!channel.isSendable()) {

@@ -92,7 +92,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           parseConfig
         ).catch(error => {
           // A failing plugin should not stop SquadTS completely.
-          logger.error(`Failed to start plugin ${pair.name}. Error: ${error.message}\n${error.stack}`, error);
+          logger.error(`Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`, error);
         });
       }
     }
