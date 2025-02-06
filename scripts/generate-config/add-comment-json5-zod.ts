@@ -71,6 +71,9 @@ export function addCommentJson5Zod(
   schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>,
   json5String: string
 ): string {
+  const topLevelDescription = schema._def.description;
+  const topLevelComment = !!topLevelDescription ? `\/**\n * ${topLevelDescription.replaceAll("\n", "\n * ")}\n *\/\n` : '';
+
   // Generate description map from the schema
   const descriptions = getDescriptionsFromSchema(schema);
 
@@ -115,5 +118,5 @@ export function addCommentJson5Zod(
     commentedLines.push(line);
   }
 
-  return commentedLines.join("\n");
+  return topLevelComment + commentedLines.join("\n");
 }

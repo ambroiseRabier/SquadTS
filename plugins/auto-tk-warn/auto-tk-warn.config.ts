@@ -17,7 +17,7 @@ const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
     .default(null),
 
   requireConnectors: z.tuple([]),
-});
+}).describe('Warn attacker/victim when they team kill.');
 
 export type AutoTKWarnOptions = z.infer<typeof autoTKWarnSchema>;
 

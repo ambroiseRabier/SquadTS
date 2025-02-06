@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { generateJson5Commented } from './generate-json5-commented';
 
 
-test('Gen', () => {
+test('Generate commented JSON5', () => {
   const shema = z.object({
     host: z.string().min(1, "Host is required").describe("desc host"),
     port: z.number().int().positive("Port must be a positive integer").default(21114).describe("desc port"),
@@ -21,7 +21,7 @@ test('Gen', () => {
         sub3: z.number().describe("desc sub3"),
       }).describe("desc sub2"),
     }).describe("desc subObj"),
-  });
+  }).describe("Top comment\nSecond line");
 
   const json5WithComments = generateJson5Commented(shema);
   expect(json5WithComments).toMatchSnapshot();

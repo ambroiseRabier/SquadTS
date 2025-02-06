@@ -83,6 +83,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         await pair.plugin.default(
           server,
           // this typing is correct, as long as the plugin correctly fill requireConnectors field...
+          // Although..... only if there only one connector !! (todo !)
           connectors as Required<typeof connectors>,
           logger.child({}, {
             msgPrefix: chalk.magentaBright(`[${pair.name}] `),
@@ -165,6 +166,16 @@ async function loadPlugins(logger: Logger) {
     configJSON5FilePath: string;
   }[] = [];
 
+  if (!!process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION && !process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION.match(/\.json5$/)) {
+    throw new Error(`Env variable SQUAD_TS_PLUGIN_CONFIG_EXTENSION must end with .json5, example: .dev.json5`)
+  }
+
+  if (process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION === '.json5') {
+    logger.warn(`Env variable SQUAD_TS_PLUGIN_CONFIG_EXTENSION is equal to default ".json5", you should remove SQUAD_TS_PLUGIN_CONFIG_EXTENSION.`)
+  }
+
+  const configExtension = !!process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION ? process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION : '.json5';
+
   for (const file of pluginMainFiles) {
     // Skip config files initially
     if (file.endsWith('.config.ts')) {
@@ -172,7 +183,7 @@ async function loadPlugins(logger: Logger) {
     }
 
     const configSchemaFileName = file.replace('.ts', '.config.ts');
-    const configJSON5FileName = file.replace('.ts', '.json5');
+    const configJSON5FileName = file.replace('.ts', configExtension);
     const pluginPath = path.join(pluginsDirectory, file);
     const configSchemaPath = path.join(pluginsDirectory, configSchemaFileName);
 

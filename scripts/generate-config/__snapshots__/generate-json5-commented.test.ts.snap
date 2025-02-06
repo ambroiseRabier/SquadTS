@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Gen 1`] = `
-"{
+exports[`Generate commented JSON5 1`] = `
+"/**
+ * Top comment
+ * Second line
+**/
+{
   // desc host
   host: '',
   // desc port

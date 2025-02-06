@@ -18,7 +18,7 @@ or run with watch file with `npm run watch`
 ## Config folder
 
 Config folder will be `./config`.
-If you need a different location, you can set `SQUAD_JS_CONFIG_PATH` env variable to an 
+If you need a different location, you can set `SQUAD_TS_CONFIG_PATH` env variable to an 
 absolute path or relative to project root directory.
 
 ## Docker
@@ -38,7 +38,7 @@ To test on a squad server, you may host yourself (but it will be a hassle):
 - https://hub.docker.com/r/cm2network/squad/
 
 To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder 
-and add `SQUAD_JS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
 
 
 ## Aussi intéressant:
@@ -207,3 +207,25 @@ huumm pas naturel ?
 
 la CI ou pre-commit hook, devrait regenerer la config (on peut tjrs enlever le hook pr des commit WIP).
 si rien a changé tt est bon,si quelque chose a chngé le dev doit faire un commit.
+
+---
+
+SQUAD_TS_PLUGIN_CONFIG_EXTENSION usage.
+SQUAD_TS_PLUGIN_CONFIG_EXTENSION=.dev.json5
+
+----
+
+(gen plugin config ?)
+prq je genere la config si le json5 manque ? cela est pa coherent avec la gen de config de la base squadTS
+
+----
+
+requireConnectors, c du plugin a SquadTS, le user s'en fou et devrait pas y toucher ?
+Laisser au plugin le soin d'ajouter en description les requirement ?
+et mettre un champs en export pour indiquer ce qui est requis ?
+
+---
+
+plugin enabled par defaut, un peu chiant. par contre c chiant d'avoir litteral(true), et de vouloir
+mettre default false... peut etre mettre ts ignore ? c bof mais bon... :////
+ou je force enabled false ailleurs ?

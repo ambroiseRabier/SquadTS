@@ -17,6 +17,7 @@ export const pluginBaseOptionsSchema = z.object({
       `Available levels: ${logLevels.join(', ')}.\n` +
       `To disable a logger, set it to silent.`),
 
+  // todo: Likely subject to change (see readme), as user does not need to be able to change that. (what is a constant doing in options ?)
   requireConnectors: z
     .array(z.enum(['discord']))
     .describe('If set, the plugin will only be loaded if the connectors are available.\n' +

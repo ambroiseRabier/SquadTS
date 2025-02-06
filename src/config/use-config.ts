@@ -1,11 +1,11 @@
 import { Logger } from 'pino';
 import { resolveConfigsPath } from './resolve-configs-path';
 import { loadConfigFiles } from './load-config';
-import { optionsSchema, optionsSchemaRefined } from './config.schema';
+import { optionsSchemaRefined } from './config.schema';
 
 
 export async function useConfig(logger: Logger) {
-  const configFolder = resolveConfigsPath(process.env.SQUAD_JS_CONFIG_PATH);
+  const configFolder = resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH);
 
   // Files loading
   logger.info(`Loading configurations from ${configFolder}...`);

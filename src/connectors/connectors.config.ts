@@ -14,4 +14,4 @@ export const connectorsOptionsSchema = z.object({
       token: z.string().nonempty("Token is required. To disable discord connector, set enabled to false.")
     }),
   ])
-});
+}).describe("Connectors configuration.\nSome plugins require some connector to be enabled.");

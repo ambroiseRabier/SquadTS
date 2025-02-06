@@ -37,7 +37,10 @@ const maxPlayerInSquadSchema = pluginBaseOptionsSchema.extend({
       'How many times the squad leader can be warned before disbanding'
     ),
   enabledInSeed: z.boolean().default(false).describe('You most likely don\'t want this enabled in seed, unless for testing purposes.'),
-});
+}).describe(
+  "Warn (then disband) squad leader, when player count is too high in his squad, based on squad name.\n" +
+  "For example, most MBT (tank) squads are 4 players max, since tanks can only be manned by 4 players max.\n" +
+  "Usually a MBT squad with more than 4 players means a bad squad lead (likely a new player) and infantry that will not play as a squad.");
 
 export type MaxPlayerInSquadOptions = z.infer<typeof maxPlayerInSquadSchema>;
 
