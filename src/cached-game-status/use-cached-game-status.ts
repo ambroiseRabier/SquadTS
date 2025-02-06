@@ -234,6 +234,16 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
           return merge({attacker, victim}, data);
         }),
       ),
+      deployableDamaged: logParser.events.deployableDamaged.pipe(
+        map(data => {
+          const attacker = tryGetPlayerByName(data.attackerName);
+
+          return {
+            ...data,
+            attacker,
+          };
+        })
+      ),
       // Prevent accidentally using next by passing Subject as Observable.
       playersSquadChange: rconUpdates.playersSquadChange$.asObservable(),
     },

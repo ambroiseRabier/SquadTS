@@ -9,7 +9,7 @@ export const logParserRules = [
   ["adminBroadcast", "^LogSquad: ADMIN COMMAND: Message broadcasted <(?<message>.+)> from (?<from>.+)"],
 
   // todo: instigator becomes playerSuffix ?
-  ["deployableDamaged", "^LogSquadTrace: \\[DedicatedServer](?:ASQDeployable::)?TakeDamage\\(\\): (?<deployable>[A-z0-9_]+)_C_[0-9]+: (?<damage>[0-9.]+) damage attempt by causer (?<weapon>[A-z0-9_]+)_C_[0-9]+ instigator (?<playerSuffix>.+) with damage type (?<damageType>[A-z0-9_]+)_C health remaining (?<healthRemaining>[0-9.]+)"],
+  ["deployableDamaged", "^LogSquadTrace: \\[DedicatedServer](?:ASQDeployable::)?TakeDamage\\(\\): (?<deployable>[A-z0-9_]+)_C_[0-9]+: (?<damage>[0-9.]+) damage attempt by causer (?<weapon>[A-z0-9_]+)_C_[0-9]+ instigator (?<attackerName>.+) with damage type (?<damageType>[A-z0-9_]+)_C health remaining (?<healthRemaining>[0-9.]+)"],
 
   // todo: mapClassname definitely not supposed to be a string for consumer plugins
   // todo: what is the 6th group ?
