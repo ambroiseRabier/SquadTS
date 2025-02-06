@@ -17,7 +17,7 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
   debounceDiscordPing: z.number().int().min(0).default(60).describe('How many seconds to wait before Discord can be pinged again.'),
   pingHere: z.boolean().default(true).describe('Ping @here. Great if Admin Requests are posted to a Squad Admin ONLY channel, allows pinging only Online Admins.'),
   pingGroups: z.array(z.string().nonempty()).default([]).describe('A list of Discord role IDs to ping. Independent from pingHere.'),
-}).describe("Log real time squad chat to Discord.");
+}).describe("Ping admins in a Discord channel when a player requests an admin via the !admin command in in-game chat.");
 
 const schema = z.discriminatedUnion("enabled", [
   enabledSchema,

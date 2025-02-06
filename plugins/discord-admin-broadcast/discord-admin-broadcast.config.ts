@@ -5,7 +5,7 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
   enabled: z.literal(true),
   channelID: z.string().nonempty(),
   requireConnectors: z.tuple([z.literal('discord')]),
-}).describe("Log real time squad chat to Discord.");
+}).describe("Send a copy of admin broadcasts made in game to a Discord channel.");
 
 const schema = z.discriminatedUnion("enabled", [
   enabledSchema,
