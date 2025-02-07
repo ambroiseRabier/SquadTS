@@ -215,7 +215,9 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
   }
 
   return {
-    serverInfo: serverInfoUpdates.serverInfo$.getValue(),
+    get serverInfo() {
+      return serverInfoUpdates.serverInfo$.getValue();
+    },
     /**
      * Events enriched in data using existing saved game status.
      */

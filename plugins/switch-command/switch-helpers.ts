@@ -1,6 +1,6 @@
 import { checkUnbalancedSwitchability } from './check-unbalance-switchability';
 
-interface SwitchRequest {
+export interface SwitchRequest {
   eosID: string;
   date: Date;
 }
@@ -35,7 +35,7 @@ export function unbalanceSwitch(p: {
 }): string[] {
   if (p.reqTeam1.length !== 0 && p.reqTeam2.length !== 0) {
     throw new Error('At least reqTeam1 and reqTeam2 must be empty, first use balanceIncreaseSwitch.');
-  };
+  }
 
   const switchability = checkUnbalancedSwitchability(p.team1Count, p.team2Count, p.maxAllowedPlayerCountDiff);
 
