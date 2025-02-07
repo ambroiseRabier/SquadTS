@@ -6,6 +6,7 @@ import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-s
 import { omit } from "lodash";
 import { AdminList } from './admin-list/use-admin-list';
 import { AdminPerms } from './admin-list/permissions';
+import { GithubWiki } from './layer-info/github-layer.type';
 
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
@@ -36,7 +37,11 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
     filter(({attacker, victim}) => attacker.eosID === victim.eosID)
   );
 
+  // todo tmp, finish implementing when we need it...
+  //const githubLayer: GithubWiki.Layer = {} as any;
+
   return {
+    //githubLayer,
     info: cachedGameStatus.serverInfo,
     players: cachedGameStatus.players$.getValue(),
     squads: cachedGameStatus.squads$.getValue(),
@@ -82,6 +87,8 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       // console.log(await this.rcon.getSquads());
       // console.log(await this.rcon.getNextMap());
       // console.log(await rconSquad.showServerInfo());
+      // console.log('cc -    - --------')
+      // console.log(await rconSquad.getCurrentMap());
       // console.log(await rcon.broadcast("coucou dit l'oiseau"));
 
       // await this.rcon.getCurrentMap()

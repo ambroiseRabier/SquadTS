@@ -1,3 +1,7 @@
+/**
+ * Connectors configuration.
+ * Some plugins require some connector to be enabled.
+ */
 {
   discord: {
     enabled: false,

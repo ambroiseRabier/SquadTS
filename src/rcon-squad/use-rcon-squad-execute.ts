@@ -180,7 +180,10 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
         matchTimeout: info.MatchTimeout_d,
         matchStartTime: getMatchStartTimeByPlaytime(parseInt(info.PLAYTIME_I)),
-        gameVersion: info.GameVersion_s
+        gameVersion: info.GameVersion_s,
+
+        publicSlots: info.MaxPlayers - parseInt(info.PlayerReserveCount_I),
+        nextLayerToBeVoted: info.NextLayer_s === 'To be voted'
       };
     },
   };

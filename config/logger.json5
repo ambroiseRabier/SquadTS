@@ -8,6 +8,7 @@
     RCONSquad: 'info',
     CachedGameStatus: 'info',
     PluginLoader: 'info',
+    AdminList: 'info',
   },
   // Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP.
   debugFTP: false,
