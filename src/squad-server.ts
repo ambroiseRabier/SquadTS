@@ -44,6 +44,7 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
     //githubLayer,
     info: cachedGameStatus.serverInfo,
     players: cachedGameStatus.players$.getValue(),
+    players$: cachedGameStatus.players$,
     squads: cachedGameStatus.squads$.getValue(),
     admins,
     events: {

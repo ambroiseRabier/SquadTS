@@ -33,6 +33,8 @@ const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (ser
               value: `${player.squadID} : ${squadName}`
             }
           ],
+          // We do not have a squad change event in logs, so the squad change date is depending
+          // on how often rcon get players.
           timestamp: (new Date()).toISOString()
         };
         await channel.send({embeds: [embed]});
