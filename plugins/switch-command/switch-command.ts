@@ -1,6 +1,10 @@
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { SwitchCommandConfig } from './switch-command.config';
 import { filter } from 'rxjs';
+import { checkUnbalancedSwitchability } from './check-unbalance-switchability';
+import { AdminPerms } from '../../src/admin-list/permissions';
+
+
 
 
 export function balanceIncreaseSwitch(reqTeam1: SwitchRequest[], reqTeam2: SwitchRequest[]): string[] {
@@ -18,6 +22,25 @@ export function balanceIncreaseSwitch(reqTeam1: SwitchRequest[], reqTeam2: Switc
   return switchPlayers;
 }
 
+export function unbalanceSwitch(p: {
+  reqTeam1: SwitchRequest[];
+  reqTeam2: SwitchRequest[];
+  team1Count: number;
+  team2Count: number;
+  maxAllowedPlayerCountDiff: number;
+}): string[] {
+  const switchability = checkUnbalancedSwitchability(p.team1Count, p.team2Count, p.maxAllowedPlayerCountDiff);
+
+  // We may be allowed up to 5 switch, but we may only have 2 players that want to switch
+  const switchTeam1 = Math.min(switchability.maxTeam1MoveAllowed, p.reqTeam1.length);
+  const switchTeam2 = Math.min(switchability.maxTeam2MoveAllowed, p.reqTeam1.length);
+
+  return [
+    ...p.reqTeam1.slice(0, switchTeam1).map(req => req.eosID),
+    ...p.reqTeam2.slice(0, switchTeam2).map(req => req.eosID),
+  ];
+}
+
 interface SwitchRequest {
   eosID: string;
   date: Date;
@@ -28,11 +51,32 @@ const SwitchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
   let switchRequestToTeam1: SwitchRequest[] = [];
   let switchRequestToTeam2: SwitchRequest[] = [];
 
+  // Check if a player has Reserve permission
+  const hasReservePermission = (eosID: string) =>
+    server.helpers.getOnlineAdminsWithPermissions([AdminPerms.Reserve])
+      .some(admin => admin.player.eosID === eosID);
+
+  // Sorting function prioritizing Reserve, followed by date asc (oldest first)
+  const sortRequests = (requests: SwitchRequest[]) =>
+    requests.sort((a, b) =>
+      Number(!hasReservePermission(a.eosID)) - Number(!hasReservePermission(b.eosID)) ||
+      a.date.getTime() - b.date.getTime()
+    );
+
+
   server.chatEvents.command.pipe(
     filter(data => data.command === options.command)
   ).subscribe(async (data) => {
-    // Note: this favor player that do not spam switch, as spamming switch will reset your date and put
-    //       you at the bottom of the queue
+
+    // Note: these peoples can also freely switch using game UI.
+    const ignoreRules = server.helpers.getOnlineAdminsWithPermissions([AdminPerms.Balance])
+      .some(admin => admin.player.eosID === data.player.eosID)
+
+    if (ignoreRules) {
+      await server.rcon.warn(data.player.eosID, options.messages.switchAdmin);
+      // Do not track him, he is a free man.
+      return;
+    }
 
 
     // If team 1, you request to switch to team 2
@@ -62,38 +106,31 @@ const SwitchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     await trySwitch();
   });
 
+  // player connect, disconnect, change team (todo: player$ is much more...)
   server.players$.subscribe(
     async (players) => {
       await trySwitch();
-    });
+    }
+  );
 
 
+  // todo: exhaustMap that. (don't want to start performing two different switch operation at the same time.
+  //       finish this one, that will change current balance, before re-evaluating.
   async function trySwitch() {
     // Sort by earlier to later date. (asc)
-    switchRequestToTeam1 = switchRequestToTeam1.sort((a, b) => a.date.getTime() - b.date.getTime());
-    switchRequestToTeam2 = switchRequestToTeam2.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    const ids = balanceIncreaseSwitch(switchRequestToTeam1, switchRequestToTeam2);
-
-    for (let eosID of ids) {
-      await server.rcon.forceTeamChange(eosID);
-      await server.rcon.warn(eosID, options.messages.switch);
-    }
-
-    // request 4 and 7, we can switch 4 players without worrying about balance changes.
-    const balancePreservedAllowedSwitch = Math.min(switchRequestToTeam1.length, switchRequestToTeam2.length);
+    switchRequestToTeam1 = sortRequests(switchRequestToTeam1);
+    switchRequestToTeam2 = sortRequests(switchRequestToTeam2);
 
     // Switch players that will not change balance
-    for (let i = 0; i < balancePreservedAllowedSwitch; i++) {
-      await server.rcon.forceTeamChange(switchRequestToTeam1[i].eosID);
-      await server.rcon.warn(switchRequestToTeam1[i].eosID, options.messages.switch);
-      await server.rcon.forceTeamChange(switchRequestToTeam2[i].eosID);
-      await server.rcon.warn(switchRequestToTeam2[i].eosID, options.messages.switch);
-    }
+    // ex: we got 4 and 7 demands, we can switch 4 players without worrying about balance changes.
+    const ids = balanceIncreaseSwitch(switchRequestToTeam1, switchRequestToTeam2);
 
-    // Remove switched players
-    switchRequestToTeam1 = switchRequestToTeam1.slice(balancePreservedAllowedSwitch);
-    switchRequestToTeam2 = switchRequestToTeam2.slice(balancePreservedAllowedSwitch);
+    // Do not switch immediately before we calculated everything we need.
+
+    // Remove ids we switched
+    switchRequestToTeam1 = switchRequestToTeam1.filter(req => !ids.includes(req.eosID));
+    switchRequestToTeam2 = switchRequestToTeam2.filter(req => !ids.includes(req.eosID));
+
 
     // Now, if we had 4 and 7 requests, we are left with 0, 3 requests
     const team1Count = server.players.filter(player => player.teamID === '1').length;
@@ -115,10 +152,16 @@ const SwitchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     switchRequestToTeam1 = switchRequestToTeam1.slice(switchTeam1);
     switchRequestToTeam2 = switchRequestToTeam2.slice(switchTeam2);
 
+
+    // Switch and inform selected players
+    for (let eosID of ids) {
+      await server.rcon.forceTeamChange(eosID);
+      await server.rcon.warn(eosID, options.messages.switch);
+    }
   }
 
   // et reste a gerer, les admins avec droit spécial. voir prio
-  // cooldowna sur switch
+  // cooldowna sur switch (filter)
   // watchDuration, pr eviter de se faire surprendre par le switch. (écrit en minutes)
   // on disconnect enlever du watch
   // le joueur change par la game ou a travers un admin, je dois pas reswitch

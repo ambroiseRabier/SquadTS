@@ -23,3 +23,7 @@ describe('switchIncreaseSwitch', () => {
     ]);
   });
 })
+
+// test si joueur avec Balance sont immediat switch
+// test si joueur avec Reserve sont prio meme avec date recente
+// test si joueur avec date veille prio sur date recente

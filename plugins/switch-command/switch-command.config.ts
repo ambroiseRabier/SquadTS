@@ -22,9 +22,15 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
     ),
   messages: z.object({
     switch: z.string()
+      .max(1200, "A warn with more than 1200 is likely to be cut by the screen.")
       .default('Switched to the opposite team as per your request.')
       .describe('Message to send to the player when switching.'),
+    switchAdmin: z.string()
+      .max(1200, "A warn with more than 1200 is likely to be cut by the screen.")
+      .default('Your request has been most graciously accommodated, and you have been respectfully moved to the opposite team.')
+      .describe('Message to send to the admin player with "Balance" permission when switching.'),
     balanceWait: z.string()
+      .max(1200, "A warn with more than 1200 is likely to be cut by the screen.")
       .default('We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.')
       .describe('Message to send to the player when switching is not possible immediately, due to balance.'),
 

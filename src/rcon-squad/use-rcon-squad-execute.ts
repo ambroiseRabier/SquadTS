@@ -117,6 +117,11 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       await dryRunExecute(`AdminSetFogOfWar ${mode}`);
     },
 
+    /**
+     *
+     * @param anyID
+     * @param message 97 characters is the maximum that can be displayed in game.
+     */
     warn: async (anyID: string, message: string) => {
       await dryRunExecute(`AdminWarn "${anyID}" ${message}`);
     },
