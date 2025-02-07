@@ -97,7 +97,7 @@ export function useLogUpdates({
           controller: playerConnected.controller,
           steamID: playerConnected.steamID,
           ip: playerConnected.ip,
-          teamID: playerAddedToTeam.teamID,
+          teamID: playerAddedToTeam.teamID as '1' | '2',
           id: (parseInt(playerInitialized.id) - 1).toString(), // Seems like the log we get, is offset by one
           // When you join a game, you aren't leader
           isLeader: false,

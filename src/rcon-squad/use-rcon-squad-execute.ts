@@ -52,7 +52,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
           return {
             ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
-            teamID: teamID, // teamID !== 'N/A' ? teamID : null, // todo: actually possible ? admin cam perhaps ?
+            teamID: teamID as '1' | '2', // teamID !== 'N/A' ? teamID : null, // todo: actually possible ? admin cam perhaps ?
             squadID: squadID !== 'N/A' ? squadID : undefined,
             ...extractIDs(ids)
           };

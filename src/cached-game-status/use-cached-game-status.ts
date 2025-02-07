@@ -23,7 +23,7 @@ export type Player = {
   steamID: string;
 
   // (provided by log/rcon)
-  teamID: string;
+  teamID: '1' | '2';
 
   // (provided by log)
   name?: string;
@@ -131,9 +131,8 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
     getPlayers: players$.getValue.bind(players$),
     getSquads: squads$.getValue.bind(squads$),
   });
-  const serverInfoUpdates = useServerInfoUpdates(rconSquad, config.updateInterval, initialServerInfo);
-
-  const playerChangedSquad = new Subject<Player[]>();
+  const serverInfoUpdates = useServerInfoUpdates(rconSquad, config.updateInterval, initialServerInfo,
+    logParser.events.newGame.pipe(map(data => undefined)));
 
   // todo idea, behaviorSubject per player ? following actions per ID and name ?
 
@@ -211,6 +210,9 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
   }
 
 
+  function getTeamName(teamID: '1' | '2') {
+    return teamID === '1' ? serverInfoUpdates.serverInfo$.getValue().teamOne : serverInfoUpdates.serverInfo$.getValue().teamTwo;
+  }
 
   return {
     serverInfo: serverInfoUpdates.serverInfo$.getValue(),
@@ -219,7 +221,6 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
      */
     events: {
       ...logParser.events,
-      playerChangedSquad,
 
       // todo, saving up-to-date player controller from playerWounded ? (getPlayerByEOSID return stale controller)
       //     may not be expected !
@@ -314,6 +315,7 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
       getSquad,
       getPlayerSquad,
       getPlayersInSquad,
+      getTeamName,
       ...playerGet,
     },
     // You may subscribe to only one player by using pipe and filter by eosID

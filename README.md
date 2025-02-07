@@ -233,3 +233,7 @@ ou je force enabled false ailleurs ?
 ---
 
 strucutre pas adapté a plusieurs connecteur, en particulier le required<> typing est pas bon si plusieurs connector
+
+---
+
+todo: DiscordBaseMessageUpdater pr server status
