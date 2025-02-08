@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import switchCommand from './switch-command';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
@@ -94,23 +94,32 @@ const mockOptions: SwitchCommandConfig = {
 
 const mockConnectors = {};
 
+const emitSwitchCommand = (server: ReturnType<typeof serverMock>, eosID: string, teamID: '1' | '2') => {
+  // Check yourself which properties are used in the plugin.
+  server.chatEvents.command.next({
+    command: mockOptions.command,
+    player: { eosID, teamID },
+    // Note: we remove old request, based on current date, unless the next part of the
+    // code take more than 5min... using current date should be ok.
+    date: new Date(),
+  });
+};
 
 describe('switchCommand', () => {
-  it('switch player when balance does not worsen', async () => {
-    // const custom = (useSquadServer as jest.Mock).mockImplementationOnce(() => {
-    //
-    // })
-    const server = serverMock();
-    const plugin = await switchCommand(
+  let server: ReturnType<typeof serverMock>;
+  let plugin: Awaited<ReturnType<typeof switchCommand>>;
+
+  beforeEach(async () => {
+    server = serverMock();
+    plugin = await switchCommand(
       server as any,
       mockConnectors as any,
       mockLogger as any,
       mockOptions
     );
-    // const p: ObservableValue<SquadServer['chatEvents']['command']> = {
-    //
-    // };
+  });
 
+  it('switch player when balance does not worsen', async () => {
     // Set fake players
     server.players$.next([
       {
@@ -119,31 +128,13 @@ describe('switchCommand', () => {
       }
     ]);
 
-    // Check yourself which properties are used in the plugin.
-    server.chatEvents.command.next({
-      command: '!switch',
-      player: {
-        eosID: 'eos1',
-        teamID: '1',
-      },
-      // Note: we remove old request, based on current date, unless the next part of the
-      // code take more than 5min settings current date should be ok.
-      date: new Date(),
-    });
+    emitSwitchCommand(server, 'eos1', '1');
 
     expect(server.rcon.forceTeamChange).toHaveBeenCalledWith('eos1');
   });
 
 
-  it('respect cooldown', async () => {
-    const server = serverMock();
-    const plugin = await switchCommand(
-      server as any,
-      mockConnectors as any,
-      mockLogger as any,
-      mockOptions
-    );
-
+  it('player respect cooldown', async () => {
     // Set fake players
     server.players$.next([
       {
@@ -151,15 +142,7 @@ describe('switchCommand', () => {
         teamID: '1',
       }
     ]);
-
-    server.chatEvents.command.next({
-      command: mockOptions.command,
-      player: {
-        eosID: 'eos1',
-        teamID: '1',
-      },
-      date: new Date(),
-    });
+    emitSwitchCommand(server, 'eos1', '1');
 
     // Let promises of rcon.forceTeamChange and warn resolve first. (wait one tick)
     // ( 2 server.player$ emission in one tick never will happen )
@@ -172,14 +155,8 @@ describe('switchCommand', () => {
         teamID: '2',
       }
     ]);
-    server.chatEvents.command.next({
-      command: mockOptions.command,
-      player: {
-        eosID: 'eos1',
-        teamID: '2',
-      },
-      date: new Date(),
-    });
+    // Player ask for switch before cooldown.
+    emitSwitchCommand(server, 'eos1', '2');
 
     // Don't get called twice !
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalledTimes(2);
@@ -189,27 +166,12 @@ describe('switchCommand', () => {
     await wait(mockOptions.cooldown * 1000 + 100);
 
     // Player ask for switch after cooldown.
-    server.chatEvents.command.next({
-      command: mockOptions.command,
-      player: {
-        eosID: 'eos1',
-        teamID: '2',
-      },
-      date: new Date(),
-    });
+    emitSwitchCommand(server, 'eos1', '2');
 
     expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(2, 'eos1');
   });
 
   it('player with TeamChange permission ignore cooldown', async () => {
-    const server = serverMock();
-    const plugin = await switchCommand(
-      server as any,
-      mockConnectors as any,
-      mockLogger as any,
-      mockOptions
-    );
-
     // Set fake players
     server.players$.next([
       {
@@ -218,14 +180,7 @@ describe('switchCommand', () => {
       }
     ]);
 
-    server.chatEvents.command.next({
-      command: mockOptions.command,
-      player: {
-        eosID: 'eos1',
-        teamID: '1',
-      },
-      date: new Date(),
-    });
+    emitSwitchCommand(server, 'eos1', '1');
 
     await wait(0);
 
@@ -236,14 +191,7 @@ describe('switchCommand', () => {
       }
     ]);
     server.helpers.playerHasPermissions.mockReturnValueOnce(true);
-    server.chatEvents.command.next({
-      command: mockOptions.command,
-      player: {
-        eosID: 'eos1',
-        teamID: '2',
-      },
-      date: new Date(),
-    });
+    emitSwitchCommand(server, 'eos1', '2');
 
     // Get called
     expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(2, 'eos1');
