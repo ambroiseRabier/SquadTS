@@ -40,12 +40,26 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
   // todo tmp, finish implementing when we need it...
   //const githubLayer: GithubWiki.Layer = {} as any;
 
+  const getOnlineAdminsWithPermissions = (permissions: AdminPerms[]) => {
+    const steamIDAndPerms = getAdminsWithPermissions(permissions);
+    return steamIDAndPerms
+      .map(([steamId64, perms]) => ({
+        player: cachedGameStatus.getters.getPlayerBySteamID(steamId64),
+        perms
+      }))
+      .filter((obj): obj is { player: Player; perms: AdminPerms[] } => !!obj.player);
+  }
+
   return {
     //githubLayer,
     info: cachedGameStatus.serverInfo,
-    players: cachedGameStatus.players$.getValue(),
+    get players() {
+      return cachedGameStatus.players$.getValue();
+    },
     players$: cachedGameStatus.players$,
-    squads: cachedGameStatus.squads$.getValue(),
+    get squads() {
+      return cachedGameStatus.squads$.getValue();
+    },
     admins,
     events: {
       ...cachedGameStatus.events,
@@ -56,14 +70,9 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
     adminsInAdminCam: rconSquad.adminsInAdminCam,
     helpers: {
       ...cachedGameStatus.getters,
-      getOnlineAdminsWithPermissions: (permissions: AdminPerms[]) => {
-        const steamIDAndPerms = getAdminsWithPermissions(permissions);
-        return steamIDAndPerms
-          .map(([steamId64, perms]) => ({
-            player: cachedGameStatus.getters.getPlayerBySteamID(steamId64),
-            perms
-          }))
-          .filter((obj): obj is { player: Player; perms: AdminPerms[] } => !!obj.player);
+      getOnlineAdminsWithPermissions,
+      playerHasPermissions: (eosID: string, permissions: AdminPerms[]) => {
+        return getOnlineAdminsWithPermissions(permissions).some(admin => admin.player.eosID === eosID);
       }
     },
     // Omit chatEvent as cachedGameStatus enrich them with player, and this one should be used by plugins.
@@ -95,6 +104,7 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       // await this.rcon.getCurrentMap()
       // await this.rcon.getListPlayers()
       // await this.rcon.getSquads()
+      await rconSquad.warn('76561198016942077', "We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.")
 
       // await logParser.watch();
 

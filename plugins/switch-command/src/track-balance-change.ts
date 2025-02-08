@@ -1,4 +1,4 @@
-import { Player } from '../../src/cached-game-status/use-cached-game-status';
+import { Player } from '../../../src/cached-game-status/use-cached-game-status';
 import { filter, map, tap, Observable } from 'rxjs';
 
 export function trackBalanceChange(stream: Observable<Player[]>) {
