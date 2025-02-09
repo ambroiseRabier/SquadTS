@@ -9,7 +9,8 @@ const schema = pluginBaseOptionsSchema.extend({
   requireConnectors: z.tuple([]),
 }).describe(
   'Your squad lead got disconnected, but when rejoining he got sent to the other team ? Wait no more, this plugin is for you !\n' +
-  'Note: if you get sent to the other team on connecting, it is likely due to balancing.'
+  'This may also prevent a player from avoiding !switch cooldown by reconnecting and being put by the game on the other team.\n' +
+  'Caution: if you get sent to the other team on connecting, it is likely due to balancing.'
 );
 
 export type AutoRejoinOptions = z.infer<typeof schema>;

@@ -18,7 +18,8 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (server: SquadServer,
   });
 
   function filterOldDisconnectOut() {
-    const disconnectionThreshold = options.trackDisconnectedFor;
+    // min to ms
+    const disconnectionThreshold = options.trackDisconnectedFor * 1000 * 60;
     const now = new Date();
 
     trackedPlayers.forEach((data, eosID) => {

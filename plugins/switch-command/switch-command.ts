@@ -97,9 +97,9 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     }
   });
 
-  server.events.playerDisconnected.subscribe(async (player) => {
-    switchRequestToTeam1 = switchRequestToTeam1.filter(req => req.eosID !== player.eosID);
-    switchRequestToTeam2 = switchRequestToTeam2.filter(req => req.eosID !== player.eosID);
+  server.events.playerDisconnected.subscribe(async (data) => {
+    switchRequestToTeam1 = switchRequestToTeam1.filter(req => req.eosID !== data.player.eosID);
+    switchRequestToTeam2 = switchRequestToTeam2.filter(req => req.eosID !== data.player.eosID);
     // Do not delete from playerOnCooldown, we don't want rejoining player to cheat cooldown.
   });
 
