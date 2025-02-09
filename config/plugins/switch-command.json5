@@ -1,0 +1,41 @@
+{
+  enabled: true,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // If set, the plugin will only be loaded if the connectors are available.
+  // This means you won't have to deal with missing connectors errors.
+  requireConnectors: [],
+  // Call to switch to the opposite team.
+  command: '!switch',
+  // How long it will try to switch player to the opposite team.
+  watchDuration: 300,
+  // How long to wait before a player can switch again.
+  cooldown: 1200,
+  // Allow to ignore cooldown if the player increase balance by switching.
+  // A value of 2 allow team 1 in 51v49 to switch even if team 1 player is on cooldown, but do not allow switching if 50v49 is on cooldown.
+  // The issue this solve, is exceptionally allowing more switches to urgently balance a game, even if that pose the risk of a 
+  // cheating (ghosting) by using his info from the previous team. As so, it is recommended to keep it somewhat high, like 6.
+  // A value of 6 allow team 1 in 50v44 (or 40v34) scenario to switch one guy with cooldown, so that balance becomes 49v45.
+  ignoreCooldownStartingUnbalance: 4,
+  // Mimic NumPlayersDiffForTeamChanges from Server.cfg https://squad.fandom.com/wiki/Server_Configuration#Server.cfg
+  // Maximum Allowed difference in player count between teams.
+  // It is recommended to keep it in sync with Server.cfg, but it is not necessary.
+  // Set to 1 to allow 50v49 -> 49v50
+  // Set to 2 to allow 50v50 -> 49v51
+  // Set to 3 to allow 49v50 -> 48v51
+  // Set to 4 to allow 50v50 -> 48v52
+  // ...Set to a high amount like 100 to allow team change regardless of balance (not recommended)
+  // If set to 1, it will only switch players in 50v50 if there is a player on both team that want to switch.
+  maxAllowedPlayerCountDiff: 3,
+  messages: {
+    // Message to send to the player when switching.
+    switch: 'Switched to the opposite team as per your request.',
+    // Message to send to the admin player with "Balance" permission when switching.
+    switchAdmin: 'Your request has been most graciously accommodated, and you have been respectfully moved to the opposite team.',
+    // Message to send to the player when switching is not possible immediately, due to balance.
+    balanceWait: 'We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.',
+    // Message to send to the player when switching is not possible immediately, due to cooldown.
+    onCooldown: 'We cannot switch you right now, please wait %cooldown% seconds before trying again.',
+  },
+}

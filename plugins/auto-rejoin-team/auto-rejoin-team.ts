@@ -36,8 +36,10 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (server: SquadServer,
     const trackedPlayer = trackedPlayers.get(newPlayer.eosID);
     if (trackedPlayer) {
       const joinedWrongTeam = trackedPlayer.teamID !== newPlayer.teamID;
-      await server.rcon.forceTeamChange(newPlayer.teamID);
-      await server.rcon.warn(newPlayer.teamID, options.message);
+      if (joinedWrongTeam) {
+        await server.rcon.forceTeamChange(newPlayer.teamID);
+        await server.rcon.warn(newPlayer.teamID, options.message);
+      } // else joined his previous team, do nothing
     } // if not tracked, do nothing
   })
 };

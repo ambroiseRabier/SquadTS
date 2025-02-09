@@ -1,0 +1,29 @@
+{
+  enabled: true,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // If set, the plugin will only be loaded if the connectors are available.
+  // This means you won't have to deal with missing connectors errors.
+  requireConnectors: [
+    'discord',
+  ],
+  channelID: '',
+  // The command that calls an admin.
+  command: 'admin',
+  messages: {
+    noMessage: 'Please specify what you would like help with when requesting an admin.',
+    noInGameAdminNotification: 'There are no in-game admins, however, an admin has been notified via Discord. Please wait for us to get back to you.',
+    adminInGameNotification: 'todo - default to english for now to handle plural...',
+    // Neutral message that will be shown if showInGameAdmins is false.
+    neutralAdminNotification: 'An admin has been notified. Please wait for us to get back to you.',
+  },
+  // Inform player if there are in-game admins.
+  showInGameAdmins: true,
+  // How many seconds to wait before Discord can be pinged again.
+  debounceDiscordPing: 60,
+  // Ping @here. Great if Admin Requests are posted to a Squad Admin ONLY channel, allows pinging only Online Admins.
+  pingHere: true,
+  // A list of Discord role IDs to ping. Independent from pingHere.
+  pingGroups: [],
+}

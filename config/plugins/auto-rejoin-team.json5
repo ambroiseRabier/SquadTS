@@ -1,0 +1,16 @@
+/**
+ * Your squad lead got disconnected, but when rejoining he got sent to the other team ? Wait no more, this plugin is for you !
+ * This may also prevent a player from avoiding !switch cooldown by reconnecting and being put by the game on the other team.
+ * Caution: if you get sent to the other team on connecting, it is likely due to balancing.
+ */
+{
+  enabled: true,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  requireConnectors: [],
+  // How many minutes to track disconnected players for.
+  trackDisconnectedFor: 5,
+  // The message to send to the player when he get switched back to his original team.
+  message: 'You have been reassigned to the team you were on before disconnecting.',
+}
