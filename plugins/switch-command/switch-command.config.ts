@@ -7,6 +7,14 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
   command: z.string().default('!switch').describe('Call to switch to the opposite team.'),
   watchDuration: z.number().min(0).default(5*60).describe('How long it will try to switch player to the opposite team.'),
   cooldown: z.number().min(0).default(20*60).describe('How long to wait before a player can switch again.'),
+  ignoreCooldownStartingUnbalance: z.number().min(2).default(4)
+    .describe(
+      'Allow to ignore cooldown if the player increase balance by switching.\n' +
+      'A value of 2 allow team 1 in 51v49 to switch even if team 1 player is on cooldown, but do not allow switching if 50v49 is on cooldown.\n' +
+      'The issue this solve, is exceptionally allowing more switches to urgently balance a game, even if that pose the risk of a \n' +
+      'cheating (ghosting) by using his info from the previous team. As so, it is recommended to keep it somewhat high, like 6.\n' +
+      'A value of 6 allow team 1 in 50v44 (or 40v34) scenario to switch one guy with cooldown, so that balance becomes 49v45.'
+    ),
   maxAllowedPlayerCountDiff: z.number().int().min(1).default(3)
     .describe(
       'Mimic NumPlayersDiffForTeamChanges from Server.cfg https://squad.fandom.com/wiki/Server_Configuration#Server.cfg\n' +
@@ -37,7 +45,6 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
       .max(1200, "A warn with more than 1200 is likely to be cut by the screen.")
       .default('We cannot switch you right now, please wait %cooldown% seconds before trying again.')
       .describe('Message to send to the player when switching is not possible immediately, due to cooldown.'),
-
   })
 }).describe(
   "Allow to switch to the opposite team with '!switch' command.\n" +

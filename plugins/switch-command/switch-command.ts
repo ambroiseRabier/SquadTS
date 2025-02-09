@@ -1,10 +1,11 @@
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { SwitchCommandConfig } from './switch-command.config';
-import { concatMap, debounceTime, filter, tap } from 'rxjs';
+import { concatMap, debounceTime, exhaustMap, filter, map, tap } from 'rxjs';
 import { AdminPerms } from '../../src/admin-list/permissions';
 import { balanceIncreaseSwitch, SwitchRequest, unbalanceSwitch } from './src/switch-helpers';
 import { Player } from '../../src/cached-game-status/use-cached-game-status';
 import { trackBalanceChange } from './src/track-balance-change';
+import { sortRequests } from './src/sort-requests';
 
 
 const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connectors, logger, options) => {
@@ -16,16 +17,6 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
   let switchRequestToTeam2: SwitchRequest[] = [];
   const playerOnCooldown = new Map<string, Date>();
 
-  // Check if a player has Reserve permission
-  const hasReservePermission = (eosID: string) =>
-    server.helpers.playerHasPermissions(eosID, [AdminPerms.Reserve]);
-
-  // Sorting function prioritizing Reserve, followed by date asc (oldest first)
-  const sortRequests = (requests: SwitchRequest[]) =>
-    requests.sort((a, b) =>
-      Number(!hasReservePermission(a.eosID)) - Number(!hasReservePermission(b.eosID)) ||
-      a.date.getTime() - b.date.getTime()
-    );
   
   function hasCooldown(eosID: string) {
     const cooldown = playerOnCooldown.get(eosID);
@@ -87,7 +78,12 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
       return;
     }
 
-    if (!hasCooldown(data.player.eosID)) {
+    const team1Count = server.players.filter(player => player.teamID === '1').length;
+    const team2Count = server.players.filter(player => player.teamID === '2').length;
+    const diff = Math.abs(team1Count - team2Count);
+    const ignoreCooldown = diff >= options.ignoreCooldownStartingUnbalance;
+
+    if (ignoreCooldown || !hasCooldown(data.player.eosID)) {
       logger.debug(`Player ${data.player.nameWithClanTag} (${data.player.eosID}) is not on cooldown`);
       trackPlayer(data.player, data.date); // todo, maybe data.time is nice, less confusing than e and a...
       await trySwitch(data.player.eosID);
@@ -101,14 +97,22 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     }
   });
 
+  server.events.playerDisconnected.subscribe(async (player) => {
+    switchRequestToTeam1 = switchRequestToTeam1.filter(req => req.eosID !== player.eosID);
+    switchRequestToTeam2 = switchRequestToTeam2.filter(req => req.eosID !== player.eosID);
+    // Do not delete from playerOnCooldown, we don't want rejoining player to cheat cooldown.
+  });
+
   trackBalanceChange(server.players$).pipe(
+    filter(newBalance => switchRequestToTeam1.length > 0 || switchRequestToTeam2.length > 0),
     // Small debounce time to avoid spam at end/start of the game
     debounceTime(1000),
-    filter(newBalance => switchRequestToTeam1.length > 0 || switchRequestToTeam2.length > 0),
     tap((newBalance) => {
       const reqNb = switchRequestToTeam1.length + switchRequestToTeam2.length;
-      logger.info(`Balance changed: ${newBalance} ${reqNb} switch request${reqNb > 1 ? 's' : ''}.`);
+      logger.info(`Balance changed: ${newBalance}. ${reqNb} switch request${reqNb > 1 ? 's' : ''}.`);
     }),
+    // no eosID sent to trySwitch
+    map(data => undefined),
     // Avoid concurrent execution of trySwitch, unlikely to happen, but just not useful.
     concatMap(trySwitch)
   ).subscribe();
@@ -127,8 +131,8 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     switchRequestToTeam2 = switchRequestToTeam2.filter(req => server.helpers.getPlayerByEOSID(req.eosID)?.teamID !== '1');
 
     // Sort by earlier to later date. (asc)
-    switchRequestToTeam1 = sortRequests(switchRequestToTeam1);
-    switchRequestToTeam2 = sortRequests(switchRequestToTeam2);
+    switchRequestToTeam1 = sortRequests(switchRequestToTeam1, server.helpers.playerHasPermissions);
+    switchRequestToTeam2 = sortRequests(switchRequestToTeam2, server.helpers.playerHasPermissions);
 
     // Switch players that will not change balance
     // ex: we got 4 and 7 demands, we can switch 4 players without worrying about balance changes.
@@ -141,12 +145,15 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     switchRequestToTeam2 = switchRequestToTeam2.filter(req => !ids.includes(req.eosID));
 
 
+    const team1Count = server.players.filter(player => player.teamID === '1').length;
+    const team2Count = server.players.filter(player => player.teamID === '2').length;
+
     // Now, if we had 4 and 7 requests, we are left with 0, 3 requests
     const unbalancedIds = unbalanceSwitch({
       reqTeam1: switchRequestToTeam1,
       reqTeam2: switchRequestToTeam2,
-      team1Count: server.players.filter(player => player.teamID === '1').length,
-      team2Count: server.players.filter(player => player.teamID === '2').length,
+      team1Count,
+      team2Count,
       maxAllowedPlayerCountDiff: options.maxAllowedPlayerCountDiff
     })
 
@@ -162,11 +169,18 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
       await server.rcon.warn(eosIDToAskForPatience, options.messages.balanceWait);
     }
 
+    const toBeSwitched = [...ids, ...unbalancedIds];
+    const before = `${team1Count}v${team2Count}`;
+    const after = `${team1Count-toBeSwitched.length}v${team2Count+toBeSwitched.length}`
 
-    logger.info(`Switching ${ids.length + unbalancedIds.length} players.`);
+    if (toBeSwitched.length === 0) {
+      logger.debug('No player to switch');
+    } else {
+      logger.info(`Switching ${ids.length + unbalancedIds.length} players. Balance: ${before} => ${after}`);
+    }
 
     // Switch and inform selected players
-    for (let eosID of [...ids, ...unbalancedIds]) {
+    for (let eosID of toBeSwitched) {
       await server.rcon.forceTeamChange(eosID);
       await server.rcon.warn(eosID, options.messages.switch);
 
@@ -178,13 +192,7 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     }
   }
 
-  // et reste a gerer, les admins avec droit spécial. voir prio
-  // cooldowna sur switch (filter)
-  // watchDuration, pr eviter de se faire surprendre par le switch. (écrit en minutes)
-  // on disconnect enlever du watch
-  // le joueur change par la game ou a travers un admin, je dois pas reswitch <--- todo ! faire un from, to ? sur player ? et on player change, verif que il est tjrs ds la bonne team sinon untrack
-  // admin perms: teamChange, on ignore time limit sur switch <-- todo
-
 }
+
 
 export default switchCommand;

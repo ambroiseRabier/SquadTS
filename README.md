@@ -237,3 +237,16 @@ strucutre pas adapté a plusieurs connecteur, en particulier le required<> typin
 ---
 
 todo: DiscordBaseMessageUpdater pr server status
+
+----
+
+refléxion: Ce serait pas mieux d'avoir useSquadServer ds les tests des plugins ?
+- Faudrait mock logParser pour sûr
+- Faudrait bien envoyer les bons event dans l'ordre avec tout les infos correctes dedans... (genre date, id, teamid, etc)
+- Faudrait réussir à mock playerlist rcon Updates, sinon faudrait attendre trop.
+- On risque d'avoir besoin d'un helper pour créer les events qui vont bien, en particulier ceux de connection.
+- Risque d'envoyer des logs incohérents, innatendu, genre pas de event playerInitialized
+
+---
+
+en passant, si les logs on du retard, tu agis sur des logs quand RCON a déjà update, risque pas d'avoir des choses bizarres ?
