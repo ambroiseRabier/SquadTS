@@ -57,6 +57,10 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       return cachedGameStatus.players$.getValue();
     },
     players$: cachedGameStatus.players$,
+    /**
+     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+     */
+    addPlayer$: cachedGameStatus.addPlayer$,
     get squads() {
       return cachedGameStatus.squads$.getValue();
     },

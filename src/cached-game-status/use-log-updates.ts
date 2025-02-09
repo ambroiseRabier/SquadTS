@@ -78,7 +78,8 @@ export function useLogUpdates({
         })
       )
     )),
-    tap(({loginRequest, playerConnected, playerJoinSucceeded, playerAddedToTeam, playerInitialized}) => {
+    // Merging into one player
+    map(({loginRequest, playerConnected, playerJoinSucceeded, playerAddedToTeam, playerInitialized}) => {
       // I believe there is a possibility for multiple subscribe to be called for the same player if
       // playerConnected or playerJoinSucceeded were cancelled. And player rejoined successfully before timeout.
       // Thanksfully the code bellow can be run multiple time and will give the same result.
@@ -88,23 +89,26 @@ export function useLogUpdates({
 
       // If RCON run more often than log parser, RCON may have already registered the player. So we merge it.
       const existingPlayer = getPlayers().find(player => player.eosID === loginRequest.eosID);
+      return {
+        ...existingPlayer,
+        name: loginRequest.name,
+        eosID: loginRequest.eosID,
+        controller: playerConnected.controller,
+        steamID: playerConnected.steamID,
+        ip: playerConnected.ip,
+        teamID: playerAddedToTeam.teamID as '1' | '2',
+        id: (parseInt(playerInitialized.id) - 1).toString(), // Seems like the log we get, is offset by one
+        // When you join a game, you aren't leader
+        isLeader: false,
+        // When you join a game, you aren't in a squad
+        squadID: undefined,
+        squad: undefined,
+      };
+    }),
+    tap((newPlayer) => {
       players$.next([
-        ...getPlayers().filter(player => player.eosID !== loginRequest.eosID),
-        {
-          ...existingPlayer,
-          name: loginRequest.name,
-          eosID: loginRequest.eosID,
-          controller: playerConnected.controller,
-          steamID: playerConnected.steamID,
-          ip: playerConnected.ip,
-          teamID: playerAddedToTeam.teamID as '1' | '2',
-          id: (parseInt(playerInitialized.id) - 1).toString(), // Seems like the log we get, is offset by one
-          // When you join a game, you aren't leader
-          isLeader: false,
-          // When you join a game, you aren't in a squad
-          squadID: undefined,
-          squad: undefined,
-        }
+        ...getPlayers().filter(player => player.eosID !== newPlayer.eosID),
+        newPlayer
       ]);
     })
   );
@@ -121,6 +125,10 @@ export function useLogUpdates({
   const sub: Subscription[] = [];
 
   return {
+    /**
+     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+     */
+    addPlayer$,
     players$,
     watch: () => {
       // Will start adding and removing player in cache

@@ -250,3 +250,9 @@ refléxion: Ce serait pas mieux d'avoir useSquadServer ds les tests des plugins 
 ---
 
 en passant, si les logs on du retard, tu agis sur des logs quand RCON a déjà update, risque pas d'avoir des choses bizarres ?
+en fait, ce qui m'inquiete, c'est que cela se trouve, faut connaitre le fonctionnement interne de SquadServer pour faire les tests.
+ce qui est un no-no
+
+---
+
+AUTO-update depuis github ? seulement si pas besoin de input manuel du user... peu probable :/

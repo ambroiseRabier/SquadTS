@@ -31,7 +31,7 @@ export const logParserRules = [
   // todo: is Contoller ID a mistake on SquadJS or OWI ?
   ["playerDied", "^LogSquadTrace: \\[DedicatedServer](?:ASQSoldier::)?Die\\(\\): Player:(?<victimNameWithClanTag>.+) KillingDamage=(?:-)*(?<damage>[0-9.]+) from (?<attackerController>[A-z_0-9]+) \\(Online IDs:(?<attackerIDs>[^)|]+)\\| Contoller ID: ([\\w\\d]+)\\) caused by (?<weapon>[A-z_0-9-]+)_C"],
 
-  ["playerDisconnected", "^LogNet: UChannel::Close: Sending CloseBunch\\. ChIndex == [0-9]+\\. Name: \\[UChannel\\] ChIndex: [0-9]+, Closing: [0-9]+ \\[UNetConnection\\] RemoteAddr: (?<ip>[\\d.]+):[\\d]+, Name: EOSIpNetConnection_[0-9]+, Driver: GameNetDriver EOSNetDriver_[0-9]+, IsServer: YES, PC: (?<playerController>[^ ]+PlayerController_C_[0-9]+), Owner: [^ ]+PlayerController_C_[0-9]+, UniqueId: RedpointEOS:(?<eosID>[\\d\\w]+)"],
+  ["playerDisconnected", "^LogNet: UChannel::Close: Sending CloseBunch\\. ChIndex == [0-9]+\\. Name: \\[UChannel\\] ChIndex: [0-9]+, Closing: [0-9]+ \\[UNetConnection\\] RemoteAddr: (?<ip>[\\d.]+):[\\d]+, Name: EOSIpNetConnection_[0-9]+, Driver: GameNetDriver EOSNetDriver_[0-9]+, IsServer: YES, PC: (?<controller>[^ ]+PlayerController_C_[0-9]+), Owner: [^ ]+PlayerController_C_[0-9]+, UniqueId: RedpointEOS:(?<eosID>[\\d\\w]+)"],
 
   // Called at start of each game it seems, and right before playerAddedToTeam
   ["playerInitialized", "^LogGameMode: Initialized player (?<name>.+) with (?<id>[0-9]+)"],

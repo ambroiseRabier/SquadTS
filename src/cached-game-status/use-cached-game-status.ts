@@ -1,7 +1,7 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
-import { merge } from 'lodash';
+import { merge, omit } from 'lodash';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';
@@ -249,6 +249,17 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
       ),
       // Prevent accidentally using next by passing Subject as Observable.
       playersSquadChange: rconUpdates.playersSquadChange$.asObservable(),
+      playerDisconnected: logParser.events.playerDisconnected.pipe(
+        map(data => ({
+          ...omit(data, ['controller', 'ip', 'eosID']),
+          player: {
+            ...getPlayerByEOSID(data.eosID)!,
+            // Make sure we use latest info here
+            controller: data.controller,
+            ip: data.ip,
+          },
+        }))
+      )
     },
     chatEvents: {
       ...rconSquad.chatEvents,
@@ -332,6 +343,11 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
     players: players$.getValue(),
     squads$,
     squads: squads$.getValue(),
+
+    /**
+     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+     */
+    addPlayer$: logUpdates.addPlayer$,
     /**
      * Call after logParser are watching.
      */
