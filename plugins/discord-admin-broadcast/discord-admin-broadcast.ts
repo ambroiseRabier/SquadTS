@@ -1,3 +1,4 @@
+
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { DiscordAdminBroadcastEnabledOptions } from './discord-admin-broadcast.config';
 import { useDiscordChannel } from '../discord-chat/use-discord-channel';
@@ -24,4 +25,5 @@ const DiscordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> 
   });
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default DiscordAdminBroadcast;

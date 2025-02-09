@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
@@ -49,3 +51,11 @@ const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (ser
 }
 
 export default DiscordSquadCreated;
+
+// If set, the plugin will only be loaded if the connectors are available.
+// This means you won't have to deal with missing connectors errors.
+export const requireConnectors = ['discord'];
+
+
+
+

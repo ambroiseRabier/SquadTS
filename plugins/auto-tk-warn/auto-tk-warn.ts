@@ -18,4 +18,3 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (server: SquadServer,
 
 // noinspection JSUnusedGlobalSymbols
 export default autoTKWarn;
-

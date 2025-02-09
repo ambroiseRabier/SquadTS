@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
@@ -20,3 +22,9 @@ export type DiscordKillfeedOptions = z.infer<typeof enabledSchema>;
 // function called.
 // noinspection JSUnusedGlobalSymbols
 export default schema;
+
+// If set, the plugin will only be loaded if the connectors are available.
+// This means you won't have to deal with missing connectors errors.
+export const requireConnectors = ['discord'];
+
+

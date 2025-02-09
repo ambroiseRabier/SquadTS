@@ -69,14 +69,15 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        const parseConfig = parsed.data as PluginBaseOptions;
 
-        logger.info(`Starting plugin ${pair.name}.`);
-
-        if (parseConfig.requireConnectors.includes('discord') && !connectors.discord) {
+        if (pair.requireConnectors.includes('discord') && !connectors.discord) {
           logger.error(`Skipping ${pair.name} plugin. Discord connector has not been enabled in connectors config, or check above for errors related to Discord (like an invalid token).`)
           continue;
         }
+
+        logger.info(`Starting plugin ${pair.name}.`);
+
+        const parsedConfig = parsed.data as PluginBaseOptions;
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
         // if logs are mixed between plugins.
@@ -87,9 +88,9 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           connectors as Required<typeof connectors>,
           mainLogger.child({}, {
             msgPrefix: chalk.magenta('[Plugin]') + chalk.magentaBright(`[${pair.name}] `),
-            level: parseConfig.loggerVerbosity
+            level: parsedConfig.loggerVerbosity
           }),
-          parseConfig
+          parsedConfig
         ).catch(error => {
           // A failing plugin should not stop SquadTS completely.
           logger.error(`Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`, error);
@@ -164,6 +165,7 @@ async function loadPlugins(logger: Logger) {
     configSchema: { default: ZodObject<any> };
     configJSON5FileName: string;
     configJSON5FilePath: string;
+    requireConnectors: string[];
   }[] = [];
 
   if (!!process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION && !process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION.match(/\.json5$/)) {
@@ -233,6 +235,7 @@ async function loadPlugins(logger: Logger) {
       configSchema,
       configJSON5FileName,
       configJSON5FilePath: path.join(pluginsDirectory, configJSON5FileName),
+      requireConnectors: configSchema.requireConnectors || [],
     });
   }
 

@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
@@ -16,10 +18,12 @@ const autoTKWarnSchema = pluginBaseOptionsSchema.extend({
     .describe('The message that will be sent to the victim. null value means no message sent.')
     .default(null),
 
-  requireConnectors: z.tuple([]),
 }).describe('Warn attacker/victim when they team kill.');
 
 export type AutoTKWarnOptions = z.infer<typeof autoTKWarnSchema>;
 
-// noinspection JSUnusedGlobalSymbols
 export default autoTKWarnSchema;
+
+// If set, the plugin will only be loaded if the connectors are available.
+// This means you won't have to deal with missing connectors errors.
+export const requireConnectors = [];
