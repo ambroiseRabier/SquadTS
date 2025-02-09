@@ -9,7 +9,7 @@ import path from 'path';
  * - 'L://squadTS/config' -> 'L://squadTS/config'
  * @return Configs folder path
  */
-export function resolveConfigsPath(envConfigPath?: string): string {
+export function resolveConfigsPath(envConfigPath: string|undefined): string {
   if (envConfigPath) {
     // remove double quote if provided
     const dir = envConfigPath.replace(/"/g, '');

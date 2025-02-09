@@ -4,11 +4,10 @@
  * Caution: if you get sent to the other team on connecting, it is likely due to balancing.
  */
 {
-  enabled: true,
+  enabled: false,
   // Available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
   loggerVerbosity: 'info',
-  requireConnectors: [],
   // How many minutes to track disconnected players for.
   trackDisconnectedFor: 5,
   // The message to send to the player when he get switched back to his original team.

@@ -115,7 +115,7 @@ async function savePluginFiles() {
 
       // Generate a json5 file using the generated schema
       const json5FilePath = path.join(configPluginsFolder, `${folderName}.json5`);
-      const json5Commented = generateJson5Commented(zodSchema);
+      const json5Commented = generateJson5Commented(zodSchema, {enabled: false});
 
       // Write the generated config to the file
       fs.writeFileSync(json5FilePath, json5Commented, 'utf8');

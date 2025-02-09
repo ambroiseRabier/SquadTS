@@ -208,11 +208,6 @@ huumm pas naturel ?
 la CI ou pre-commit hook, devrait regenerer la config (on peut tjrs enlever le hook pr des commit WIP).
 si rien a changé tt est bon,si quelque chose a chngé le dev doit faire un commit.
 
----
-
-SQUAD_TS_PLUGIN_CONFIG_EXTENSION usage.
-SQUAD_TS_PLUGIN_CONFIG_EXTENSION=.dev.json5
-
 ----
 
 (gen plugin config ?)

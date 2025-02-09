@@ -12,7 +12,6 @@ const discordChatEnabledSchema = pluginBaseOptionsSchema.extend({
     .array(z.string())
     .default([])
     .describe("Known chat: 'ChatAll', 'ChatTeam', 'ChatSquad', 'ChatAdmin'"),
-  requireConnectors: z.tuple([z.literal('discord')]),
 }).describe("Log real time squad chat to Discord.");
 
 const discordChatSchema = z.discriminatedUnion("enabled", [

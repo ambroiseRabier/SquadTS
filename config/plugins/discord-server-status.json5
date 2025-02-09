@@ -1,13 +1,8 @@
 {
-  enabled: true,
+  enabled: false,
   // Available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
   loggerVerbosity: 'info',
-  // If set, the plugin will only be loaded if the connectors are available.
-  // This means you won't have to deal with missing connectors errors.
-  requireConnectors: [
-    'discord',
-  ],
   channelID: '',
   updateFrequency: 60,
   // The command that calls the status.

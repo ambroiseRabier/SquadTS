@@ -6,7 +6,6 @@ import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.con
 const enabledSchema = pluginBaseOptionsSchema.extend({
   enabled: z.literal(true),
   channelID: z.string().nonempty(),
-  requireConnectors: z.tuple([z.literal('discord')]),
 }).describe("Logs damage done to FOBs and HABs by explosions to help identify engineers blowing up friendly FOBs and HABs.");
 
 const schema = z.discriminatedUnion("enabled", [

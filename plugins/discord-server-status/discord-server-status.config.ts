@@ -6,7 +6,6 @@ import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.con
 const enabledSchema = pluginBaseOptionsSchema.extend({
   enabled: z.literal(true),
   channelID: z.string().nonempty(),
-  requireConnectors: z.tuple([z.literal('discord')]),
   updateFrequency: z.number().min(5).default(60),
   command: z.string().default('!status').describe('The command that calls the status.'),
   setBotStatus: z.boolean().default(true).describe('Whether to update the bot\'s status with server information.'),

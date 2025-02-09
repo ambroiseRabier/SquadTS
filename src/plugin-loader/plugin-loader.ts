@@ -10,6 +10,7 @@ import JSON5 from 'json5';
 import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
 import { DiscordConnector } from '../connectors/use-discord.connector';
+import { resolveConfigsPath } from '../config/resolve-configs-path';
 
 
 export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
@@ -34,7 +35,6 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         } catch (e: any) {
           logger.error(`Failed to create config file: ${pair.configJSON5FilePath}. Please create it yourself. Error: ${e.message}`, e);
         }
-        // todo: create config from schema...
       }
 
       if (missingConfigPairs.length > 0) {
@@ -168,15 +168,9 @@ async function loadPlugins(logger: Logger) {
     requireConnectors: string[];
   }[] = [];
 
-  if (!!process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION && !process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION.match(/\.json5$/)) {
-    throw new Error(`Env variable SQUAD_TS_PLUGIN_CONFIG_EXTENSION must end with .json5, example: .dev.json5`)
-  }
+  const configFolder = path.join(resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH), 'plugins');
+  logger.info(`Loading plugins configurations from ${configFolder}...`);
 
-  if (process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION === '.json5') {
-    logger.warn(`Env variable SQUAD_TS_PLUGIN_CONFIG_EXTENSION is equal to default ".json5", you should remove SQUAD_TS_PLUGIN_CONFIG_EXTENSION.`)
-  }
-
-  const configExtension = !!process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION ? process.env.SQUAD_TS_PLUGIN_CONFIG_EXTENSION : '.json5';
 
   for (const file of pluginMainFiles) {
     // Skip config files initially
@@ -184,16 +178,18 @@ async function loadPlugins(logger: Logger) {
       continue
     }
 
+    const fileName = path.parse(file).name;
     const configSchemaFileName = file.replace('.ts', '.config.ts');
-    const configJSON5FileName = file.replace('.ts', configExtension);
+    const configJSON5FileName = fileName + '.json5';
+    const configJSON5FilePath = path.join(configFolder, configJSON5FileName);
     const pluginPath = path.join(pluginsDirectory, file);
     const configSchemaPath = path.join(pluginsDirectory, configSchemaFileName);
 
-    // Inform which plugin have been seen and will be loaded.
+    // Inform which plugin has been seen and will be loaded.
     logger.info(`Plugin discovered: ${file} (${pluginPath})`);
 
     if (!allTSFiles.includes(configSchemaFileName)) {
-      logger.error(`configSchema file for "${file}" not found. Skipping this plugin.`);
+      logger.error(`config schema file (${configSchemaFileName}) not found. Skipping ${fileName} plugin.`);
       continue;
     }
 
@@ -234,7 +230,7 @@ async function loadPlugins(logger: Logger) {
       plugin,
       configSchema,
       configJSON5FileName,
-      configJSON5FilePath: path.join(pluginsDirectory, configJSON5FileName),
+      configJSON5FilePath,
       requireConnectors: configSchema.requireConnectors || [],
     });
   }

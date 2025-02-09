@@ -25,6 +25,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   logReader.on('line', (s) => {
     queue.next(s);
   });
+  logReader.on('error', (error) => {
+    logger.error(`LogReader error: ${error}`);
+    throw error;
+  });
 
   const events = queue.pipe(
     tap(line => {

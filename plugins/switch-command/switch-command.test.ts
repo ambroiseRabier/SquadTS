@@ -56,7 +56,7 @@ const serverMock = () => {
       command: new Subject<Pick<ObservableValue<SquadServer['chatEvents']['command']>, 'command' | 'date'> & {player: SwitchCommandPlayer}>(),
     },
     events: {
-      playerDisconnected: new Subject<Pick<ObservableValue<SquadServer['events']['playerDisconnected']>, 'eosID'>>(),
+      playerDisconnected: new Subject<Pick<ObservableValue<SquadServer['events']['playerDisconnected']>, 'player'>>(),
     },
     helpers: {
       playerHasPermissions: jest.fn<SquadServer['helpers']['playerHasPermissions']>(() => false),
@@ -127,7 +127,7 @@ const emitSwitchCommand = async (server: ReturnType<typeof serverMock>, eosID: s
 };
 
 const emitDisconnect = async (server: ReturnType<typeof serverMock>, eosID: string) => {
-  server.events.playerDisconnected.next({eosID})
+  server.events.playerDisconnected.next({player: {eosID} as any})
   await wait(0); // Not sure if it is necessary here
 }
 

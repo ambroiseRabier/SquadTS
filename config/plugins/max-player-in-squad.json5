@@ -4,13 +4,10 @@
  * Usually a MBT squad with more than 4 players means a bad squad lead (likely a new player) and infantry that will not play as a squad.
  */
 {
-  enabled: true,
+  enabled: false,
   // Available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
   loggerVerbosity: 'info',
-  // If set, the plugin will only be loaded if the connectors are available.
-  // This means you won't have to deal with missing connectors errors.
-  requireConnectors: [],
   // List of squad types for which we limit player count
   squadTypes: [
     {

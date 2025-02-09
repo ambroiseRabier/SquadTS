@@ -6,7 +6,6 @@ import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.con
 const enabledSchema = pluginBaseOptionsSchema.extend({
   enabled: z.literal(true),
   channelID: z.string().nonempty(),
-  requireConnectors: z.tuple([z.literal('discord')]),
   useEmbed: z.boolean().default(true),
 }).describe("Log Squad Creation events to a Discord channel.");
 

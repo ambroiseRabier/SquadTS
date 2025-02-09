@@ -26,7 +26,7 @@ interface FTPTailOptions {
   tailLastBytes?: number; // Number of bytes to tail
   log?: ((message: string) => void) | boolean; // Logger configuration
 }
-
+// todo: ré-écrire, je pense que cela unwatch pas correctement.
 export class FTPTail extends EventEmitter {
   private options: FTPTailOptions & {fetchInterval: number; tailLastBytes: number; };
   private client: Client;
@@ -86,6 +86,18 @@ export class FTPTail extends EventEmitter {
 
     // Connect to the FTP server.
     await this.connect();
+
+    process.on('SIGINT', async () => {
+      console.log('SIGINT received. Gracefully shutting down...');
+      await this.unwatch();
+      // process.exit(0); // Exit gracefully
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM received. Gracefully shutting down...');
+      await this.unwatch();
+      // process.exit(0); // Exit gracefully
+    });
 
     // Start the fetch loop.
     this.log('Starting fetch loop...');
@@ -171,6 +183,7 @@ export class FTPTail extends EventEmitter {
         this.log(`Fetch loop took ${fetchTime}ms.`);
         await this.sleep(waitBasedOnStartTime());
       } catch (error) {
+        this.fetchLoopActive = false;
         this.emit('error', error);
         this.log(`Error in fetch loop: ${(error as Error).stack}`);
       }

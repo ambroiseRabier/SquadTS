@@ -108,7 +108,7 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       // await this.rcon.getCurrentMap()
       // await this.rcon.getListPlayers()
       // await this.rcon.getSquads()
-      await rconSquad.warn('76561198016942077', "We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.")
+      // await rconSquad.warn('76561198016942077', "We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.")
 
       // await logParser.watch();
 
@@ -128,8 +128,9 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       // First log download will be past logs (depend on max file size of logs) (of any date)
       await logParser.watch();
 
+
       // Update admin list once at startup, and at each new game start. (arbitrary)
-      await fetchAdmins()
+      await fetchAdmins();
       cachedGameStatus.events.newGame.subscribe(async () => {
         await fetchAdmins()
       });
@@ -137,6 +138,8 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
 
       // Call after logParser starts
       cachedGameStatus.watch()
+
+      logger.info('SquadTS server is ready');
     },
     unwatch: rconSquad.disconnect.bind(rconSquad)
   } as const;
