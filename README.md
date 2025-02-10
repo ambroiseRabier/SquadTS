@@ -251,3 +251,9 @@ ce qui est un no-no
 ---
 
 AUTO-update depuis github ? seulement si pas besoin de input manuel du user... peu probable :/
+
+
+---
+
+remplacer interval de rxjs par un setTimeout avec observation du retard comme pr ftp tail?
+bof ?
