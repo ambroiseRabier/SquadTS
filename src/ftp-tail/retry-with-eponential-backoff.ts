@@ -1,3 +1,5 @@
+import { Logger } from "pino";
+
 /**
  * If `baseDelay = 1000ms (1 second)` (it is), and the following retry attempts are made:
  * - Retry 1: `1000ms ± jitter` → 1.2 seconds
@@ -17,16 +19,27 @@
  * (note: not sure how RCON behaves in case of internet loss...)
  * 12 attempts will be about 1h.
  */
-async function retryWithExponentialBackoff(task: () => Promise<any>, maxRetries: number, log: (message: string) => void) {
+export async function retryWithExponentialBackoff(task: () => Promise<any>, maxRetries: number, logger: Logger, stopRequested: () => boolean, condition: (error: any) => boolean) {
   const baseDelay = 1000; // Start with a 1-second delay in milliseconds
   let attempt = 0;
 
   while (attempt <= maxRetries) {
+    if (stopRequested()) {
+      logger.info('Stop requested, exiting retryWithExponentialBackoff...');
+      return;
+    }
+
     try {
       return await task(); // Attempt the task
     } catch (err) {
+      // Do not retry if doesn't pass condition
+      if (!condition(err)) {
+        throw err;
+      }
+
+      logger.error(`Error in retryWithExponentialBackoff: ${(err as Error)?.message}`);
       if (attempt === maxRetries) {
-        throw new Error(`Max retries reached: ${attempt}`);
+        throw new Error(`Max retries reached: ${attempt} ${(err as Error)?.message}`);
       }
 
       // Calculate exponential backoff delay
@@ -39,7 +52,7 @@ async function retryWithExponentialBackoff(task: () => Promise<any>, maxRetries:
       const jitter = Math.random(); // A random value between 0 and 1
       const jitteredDelay = delay * (0.5 + jitter); // Random delay within 50-150% of the calculated delay
 
-      log(`Retrying (attempt ${attempt + 1}) in ${(jitteredDelay / 1000).toFixed(2)}s...`);
+      logger.info(`Retrying (attempt ${attempt + 1}) in ${(jitteredDelay / 1000).toFixed(2)}s...`);
       await new Promise((resolve) => setTimeout(resolve, jitteredDelay));
 
       attempt++;
