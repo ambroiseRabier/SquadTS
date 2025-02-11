@@ -16,11 +16,10 @@ export const loggerOptionsSchema = z.object({
     CachedGameStatus: pinoLevelSchema.default('info'),
     PluginLoader: pinoLevelSchema.default('info'),
     AdminList: pinoLevelSchema.default('info'),
-    LogReader: pinoLevelSchema.default('info')
+    LogReader: pinoLevelSchema.default('info').describe("Will also be used for FTP/SFTP debug logs if enabled."),
   }).describe(
     `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
     `To disable a logger, set it to silent.`),
-  debugFTP: z.boolean().default(false).describe("Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP."),
   debugLogMatching: z.object({
     showMatching: z.boolean().default(false)
       .describe("Log matched logs, that will be turned into events. They show at DEBUG log level.\n" +

@@ -67,9 +67,9 @@ function useClient(options: Props) {
     },
     setLog(logger: Logger) {
       if (options.protocol === 'ftp') {
-        client.ftp.log = logger.debug;
+        client.ftp.log = logger.debug.bind(logger);
       } else {
-        options.sftp.debug = logger.debug;
+        options.sftp.debug = logger.debug.bind(logger);
       }
     },
     isConnected() {
@@ -81,9 +81,9 @@ function useClient(options: Props) {
 export function useFtpTail(logger: Logger, options: Props) {
   const line$ = new Subject<string>();
   const client = useClient(options);
-  const stop$ = new Subject<void>();
-  const retryStopSignal = false;
+  let stopSignal = false;
   let lastByteReceived: number | null = null;
+  let currentFetchPromise: Promise<void> | null = null;
 
   client.setLog(logger)
 
@@ -161,7 +161,7 @@ export function useFtpTail(logger: Logger, options: Props) {
     }
 
     // Download the file to the temporary file.
-    logger.info(`Downloading file with offset ${lastByteReceived}...`);
+    logger.debug(`Downloading file with offset ${lastByteReceived}...`);
     await client.downloadFile(
       options.filepath,
       tmpFilePath,
@@ -175,8 +175,11 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   async function fetchLoop() {
-    await retryWithExponentialBackoff(connect, 12, logger, () => retryStopSignal, (error: any) => error?.message.includes('timeout'));
-    await retryWithExponentialBackoff(fetchFile, 12, logger, () => retryStopSignal, (error: any) => error?.message.includes('timeout'));
+    logger.debug('Connecting or reconnecting to FTP server...');
+    await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.includes('timeout'));
+    logger.debug('Downloading file...');
+    await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.includes('timeout'));
+    logger.debug('Processing file...');
     await processFile();
   }
 
@@ -204,7 +207,13 @@ export function useFtpTail(logger: Logger, options: Props) {
 
       const executionTime = performance.now() - startTime;
 
-      logger.info(`Fetch loop took ${executionTime}ms.`);
+      logger.debug(`Fetch loop took ${executionTime}ms.`);
+
+      if (executionTime > options.fetchIntervalMs) {
+        logger.info(
+          `Fetch loop took ${executionTime}ms, which is longer than the requested interval of ${options.fetchIntervalMs}ms.`
+        + 'This is fine, but reaction time of plugins will be slower than requested.');
+      }
 
       // If fetchLoop took less time than the interval, wait the remaining time
       const delay = Math.max(0, options.fetchIntervalMs - executionTime);
@@ -217,38 +226,64 @@ export function useFtpTail(logger: Logger, options: Props) {
       throw e; // stop looping at unhandled error.
     } finally {
       isFetchLoopActive = false; // Unlock once the loop is finished
-      // Do not await here
-      if (!hasError) {
+      // Only at hasError, since stopSignal is called by unwatch (in case of SIGTERM or SIGINT)
+      if (hasError) {
+        // Call unwatch but do not await it since unwatch also will await this current promise (no loop)
         // noinspection ES6MissingAwait
-        executeFetchLoop(); // Schedule the next iteration independently
+        unwatch();
+      }
+      // Do not await here
+      if (!hasError || !stopSignal) {
+        // noinspection ES6MissingAwait
+        currentFetchPromise = executeFetchLoop(); // Schedule the next iteration independently
       }
     }
   }
 
-  function watch() {
-    interval(options.fetchIntervalMs)
-      .pipe(takeUntil(stop$))
-      .subscribe({
-        next: executeFetchLoop,
-        error: unwatch,
-        // complete: unwatch // only place I call stop$ is in unwatch, we don't want to call unwatch twice.
-      });
+  // Note: this is not designed to be recalled after unwatch.
+  async function watch() {
+    // Note: RXJS is not the most fit for the behavior we want.
+
+    logger.info('Watching FTP server...');
 
     // Signal handling
     process.on('SIGINT', unwatch);
     process.on('SIGTERM', unwatch);
+
+    // First execution, this one has huge chances to fail, wrong credentials will fail here.
+    currentFetchPromise = executeFetchLoop()
+    await currentFetchPromise;
+
+    logger.info('Connect and first download went fine. (If you need more info on fetch loop, enable debug logs).');
   }
 
+  // Needs to be called in case the fetch loop error or when SIGINT or SIGTERM
   async function unwatch() {
-    stop$.next(); // Stop RxJS fetch loop
     logger.info('Cleanup initiated.');
+    stopSignal = true;
     // It may be useful to keep the file for debug
     // await removeTempFile();
-    await client.disconnect();
 
-    // not sure if this is needed.
+    // Ideally, we want to abort the current operation, but this is more complex and not really supported by
+    // our ftp/sftp libs. Instead, we just wait for the promise to resolve.
+    // It should not take long since we are downloading logs often.
+    try {
+      // In case the promise is still running, we await it.
+      // This case happens when SIGINT or SIGTERM is called.
+      await currentFetchPromise;
+    } catch (e) {
+      // Do nothing here, as we already handle error on that promise elsewhere.
+      // This case happens when the fetchLoop error, and unwatch is called to clean up
+      // Promise got rejected, we ignore it and call disconnect.
+    } finally {
+      await client.disconnect();
+    }
+
+
     // what about rcon connection, maybe it needs a cleanup too ?
-    // process.exit(0); or not ?
+    // not sure process.exit(0) should be in this file...
+    // not sure about that, Don't want to force exit.
+    // process.exit(0);
   }
 
   return {

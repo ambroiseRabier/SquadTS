@@ -292,11 +292,14 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         }))
       ),
     },
-    watch: () => {
+    watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);
-
-      logReader.watch();
-
+      try {
+        await logReader.watch();
+      } catch (e) {
+        logger.error(`Error while watching log file: ${(e as Error)?.message}\n ${(e as Error)?.stack}`);
+        throw e;
+      }
       logger.info(`Watching log file.`);
     },
     unwatch: async () => {

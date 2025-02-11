@@ -69,6 +69,12 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
+        const parsedConfig = parsed.data as PluginBaseOptions;
+
+        if (!parsedConfig.enabled) {
+          logger.info(`Skipping ${pair.name} plugin. It is disabled.`);
+          continue;
+        }
 
         if (pair.requireConnectors.includes('discord') && !connectors.discord) {
           logger.error(`Skipping ${pair.name} plugin. Discord connector has not been enabled in connectors config, or check above for errors related to Discord (like an invalid token).`)
@@ -77,7 +83,6 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
 
         logger.info(`Starting plugin ${pair.name}.`);
 
-        const parsedConfig = parsed.data as PluginBaseOptions;
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
         // if logs are mixed between plugins.

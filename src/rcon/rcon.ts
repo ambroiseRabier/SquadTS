@@ -49,13 +49,38 @@ export class Rcon {
     this.client.on('data', this.decodeData.bind(this));
     this.client.on('close', this.onClose.bind(this));
     this.client.on('error', this.onError.bind(this));
+
+    // Handle process signals for cleanup
+    process.on('SIGINT', this.handleShutdown.bind(this)); // e.g., Ctrl+C
+    process.on('SIGTERM', this.handleShutdown.bind(this)); // e.g., Process kill
+  }
+
+  /**
+   * Handles shutdown signals (SIGINT, SIGTERM).
+   */
+  private async handleShutdown() {
+    this.logger.info('Shutdown signal received. Cleaning up...');
+    try {
+      await this.disconnect(); // Ensure graceful disconnection
+    } catch (error) {
+      this.logger.error('Error during shutdown disconnect:', error);
+    } finally {
+      // do not force exit, note that logParser also has some stuff to finish.
+      //process.exit(0); // (Optional) Exit the process after cleanup
+    }
   }
 
 
-  private onClose(errorMessage: string) {
+  // https://nodejs.org/api/net.html#event-close -> Search `Event: 'close'`
+  // "Emitted once the socket is fully closed. The argument hadError is a boolean which says if the socket was closed due to a transmission error."
+  private onClose(hadError : boolean) {
     this.connected = false;
     this.loggedin = false;
-    this.logger.error(`Socket closed ${errorMessage ? 'with' : 'without'} an error. ${errorMessage}`);
+    if (hadError) {
+      this.logger.error(`Socket closed with error.`);
+    } else {
+      this.logger.info(`Socket closed without error.`);
+    }
 
     // Cleanup all local state onClose
     if (this.incomingData.length > 0) {
@@ -131,7 +156,7 @@ export class Rcon {
             break;
           default:
             this.logger.warn(`Unknown packet ID ${decodedPacket.id} in: ${decodedPacketToString(decodedPacket)}`);
-            this.onClose('Unknown Packet');
+            this.onClose(true);
         }
         break;
 
@@ -141,7 +166,7 @@ export class Rcon {
 
       default:
         this.logger.warn(`Unknown packet type ${decodedPacket.type} in: ${decodedPacketToString(decodedPacket)}`)
-        this.onClose('Unknown Packet');
+        this.onClose(true);
     }
   }
 

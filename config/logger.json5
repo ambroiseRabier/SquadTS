@@ -9,9 +9,8 @@
     CachedGameStatus: 'info',
     PluginLoader: 'info',
     AdminList: 'info',
+    LogReader: 'info',
   },
-  // Enable FTP/SFTP debug logs. Keep disabled unless you can't find the issue with FTP/SFTP.
-  debugFTP: false,
   debugLogMatching: {
     // Log matched logs, that will be turned into events. They show at DEBUG log level.
     // verboseness.LogParser HAS TO BE set to 'debug' for this to work.

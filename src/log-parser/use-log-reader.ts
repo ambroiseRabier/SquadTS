@@ -3,6 +3,7 @@ import TailModule from 'tail';
 import { useFtpTail } from '../ftp-tail/use-ftp-tail';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
+import { omit } from 'lodash';
 
 
 export type LogReader = ReturnType<typeof useLogReader>;
@@ -20,7 +21,8 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
 
       // return the same API as the others.
       return {
-        watch: tail.watch,
+        // Same as unwatch
+        watch: () => new Promise<void>((resolve) => {tail.watch(); resolve();}),
         // SFTP use promise for unwatch, somehow Typescript just think all of them have no promise, maybe it should error at least ?
         // So the fix is to make it a promise, so all of them behaves the same.
         unwatch: () => new Promise<void>((resolve) => {tail.unwatch(); resolve();}),
@@ -37,7 +39,10 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
     case 'ftp':
       return useFtpTail(logger, {
         protocol: 'ftp',
-        ftp: options.ftp,
+        ftp: {
+          ...omit(options.ftp, ['username']),
+          user: options.ftp.username
+        },
         filepath: fixedFilePath,
         fetchIntervalMs: options.ftp.fetchInterval,
         tailLastBytes: options.ftp.initialTailSize,

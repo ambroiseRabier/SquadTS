@@ -17,9 +17,10 @@ describe('parseConfig', () => {
           SquadServer: 'info',
           CachedGameStatus: 'info',
           PluginLoader: 'info',
-          RCONSquad: 'info'
+          RCONSquad: 'info',
+          AdminList: 'info',
+          LogReader: 'info'
         },
-        debugFTP: false,
         debugLogMatching: {
           showMatching: false,
           showNonMatching: false,
