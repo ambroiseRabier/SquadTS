@@ -16,14 +16,15 @@
 // match the expected interface, even if the JSON is valid.
 
 export interface WeaponInfo {
-  // e.g., "C6"
+  // Display name found in HUD e.g., "C6"
   displayName: string;
-  // e.g., "BP_C6.BP_C6_C"
+  // Raw blueprint name e.g., "BP_C6.BP_C6_C"
   rawName: string;
-  // e.g., "MachineGuns"
+  // Folder where blueprint is loaded e.g., "MachineGuns"
   folder: Folder;
-  // e.g., ["CAF"]
+  // Factions that the weapon is used by e.g., ["CAF"]
   factions: Faction[];
+  // Item description found in game
   inventoryInfo: InventoryInfo;
   weaponInfo: WeaponInfoClass;
   physicalInfo: PhysicalInfo;
@@ -53,17 +54,15 @@ export enum Folder {
 }
 
 export interface InventoryInfo {
-  // e.g., "Magazine Capacity: 75/Caliber: 7.62x51mm NATO Red Tracer/Rate of Fire: 700 RPM/Fire Mode: Auto/Zeroing: 100m-1800m..."
+  // Item description found in game e.g., "Magazine Capacity: 75/Caliber: 7.62x51mm NATO Red Tracer/Rate of Fire: 700 RPM/Fire Mode: Auto/Zeroing: 100m-1800m..."
   description: string;
-  // e.g., "mag58"
-  HUDTexture: string;
-  // e.g., "inventory_category_machinegun"
+  // Inventory texture e.g., "inventory_category_machinegun"
   inventoryTexture: InventoryTexture;
-  // e.g., 11.0
+  // Ammo point cost from FOB for 1 mag/item e.g., 11.0
   ammoPerRearm: number;
-  // e.g., false
+  // Show item count in inventory e.g., false
   showItemCount: boolean;
-  // e.g., true
+  // Show mag counts on HUD e.g., true
   showMagCount: boolean;
 }
 
@@ -75,9 +74,9 @@ export enum InventoryTexture {
 }
 
 export interface PhysicalInfo {
-  // e.g., "C6"
+  // Mesh of weapon e.g., "C6"
   skeletalMesh: string;
-  // e.g., ["BP_Attachment_PAQ_NoSwitch_C"]
+  // Attachments (blueprint names, there are no pretty names afaik) e.g., ["BP_Attachment_PAQ_NoSwitch_C"]
   attachments: string[];
 }
 
@@ -94,19 +93,19 @@ export interface Recoil {
 }
 
 export interface Camera {
-  // e.g., 0.35
+  // How much the camera goes up as the sight is offsetting from the center e.g., 0.35
   recoilCameraOffsetFactor: number;
-  // e.g., 5.0
+  // How fast the camera goes up as the sight is offsetting from the center e.g., 5.0
   recoilCameraOffsetInterpSpeed: number;
-  // e.g., 20.0
+  // How far the sight can go away from the center of the screen (on any axis) e.g., 20.0
   recoilLofCameraOffsetLimit: number;
-  // e.g., 45.0
+  // How fast the sight is reaching the new point defined by the past shot (don't change it except for specific cases) e.g., 45.0
   recoilLofAttackInterpSpeed: number;
-  // e.g., 30.0
+  // Speed of timer allowing the sight to go back to the center e.g., 30.0
   recoilCanReleaseInterpSpeed: number;
-  // e.g., 10.0
+  // How fast the sight goes back to the center of the screen when it's allowed to e.g., 10.0
   recoilLofReleaseInterpSpeed: number;
-  // e.g., 200.0
+  // Speed of camera bone rotation update when firing while ADS. Set to zero for disabling it e.g., 200.0
   recoilAdsCameraShotInterpSpeed: number;
 }
 
@@ -115,171 +114,171 @@ export interface RecoilDynamic {
   stamina: Stamina;
   shoulder: Shoulder;
   grip: Grip;
-  // e.g., 2.0
+  // Maximum additive multiplier for recoil misalignment (Stance + Movement + Stamina) e.g., 2.0
   recoilAlignmentMultiplierMax: number;
 }
 
 export interface Grip {
-  // e.g., {x: 5, y: 4}
+  // Maximum misalignment per-shot, rotating around the grip bone e.g., {x: 5, y: 4}
   recoilAlignmentGripMax: RecoilAlignment;
-  // e.g., {x: 11, y: 7}
+  // Maximum overall misalignment, to prevent misalignment adding up too far from rapid fire e.g., {x: 11, y: 7}
   recoilAlignmentGripAngleLimits: RecoilAlignment;
 }
 
 export interface RecoilAlignment {
-  // e.g., 5.0
+  // Maximum misalignment in X direction e.g., 5.0
   x: number;
-  // e.g., 4.0
+  // Maximum misalignment in Y direction e.g., 4.0
   y: number;
 }
 
 export interface Movement {
-  // e.g., 1.0
+  // Reset shot recoil multiplier (Increases the size of delta time, reducing the time to get to minimum after movement) e.g., 1.0
   moveRecoilFactorRelease: number;
-  // e.g., 1.0
+  // Amount of additive recoil to add when moving e.g., 1.0
   addMoveRecoil: number;
-  // e.g., 2.0
+  // Maximum amount of additive recoil possible when moving e.g., 2.0
   maxMoveRecoilFactor: number;
-  // e.g., 0.07
+  // Minimum amount of additive recoil possible when moving e.g., 0.07
   minMoveRecoilFactor: number;
-  // e.g., 0.3
+  // Additive recoil misalignment from moving when firing e.g., 0.3
   recoilAlignmentMovementAddative: number;
-  // e.g., 1.0
+  // Allows you to ease in the additional recoil misalignment from firing while moving e.g., 1.0
   recoilAlignmentMovementExponent: number;
 }
 
 export interface Shoulder {
-  // e.g., {x: 3, y: 2}
+  // Maximum misalignment per-shot, rotating around the shoulder bone e.g., {x: 3, y: 2}
   recoilAlignmentShoulderMax: RecoilAlignment;
-  // e.g., {x: 5, y: 4}
+  // Maximum overall misalignment, to prevent misalignment adding up too far from rapid fire e.g., {x: 5, y: 4}
   recoilAlignmentShoulderAngleLimits: RecoilAlignment;
 }
 
 export interface Stamina {
-  // e.g., 0.2
+  // Amount of additive recoil to apply when low on stamina e.g., 0.2
   lowStaminaRecoilFactor: number;
-  // e.g., 0.0
+  // Amount of additive recoil to apply when full on stamina e.g., 0.0
   fullStaminaRecoilFactor: number;
-  // e.g., 0.1
+  // Additive recoil misalignment from firing with low stamina e.g., 0.1
   recoilAlignmentStaminaAddative: number;
-  // e.g., 0.5
+  // Allows you to ease in the additional recoil misalignment from firing while tired e.g., 0.5
   recoilAlignmentStaminaExponent: number;
 }
 
 export interface Spring {
-  // e.g., -1
+  // Should the item follow or counter player rotation e.g., -1
   weaponSpringSide: number;
-  // e.g., 0.75
+  // How oscillating should the spring be e.g., 0.75
   weaponSpringStiffness: number;
-  // e.g., 0.4
+  // Decay speed of spring oscillation e.g., 0.4
   weaponSpringDamping: number;
-  // e.g., 0.05
+  // Amplitude and resistance to change of the spring oscillation e.g., 0.05
   weaponSpringMass: number;
 }
 
 export interface Sway {
   dynamic: SwayDynamic;
   stance: Stance;
-  // e.g., -1.0
+  // Max sway e.g., 10.0
   maxSway: number;
 }
 
 export interface SwayDynamic {
-  // e.g., 3.5
+  // Amount of additive sway to apply when low on stamina e.g., 3.5
   lowStaminaSwayFactor: number;
-  // e.g., 0.0
+  // Amount of additive sway to apply when full on stamina e.g., 0.0
   fullStaminaSwayFactor: number;
-  // e.g., 0.66
+  // Sway factor applied to stance's minimum sway range e.g., 0.66
   holdingBreathSwayFactor: number;
-  // e.g., 0.0004
+  // Amount of additive sway to add when moving e.g., 0.0004
   addMoveSway: number;
-  // e.g., 0.0
+  // Minimum amount of additive sway possible when moving e.g., 0.0
   minMoveSwayFactor: number;
-  // e.g., 22.0
+  // Maximum amount of additive sway possible when moving e.g., 22.0
   maxMoveSwayFactor: number;
 }
 
 export interface Stance {
-  // e.g., 1.5
+  // Min sway range when aiming down sights while prone e.g., 1.5
   proneADSSwayMin: number;
-  // e.g., 3.0
+  // Min sway range while prone e.g., 3.0
   proneSwayMin: number;
-  // e.g., 6.0
+  // Min sway range when aiming down sights while crouching e.g., 6.0
   crouchADSSwayMin: number;
-  // e.g., 8.0
+  // Min sway range while crouching e.g., 8.0
   crouchSwayMin: number;
-  // e.g., 9.0
+  // Min sway range when aiming down sights while standing e.g., 9.0
   standingADSSwayMin: number;
-  // e.g., 12.0
+  // Min sway range while standing e.g., 12.0
   standingSwayMin: number;
-  // e.g., 0.0
+  // Min sway range when aiming down sights while using a bipod e.g., 0.0
   bipodADSSwayMin: number;
-  // e.g., 0.0
+  // Min sway range while using a bipod e.g., 0.0
   bipodSwayMin: number;
 }
 
 export interface WeaponInfoClass {
-  // e.g., 8
+  // Max number of mags e.g., 8
   maxMags: number;
-  // e.g., 75
+  // Rounds per mag e.g., 75
   roundsPerMag: number;
-  // e.g., false
+  // Allow a round to stay loaded in chamber e.g., false
   roundInChamber: boolean;
-  // e.g., false
+  // Allow item to be loaded bullet by bullet e.g., false
   allowSingleLoad: boolean;
-  // e.g., [-1]
+  // Firemodes. -1 -> automatic | 0 -> burst | 1 -> semi-auto e.g., [-1]
   firemodes: number[];
-  // e.g., 0.085
+  // Min time between two shots (burst/auto) e.g., 0.085
   timeBetweenShots: number;
-  // e.g., 0.125
+  // Min time between two shots (semi-auto) e.g., 0.125
   timeBetweenSingleShots: number;
-  // e.g., true
+  // Unknown e.g., true
   avgFireRate: boolean;
-  // e.g., false
+  // Unknown e.g., false
   resetBurstOnTriggerRelease: boolean;
-  // e.g., 0.0
+  // Finish reload grace period for canceling reload close to finishing the reload process e.g., 0.0
   reloadCancelGracePeriod: number;
-  // e.g., 9.5
+  // Time it takes to reload weapon without an empty mag e.g., 9.5
   tacticalReloadDuration: number;
-  // e.g., 11.2
+  // Time it takes to reload weapon with an empty mag e.g., 11.2
   dryReloadDuration: number;
-  // e.g., 8.0
+  // Time it takes to reload weapon without an empty mag with a bipod e.g., 8.0
   tacticalReloadBipodDuration: number;
-  // e.g., 8.75
+  // Time it takes to reload weapon with an empty mag with a bipod e.g., 8.75
   dryReloadBipodDuration: number;
-  // e.g., 0.4
+  // ADS Post Process transition point == ZoomedFOV / (CurrentFOV - FOVSetting - 90) e.g., 0.4
   ADSPostTransitionRation: number;
-  // e.g., true
+  // If ADS is allowed on the weapon e.g., true
   allowZoom: boolean;
-  // e.g., 0.6
+  // How much ADS slows a player e.g., 0.6
   ADSMoveSpeedMultiplier: number;
-  // e.g., "BP_Projectile_7_62mm_C"
+  // Projectile blueprint e.g., "BP_Projectile_7_62mm_C"
   projectileClass: ProjectileClass;
-  // e.g., "BP_Projectile_Red_762mm_C"
+  // Tracer blueprint (MAY BE NULL) e.g., "BP_Projectile_Red_762mm_C"
   tracerProjectileClass: TracerProjectileClass | null;
-  // e.g., 4
+  // Rounds between tracer e.g., 4
   roundsBetweenTracer: number;
-  // e.g., 85300.0
+  // Starting/muzzle velocity for projectiles e.g., 85300.0
   muzzleVelocity: number;
-  // e.g., 35.0
+  // Min damage from fall off e.g., 35.0
   damageFallOffMinDamage: number;
-  // e.g., 80000.0
+  // Distance the min damage occurs e.g., 80000.0
   damageFallOffMinDamageDistance: number;
-  // e.g., 86.0
+  // Max damage from fall off e.g., 86.0
   damageFallOffMaxDamage: number;
-  // e.g., 38000.0
+  // Distance the max damage occurs until e.g., 38000.0
   damageFallOffMaxDamageDistance: number;
-  // e.g., 7
+  // Armor penetration depth (mm) e.g., 7
   armorPenetrationDepthMM: number;
-  // e.g., 10.0
+  // Trace distance after penetrating to determine if damage will occur e.g., 10.0
   traceDistanceAfterPen: number;
-  // e.g., 3
+  // How accurate the weapon is (in minutes of angle aka 1/60th of a degree) e.g., 3
   MOA: number;
-  // e.g., false
+  // If a mag must be empty to reload e.g., false
   emptyMagReload: boolean;
-  // e.g., 1.63
+  // How long it takes to equip e.g., 1.63
   equipDuration: number;
-  // e.g., 1.316
+  // How long it takes to dequip e.g., 1.316
   unequipDuration: number;
 }
 
