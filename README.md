@@ -257,3 +257,7 @@ AUTO-update depuis github ? seulement si pas besoin de input manuel du user... p
 
 remplacer interval de rxjs par un setTimeout avec observation du retard comme pr ftp tail?
 bof ?
+
+---
+
+eslint fix, et prettier,

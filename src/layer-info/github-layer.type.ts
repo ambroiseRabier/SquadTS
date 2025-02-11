@@ -2,6 +2,7 @@
 // Namespace to correctly isolate stuff from Wiki with the rest of SquadTS.
 export namespace GithubWiki {
 
+
   // From https://raw.githubusercontent.com/Squad-Wiki/squad-wiki-pipeline-map-data/master/completed_output/_Current%20Version/finished.json
   // How to generate: npx quicktype -l ts -s json tmp/finished.json > tmp/type.ts
   // Comments are generated using IA and a very small subject of the json.
@@ -15,46 +16,63 @@ export namespace GithubWiki {
   //
   // These functions will throw an error if the JSON doesn't
   // match the expected interface, even if the JSON is valid.
+  //
+  // Note: also check https://github.com/Squad-Wiki/squad-wiki-pipeline-map-data/blob/master/doc/json.md for doc (seems only to partially match finished.json)
+  //       doc seems slightly out of date, as some field it refers too do not appear in the json.
+
+
+
   export interface Layer {
     Maps: Map[];
     mapsavailable: string[];
   }
 
   export interface Map {
-    // e.g., "Anvil AAS v1"
+    // Display name, e.g., "Anvil AAS v1"
     Name: string;
-    // e.g., "Anvil_AAS_v1"
+    // Layer ID (used in LayerRotation.cfg), e.g., "Anvil_AAS_v1"
     rawName: string;
-    // e.g., "Anvil_AAS_v1"
+    // Unreal Engine 4 file name for the layer, e.g., "Anvil_AAS_v1"
     levelName: string;
     // e.g., "Anvil"
     mapId: string;
-    // e.g., "Anvil"
+    // Name of level (Al Basrah, Belaya, etc.), e.g., "Anvil"
     mapName: string;
+    // Gamemode derived from Name (NOT accurate)
     gamemode: Gamemode;
-    // e.g., "v1"
+    // Layer version derived from Name (NOT accurate), e.g., "v1"
     layerVersion: string;
-    // e.g., "Anvil_Minimap"
+    // Texture name used for minimap. Useful to see which maps may be smaller
+    // (Many skirmish maps, for example), e.g., "Anvil_Minimap"
     minimapTexture: string;
     // e.g., 300 (maximum helicopter altitude threshold)
     heliAltThreshold: number;
     // e.g., "T_Depthmap_Anvil" (depth map texture used for rendering)
     depthMapTexture: string;
-    // e.g., "LL_Anvil_Mid_Day" (lighting level identifier)
+    // Unreal Engine 4 file name for the lighting, e.g., "LL_Anvil_Mid_Day"
     lightingLevel?: string;
-    // e.g., "Sunny Mid Day"
+    // Lighting type translated from lightingLevel, e.g., "Sunny Mid Day"
     lighting?: string;
-    borderType: Type;
-    mapSizeType: Type;
+    // Array of points of borders. Newer maps have a border spline (think line)
+    // that follows the outside of the map. Each point in the array is a point on
+    // the spline. Older maps do not have this spline and instead have two opposite
+    // points on the map that make a rectangle.
     border: Border[];
-    // e.g., "3.0x2.9 km" (map dimensions in km)
+    // e.g., "mapTexture" or "spline"
+    borderType: Type;
+    // Type of map size calculation
+    mapSizeType: Type;
+    // Map size calculated from border (Rough estimate), e.g., "3.0x2.9 km"
     mapSize: string;
     mapTextureCorners: Border[];
     assets: Assets;
+    // Number of capture points
     capturePoints: CapturePoints;
     objectives: { [key: string]: ObjectiveValue };
     mapAssets: MapAssets;
+    // Factions that are on this layer (team 1 and team 2)
     team1: Team;
+    // Factions that are on this layer (team 1 and team 2)
     team2: Team;
   }
 
@@ -533,18 +551,25 @@ export namespace GithubWiki {
   export interface Team {
     // e.g., true (indicates if the team consists of a single faction)
     singleFaction: boolean;
+    // Faction name
     faction: Faction;
     shortName: ShortName;
-    // e.g., "5th Battalion, Royal Australian Regiment" (team setup name)
+    // More specific version of faction name; this will be displayed in who won in logs.
+    // e.g., "5th Battalion, Royal Australian Regiment"
     teamSetupName: string;
+    // Tickets the faction has at the start of the game.
     // e.g., 300 (initial number of tickets for the team)
     tickets: number;
     // e.g., true (indicates if vehicles are disabled for the team)
     disabledVeh: boolean;
     // e.g., 3 (level of intelligence available on the enemy team)
+    // Intel on the enemy team.
     intelOnEnemy: number;
-    // e.g., 50 (percentage of players allocated to the team)
+    // Percentage of players in a game allocated to the team.
+    // 50% means the team would get 50/100 players. 25% would mean the team would get 25/100 players.
+    // e.g., 50
     playerPercent: number;
+    // Boolean to tell if there is a commander.
     // e.g., true (indicates if the team has a commander role)
     commander: boolean;
     vehicles: Vehicle[];
