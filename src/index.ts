@@ -41,10 +41,11 @@ async function main() {
     cachedGameStatusLogger,
     pluginLoaderLogger,
     adminListLogger,
+    logReaderLogger,
   } = useSubLogger(logger, config.logger.verboseness);
   const rcon = new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
-  const logReader = useLogReader(config.logParser, config.logger.debugFTP);
+  const logReader = useLogReader(config.logParser, logReaderLogger);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
 
   // I need to connect to RCON early to get serverInfo and avoid having to deal with empty or undefined data in BehaviorSubject

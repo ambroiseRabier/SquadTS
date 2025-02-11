@@ -22,13 +22,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   //       needs some extra time to download the logs while listening to an eventEmitter is instant...
   //       So no point touching this line for debugEmitFirstDownloadedLogs
   // /!\ Do not simplify it as logReader.on('line', queue.next) or readable errors messages in pipe will go away.
-  logReader.on('line', (s) => {
-    queue.next(s);
+  logReader.line$.subscribe((line: string) => {
+    queue.next(line);
   });
-  logReader.on('error', (error) => {
-    logger.error(`LogReader error: ${error}`);
-    throw error;
-  });
+
 
   const events = queue.pipe(
     tap(line => {
@@ -295,10 +292,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         }))
       ),
     },
-    watch: async () => {
+    watch: () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);
 
-      await logReader.watch();
+      logReader.watch();
 
       logger.info(`Watching log file.`);
     },

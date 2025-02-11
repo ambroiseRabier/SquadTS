@@ -52,6 +52,10 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     adminListLogger: logger.child({}, {
       msgPrefix: chalk.greenBright('[AdminList] '),
       level: verboseness.AdminList
+    }),
+    logReaderLogger: logger.child({}, {
+      msgPrefix: chalk.green('[LogReader] '),
+      level: verboseness.LogReader
     })
   };
 }
