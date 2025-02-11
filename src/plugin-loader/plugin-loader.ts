@@ -204,7 +204,8 @@ async function loadPlugins(logger: Logger) {
       logger.info(`Importing TS file: ${file}`);
       // register("ts-node/esm", pathToFileURL(pluginPath))
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
-      plugin = require(pluginPath); // .replace(/\\/g, '/')
+      // plugin = require(pluginPath); // .replace(/\\/g, '/')
+      plugin = await import(pluginPath);
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
       continue;
@@ -214,7 +215,8 @@ async function loadPlugins(logger: Logger) {
       logger.info(`Importing TS file: ${configSchemaFileName}`);
       // register("ts-node/esm", pathToFileURL(configSchemaPath))
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
-      configSchema = require(configSchemaPath);
+      // configSchema = require(configSchemaPath);
+      configSchema = await import(configSchemaPath);
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`, e);
       continue;

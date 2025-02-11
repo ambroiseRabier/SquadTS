@@ -156,7 +156,7 @@ export function useFtpTail(logger: Logger, options: Props) {
 
     // Skip fetching data if the file size hasn't changed.
     if (fileSize === lastByteReceived) {
-      logger.info('File has not changed.');
+      logger.debug('File has not changed.');
       return;
     }
 
@@ -171,7 +171,7 @@ export function useFtpTail(logger: Logger, options: Props) {
     // Update the last byte marker.
     const downloadSize = fs.statSync(tmpFilePath).size;
     lastByteReceived += downloadSize;
-    logger.info(`Downloaded file of size ${downloadSize}.`);
+    logger.debug(`Downloaded file of size ${downloadSize}.`);
   }
 
   async function fetchLoop() {

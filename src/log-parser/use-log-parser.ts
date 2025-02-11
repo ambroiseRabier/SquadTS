@@ -41,7 +41,7 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         if (skipOnce) {
           skipOnce = false;
         } else {
-          logger.warn(`Log with no date (will be ignored, but this isn't supposed to happen): ${line}`);
+          logger.warn(`Log with no date (will be ignored, but this isn't supposed to happen) ${line.length === 0 ? '(log is empty)' : ''}: ${line}`);
         }
         return null;
       }
