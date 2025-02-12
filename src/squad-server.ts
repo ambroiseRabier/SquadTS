@@ -80,63 +80,37 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
     },
     // Omit chatEvent as cachedGameStatus enrich them with player, and this one should be used by plugins.
     rcon: omit(rconSquad, ['chatEvents', 'adminsInAdminCam']),
-    watch: async () => {
-
-      // todo: useful for plugins where you don oh way, admin can't be kicked ...
-      // based on permission: "canseeadminchat",
-      // also used to warn admins in game that there is a discord request.
-      // big questions is: what is adminList options based upon ? Does it includes moderator ?
-      // is it supposed to be the admin/moderator/whitelist file from squad server perhaps ?
-      //this.admins = await fetchAdminLists(this.options.adminLists);
-
-      // soi recup layer depuis wiki comme lui, soi on peut depuis logs si je suppose server recemment lancé,
-      // soi manuel avec git ?
-      // await Layers.pull();
-
-      // pingSquadJSAPI interessant, recup info sur qui utiliser quel plugin.
-
-      // console.log(await this.rcon.getCurrentMap());
-      // console.log(await rconSquad.getListPlayers());
-      // console.log(await this.rcon.getSquads());
-      // console.log(await this.rcon.getNextMap());
-      // console.log(await rconSquad.showServerInfo());
-      // console.log('cc -    - --------')
-      // console.log(await rconSquad.getCurrentMap());
-      // console.log(await rcon.broadcast("coucou dit l'oiseau"));
-
-      // await this.rcon.getCurrentMap()
-      // await this.rcon.getListPlayers()
-      // await this.rcon.getSquads()
-      // await rconSquad.warn('76561198016942077', "We cannot switch you right now due to balance, if a slot becomes available in the next %watchDuration%, you will be switched.")
-
-      // await logParser.watch();
-
-
-      // logParser.events.adminBroadcast.subscribe((next) => {
-      //   logger.debug(next);
-      // })
-      // rconSquad.chatEvent.subscribe((next) => {
-      //   logger.debug('chatevent (tmp):', next);
-      // })
-
-      // todo: make cachedGameStatus ready before, and enrich data ? but prevent old logs to emit events.
-      // todo: make a ignore log if date is too far ? but not in tests. Could have avantage on restarting SquadTS middle game
-      //       it would still react to the previous 10sec ? without reacting to the 5min it was down ?
-      //       not worth it ?
-
-      // First log download will be past logs (depend on max file size of logs) (of any date)
-      await logParser.watch();
-
-
+    prepare: async () => {
       // Update admin list once at startup, and at each new game start. (arbitrary)
       await fetchAdmins();
       cachedGameStatus.events.newGame.subscribe(async () => {
         await fetchAdmins()
       });
 
+      logParser.setEmitLogs(false);
+      // First log download will be past logs (depend on max file size of logs) (of any date)
+      await logParser.watch();
+    },
+    watch: async () => {
+      // ;)
+      logParser.events.playerConnected.subscribe(player => {
+        const ME = '76561198016942077';
+        if (player.steamID === ME) {
+          // Get admins and show them to me, so I may contact them to know if everything is working fine with SquadTS in-game.
+          const admins = getOnlineAdminsWithPermissions([AdminPerms.CanSeeAdminChat])
+            // Place admin that also include Cameraman first (since they are more likely to be admin not just moderators)
+            .sort((a,b) => Number(b.perms.includes(AdminPerms.Cameraman)) - Number(a.perms.includes(AdminPerms.Cameraman)))
+            .map(p => p.player.nameWithClanTag ?? p.player.name ?? 'Unknown')
+            .sort()
+            .join(', ');
+          rconSquad.warn(player.steamID, `This server is using SquadTS ! Online admins: ${admins}`);
+        }
+      })
+
+      logParser.setEmitLogs(true);
 
       // Call after logParser starts
-      cachedGameStatus.watch()
+      cachedGameStatus.watch();
 
       logger.info('SquadTS server is ready');
     },

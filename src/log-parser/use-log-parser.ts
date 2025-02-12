@@ -17,12 +17,15 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   const startTime = new Date();
   const queue = new Subject<string>();
   let skipOnce = true;
+  let emitLogs = true;
 
   // Note: you can call that before or right after logReader watch, this will give the same result, as logReader
   //       needs some extra time to download the logs while listening to an eventEmitter is instant...
   //       So no point touching this line for debugEmitFirstDownloadedLogs
   // /!\ Do not simplify it as logReader.on('line', queue.next) or readable errors messages in pipe will go away.
-  logReader.line$.subscribe((line: string) => {
+  logReader.line$.pipe(
+    filter(line => emitLogs)
+  ).subscribe((line: string) => {
     queue.next(line);
   });
 
@@ -291,6 +294,9 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
           ...metadata
         }))
       ),
+    },
+    setEmitLogs(_emitLogs: boolean) {
+      emitLogs = _emitLogs;
     },
     watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);

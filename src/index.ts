@@ -84,13 +84,12 @@ async function main() {
     : undefined;
   const pluginLoader = usePluginLoader(server, { discord: discordConnector }, pluginLoaderLogger, logger);
 
-
-  // todo:
-  // - connectors
-  // - plugins
-
-  await server.watch();
+  // Do authentification on RCON and FTP/SFTP first before loading plugins
+  await server.prepare();
   await pluginLoader.load();
+  // Only start sending events when all plugins are ready. Plugins are likely independent of each other.
+  // But having logs all over the place is bad.
+  await server.watch();
 
   logger.info('SquadTS fully started.');
 }
