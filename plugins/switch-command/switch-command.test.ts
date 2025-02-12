@@ -60,7 +60,7 @@ const serverMock = () => {
     },
     helpers: {
       playerHasPermissions: jest.fn<SquadServer['helpers']['playerHasPermissions']>(() => false),
-      getPlayerByEOSID: jest.fn(() => null),
+      getPlayerByEOSID: jest.fn((eosID: string) => players$.getValue().find(p => p.eosID === eosID)),
     },
     get players() {
       return players$.getValue();
@@ -156,12 +156,27 @@ describe('switchCommand', () => {
     );
   });
 
-  it('switch player when balance does not worsen', async () => {
+  it('switch player when balance does not worsen on team 1', async () => {
     // Set fake players
     server.players$.next([
       {
         eosID: 'eos1',
         teamID: '1',
+      }
+    ]);
+
+    await emitSwitchCommand(server, 'eos1');
+
+    expect(server.rcon.forceTeamChange).toHaveBeenCalledWith('eos1');
+    expect(server.rcon.warn).toHaveBeenCalledWith('eos1', mockOptions.messages.switch);
+  });
+
+  it('switch player when balance does not worsen on team 2', async () => {
+    // Set fake players
+    server.players$.next([
+      {
+        eosID: 'eos1',
+        teamID: '2',
       }
     ]);
 
@@ -525,6 +540,64 @@ describe('switchCommand', () => {
 
     // Balance allow switch, but player that asked is disconnected
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalled();
+  });
+
+  it('do not switch a player that already switched by another mean', async () => {
+    server.players$.next([
+      {
+        eosID: 'eos1',
+        teamID: '1',
+      },
+      {
+        eosID: 'eos2',
+        teamID: '2',
+      }
+    ]);
+
+    await emitSwitchCommand(server, 'eos1');
+
+    // unbalance in favor of team 2
+    server.players$.next([
+      {
+        eosID: 'eos1',
+        teamID: '2', // switched by admin or by himself through the game.
+      },
+      {
+        eosID: 'eos2',
+        teamID: '2',
+      }
+    ]);
+
+    await wait(1100); // debounce + margin
+
+
+    // unbalance in favor of team 1
+    server.players$.next([
+      {
+        eosID: 'eos3',
+        teamID: '1', // switched by admin or by himself through the game.
+      },
+      {
+        eosID: 'eos4',
+        teamID: '1', // switched by admin or by himself through the game.
+      },
+      {
+        eosID: 'eos5',
+        teamID: '2', // switched by admin or by himself through the game.
+      },
+      {
+        eosID: 'eos1',
+        teamID: '2', // switched by admin or by himself through the game.
+      },
+      {
+        eosID: 'eos2',
+        teamID: '2',
+      }
+    ]);
+
+    await wait(1100); // debounce + margin
+
+    expect(server.rcon.forceTeamChange).not.toHaveBeenCalledWith('eos1');
   });
 
 });

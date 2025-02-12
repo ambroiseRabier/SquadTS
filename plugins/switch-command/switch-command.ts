@@ -127,8 +127,8 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (server, connect
     switchRequestToTeam2 = switchRequestToTeam2.filter(req => now.getTime() - req.date.getTime() <= options.watchDuration * 1000);
 
     // Remove request if the player already switched
-    switchRequestToTeam1 = switchRequestToTeam1.filter(req => server.helpers.getPlayerByEOSID(req.eosID)?.teamID !== '1');
-    switchRequestToTeam2 = switchRequestToTeam2.filter(req => server.helpers.getPlayerByEOSID(req.eosID)?.teamID !== '1');
+    switchRequestToTeam1 = switchRequestToTeam1.filter(req => server.helpers.getPlayerByEOSID(req.eosID)!.teamID === '2');
+    switchRequestToTeam2 = switchRequestToTeam2.filter(req => server.helpers.getPlayerByEOSID(req.eosID)!.teamID === '1');
 
     // Sort by earlier to later date. (asc)
     switchRequestToTeam1 = sortRequests(switchRequestToTeam1, server.helpers.playerHasPermissions);

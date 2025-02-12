@@ -42,7 +42,8 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
           if (match) {
             return {
               ...data,
-              command: match.groups!.command.toLowerCase(),
+              // re-add the '!' as it is easier to identify as a command and plugin config usually include it.
+              command: '!' + match.groups!.command.toLowerCase(),
               message: match.groups!.message.trim()
             };
           } else {
