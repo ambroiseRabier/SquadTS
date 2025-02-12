@@ -340,7 +340,7 @@ export class Rcon {
           if (decodedPacket instanceof Error) {
             // Todo log error
             // Logger.error ...
-            this.logger.error('decodePacket is an ERROR, unknown how to handel', decodedPacket);
+            this.logger.error('decodePacket is an ERROR, unknown how to handle', decodedPacket);
           }
           // force for TS, we'll ignore for now as this code currently work
           decodedPacket = decodedPacket as any as Packet;
