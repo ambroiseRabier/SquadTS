@@ -6,7 +6,6 @@ import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-s
 import { omit } from "lodash";
 import { AdminList } from './admin-list/use-admin-list';
 import { AdminPerms } from './admin-list/permissions';
-import { GithubWiki } from './layer-info/github-layer.type';
 
 
 export type SquadServer = ReturnType<typeof useSquadServer>;

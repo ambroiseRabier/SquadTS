@@ -11,4 +11,4 @@ echo "Downloaded, using quicktype to generate typing..."
 # Use quicktype to generate TypeScript definitions from the JSON file
 npx quicktype -l ts -s json tmp/finished.json > tmp/github-layer.type.ts
 
-echo "Please review TS file and update SquadTS source code"
+echo "Please review TS file and update SquadTS source code, in Webstorm select both file and press ctrl+D to diff."

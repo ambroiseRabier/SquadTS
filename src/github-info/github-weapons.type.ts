@@ -59,6 +59,8 @@ export namespace GithubWikiWeapon {
   export interface InventoryInfo {
     // Item description found in game e.g., "Magazine Capacity: 75/Caliber: 7.62x51mm NATO Red Tracer/Rate of Fire: 700 RPM/Fire Mode: Auto/Zeroing: 100m-1800m..."
     description: string;
+    // e.g, "mag58"
+    HUDTexture: string;
     // Inventory texture e.g., "inventory_category_machinegun"
     inventoryTexture: InventoryTexture;
     // Ammo point cost from FOB for 1 mag/item e.g., 11.0
@@ -308,8 +310,8 @@ export namespace GithubWikiWeapon {
       }
 
       // Added by SquadTS
-      public static validate(parsedJson: any): WeaponInfo {
-        return cast(parsedJson, r("WeaponInfo"));
+      public static validate(parsedJson: any) {
+        cast(parsedJson, m(r("WeaponInfo")));
       }
 
       public static weaponInfoToJson(value: { [key: string]: WeaponInfo }): string {
