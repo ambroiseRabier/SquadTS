@@ -667,6 +667,11 @@ export namespace GithubWiki {
       return cast(JSON.parse(json), r("Finished"));
     }
 
+    // Added by SquadTS
+    public static validate(parsedJson: any): Layer {
+      return cast(parsedJson, r("Finished"));
+    }
+
     public static finishedToJson(value: Layer): string {
       return JSON.stringify(uncast(value, r("Finished")), null, 2);
     }

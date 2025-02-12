@@ -12,11 +12,15 @@ yarn-error.log*
 .vscode/*
 
 # build folder
-dist
+/dist
 
 # Personal config
-dev-config
+/dev-config
 
 
 # Root .tmp file create by SquadTS when reading logs
 /*.tmp
+
+
+# Github info cache
+/github-info-cache

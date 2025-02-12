@@ -17,6 +17,7 @@ export const loggerOptionsSchema = z.object({
     PluginLoader: pinoLevelSchema.default('info'),
     AdminList: pinoLevelSchema.default('info'),
     LogReader: pinoLevelSchema.default('info').describe("Will also be used for FTP/SFTP debug logs if enabled."),
+    GithubInfo: pinoLevelSchema.default('info'),
   }).describe(
     `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
     `To disable a logger, set it to silent.`),

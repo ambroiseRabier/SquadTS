@@ -146,6 +146,7 @@ export class Rcon {
                 if (packet instanceof Error) {
                   // todo
                   // Logger.error
+                  console.error(packet)
                 }
 
                 return (packet as Packet).body;
@@ -331,15 +332,13 @@ export class Rcon {
 
         // the auth packet also sends a normal response, so we add an extra empty action to ignore it
         this.callbackIds.push({ id: this.count, cmd: password });
-        this.responseCallbackQueue.push(() => {});
+        this.responseCallbackQueue.push(() => {}); // todo ? why no-op
         this.responseCallbackQueue.push((decodedPacket) => {
           this.client.removeListener('error', onError);
 
           // todo: probably something to refactor here
           // This probably should not happen, there probably some more refactor to be done thx to TS
           if (decodedPacket instanceof Error) {
-            // Todo log error
-            // Logger.error ...
             this.logger.error('decodePacket is an ERROR, unknown how to handle', decodedPacket);
           }
           // force for TS, we'll ignore for now as this code currently work

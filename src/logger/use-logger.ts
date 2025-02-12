@@ -56,6 +56,10 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     logReaderLogger: logger.child({}, {
       msgPrefix: chalk.green('[LogReader] '),
       level: verboseness.LogReader
+    }),
+    githubInfoLogger: logger.child({}, {
+      msgPrefix: chalk.magentaBright('[GithubInfo] '),
+      level: verboseness.GithubInfo
     })
   };
 }

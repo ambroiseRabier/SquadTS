@@ -9,6 +9,8 @@ import { useCachedGameStatus } from './cached-game-status/use-cached-game-status
 import { usePluginLoader } from './plugin-loader/plugin-loader';
 import { useDiscordConnector } from './connectors/use-discord.connector';
 import { useAdminList } from './admin-list/use-admin-list';
+import { retrieveGithubInfo } from './github-info/use-retrieve-github-info';
+import path from 'node:path';
 
 
 // todo, may use some kind or DI, why not place logParser inside squadServer ?
@@ -42,6 +44,7 @@ async function main() {
     pluginLoaderLogger,
     adminListLogger,
     logReaderLogger,
+    githubInfoLogger
   } = useSubLogger(logger, config.logger.verboseness);
   const rcon = new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
@@ -54,6 +57,10 @@ async function main() {
 
   const adminList = useAdminList(adminListLogger, config.adminList);
   const serverInfo = await rconSquad.showServerInfo();
+  const githubInfo = await retrieveGithubInfo(
+    path.join(__dirname, '..', 'github-info-cache'),
+    githubInfoLogger
+  );
   const cachedGameStatus = useCachedGameStatus({
     rconSquad,
     logParser,

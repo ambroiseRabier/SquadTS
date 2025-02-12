@@ -16,7 +16,6 @@ export type ObjectFromRegexStr<T extends string> = {
   [K in ExtractGroupNames<T>]: string;
 };
 
-// todo plusieurs endroit ou on peut refactor avec cela.
 export function matchWithRegex<T extends string>(
   body: string,
   regexStr: T

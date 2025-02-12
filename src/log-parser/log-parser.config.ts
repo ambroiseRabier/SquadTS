@@ -14,8 +14,14 @@ const isValidLocalFilePath = (filePath: string) => {
 const fetchIntervalSchema = z
   .number()
   .int()
-  .default(1000) // todo: voir readme, faut retravailler ftp-tail
-  .describe("The interval in milliseconds to fetch new logs. If you come from SquadJS, default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.")
+  .default(1000)
+  .describe(
+    "The interval in milliseconds to fetch new logs. If you come from SquadJS, \n" +
+    "default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.\n" +
+    "Fetching logs will never overlap, meaning if you set 0ms, it will go as fast as possible.\n" +
+    "This will give better reaction time to the plugins, but will also make the server more CPU intensive.\n" +
+    "It is likely ok to set it to 5000ms or 10000ms."
+  )
 
 // Note: Compare to SquadJS, maxTempFileSize was badly name, as actually, it only is used on first tail,
 // after that, if you have for example, a 30min disconnect, even if the file to download is 80mb it will do it.

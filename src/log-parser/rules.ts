@@ -7,12 +7,10 @@
  */
 export const logParserRules = [
   ["adminBroadcast", "^LogSquad: ADMIN COMMAND: Message broadcasted <(?<message>.+)> from (?<from>.+)"],
-
-  // todo: instigator becomes playerSuffix ?
   ["deployableDamaged", "^LogSquadTrace: \\[DedicatedServer](?:ASQDeployable::)?TakeDamage\\(\\): (?<deployable>[A-z0-9_]+)_C_[0-9]+: (?<damage>[0-9.]+) damage attempt by causer (?<weapon>[A-z0-9_]+)_C_[0-9]+ instigator (?<attackerName>.+) with damage type (?<damageType>[A-z0-9_]+)_C health remaining (?<healthRemaining>[0-9.]+)"],
 
   // todo: mapClassname definitely not supposed to be a string for consumer plugins
-  // todo: what is the 6th group ?
+  // 6th group seems to be a date, but a different timezone perhaps ?
   ["newGame", "^LogWorld: Bringing World \\/(?<dlc>[A-z]+)\\/(?:Maps\\/)?(?<mapClassname>[A-z0-9-]+)\\/(?:.+\\/)?(?<layerClassname>[A-z0-9-]+)(?:\\.[A-z0-9-]+)"],
 
   // Called before playerConnected and playerJoinSucceeded

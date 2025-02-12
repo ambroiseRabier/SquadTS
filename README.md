@@ -268,3 +268,8 @@ enrefaisant ftp tail, je m'assure que client.disconnect est bien appelé, même 
 car sur ma machine il finissait par prendre 3 plombs pour se connecter on dirait (malheureusement pas pu isoler le pb entierement)
 et je pense que j'avais trop de connection rester ouverte sur le serveur. 1/3 il plantait et refusais la connection...
 plus simple de refaire cette partie que de modifier.
+
+---
+
+mesure la perf. demande cpu, ram
+repartir sur le temps de l'interval les events pour réduire les pics de CPU ?
