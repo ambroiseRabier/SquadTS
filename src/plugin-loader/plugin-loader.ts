@@ -13,7 +13,7 @@ import { DiscordConnector } from '../connectors/use-discord.connector';
 import { resolveConfigsPath } from '../config/resolve-configs-path';
 import { pathToFileURL } from 'node:url';
 import { register } from 'node:module';
-
+import { tsImport } from 'tsx/esm/api'
 
 export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
 
@@ -204,11 +204,14 @@ async function loadPlugins(logger: Logger) {
 
     try {
       logger.info(`Importing TS file: ${file}`);
-      register("ts-node/esm", pathToFileURL(pluginPath))
+      // work a day, not another...
+      // register("ts-node/esm", pathToFileURL(pluginPath))
+      // plugin = (await import(pathToFileURL(pluginPath).href)).default;
+
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       // plugin = require(pluginPath); // .replace(/\\/g, '/')
       // plugin = await import(pluginPath);
-      plugin = (await import(pathToFileURL(pluginPath).href)).default;
+      plugin = await tsImport(pathToFileURL(pluginPath).href, __filename);
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
       continue;
@@ -216,11 +219,14 @@ async function loadPlugins(logger: Logger) {
 
     try {
       logger.info(`Importing TS file: ${configSchemaFileName}`);
-      register("ts-node/esm", pathToFileURL(configSchemaPath))
+      // work a day, not another...
+      // register("ts-node/esm", pathToFileURL(configSchemaPath))
+      // configSchema = (await import(pathToFileURL(configSchemaPath).href)).default;
+
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
       // configSchema = require(configSchemaPath);
       // configSchema = await import(configSchemaPath);
-      configSchema = (await import(pathToFileURL(configSchemaPath).href)).default;
+      configSchema = await tsImport(pathToFileURL(configSchemaPath).href, __filename);
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`, e);
       continue;
