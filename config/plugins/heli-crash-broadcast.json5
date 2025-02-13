@@ -1,0 +1,15 @@
+/**
+ * Broadcast to the whole server that someone just crash landed.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // The messages to send to the server when someone crash land,
+  // %pilot%is replaced by the pilot name.
+  // Up to you to be creative and funny.
+  messages: [
+    '%pilot% crash landed.',
+  ],
+}
