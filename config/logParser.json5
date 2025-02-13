@@ -17,7 +17,11 @@
     port: 21,
     username: '',
     password: '',
-    // The interval in milliseconds to fetch new logs. If you come from SquadJS, default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.
+    // The interval in milliseconds to fetch new logs. If you come from SquadJS, 
+    // default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.
+    // Fetching logs will never overlap, meaning if you set 0ms, it will go as fast as possible.
+    // This will give better reaction time to the plugins, but will also make the server more CPU intensive.
+    // It is likely ok to set it to 5000ms or 10000ms.
     fetchInterval: 1000,
     // Initial tail size in bytes. Default is 5MB. This is only used when SquadTS start.
     initialTailSize: 5120000,

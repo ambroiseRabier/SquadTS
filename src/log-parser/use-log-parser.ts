@@ -12,9 +12,10 @@ import { omit } from 'lodash';
 
 export type LogParser = ReturnType<typeof useLogParser>;
 
-// todo, should LogParserConfig have debug options instead ?
 export function useLogParser(logger: Logger, logReader: LogReader, options: LogParserConfig, debugLogMatching: LoggerOptions['debugLogMatching']) {
-  const startTime = new Date();
+  const now = new Date();
+  // adjusted to GMT+0 ! Instead of being system dependent.
+  const startTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
   const queue = new Subject<string>();
   let skipOnce = true;
   let emitLogs = true;
@@ -22,7 +23,6 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   // Note: you can call that before or right after logReader watch, this will give the same result, as logReader
   //       needs some extra time to download the logs while listening to an eventEmitter is instant...
   //       So no point touching this line for debugEmitFirstDownloadedLogs
-  // /!\ Do not simplify it as logReader.on('line', queue.next) or readable errors messages in pipe will go away.
   logReader.line$.pipe(
     filter(line => emitLogs)
   ).subscribe((line: string) => {
@@ -44,7 +44,11 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
         if (skipOnce) {
           skipOnce = false;
         } else {
-          logger.warn(`Log with no date (will be ignored, but this isn't supposed to happen) ${line.length === 0 ? '(log is empty)' : ''}: ${line}`);
+          // Happens:
+          // - at startup of the server.
+          // - Seemingly when others RCON send commands ?
+          // - Once at the start of logReader, as the first log is incomplete.
+          logger.trace(`Log with no date (will be ignored) ${line.length === 0 ? '(log is empty)' : ''}: ${line}`);
         }
         return null;
       }
