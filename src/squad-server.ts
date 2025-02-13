@@ -84,7 +84,7 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
       // Update admin list once at startup, and at each new game start. (arbitrary)
       await fetchAdmins();
       cachedGameStatus.events.newGame.subscribe(async () => {
-        await fetchAdmins()
+        await fetchAdmins();
       });
 
       logParser.setEmitLogs(false);

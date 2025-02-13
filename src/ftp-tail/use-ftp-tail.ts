@@ -29,9 +29,9 @@ type Props = {
   })
 
 function useClient(options: Props) {
-  const client = new Client(options.timeout);
+  let client: Client;
   // quick fix for lib typing being incorrect.
-  const sftpClient: SFTPClient & {sftp: any} = new SFTPClient() as any;
+  let sftpClient: SFTPClient & {sftp: any};
 
   return {
     async connect() {
@@ -65,10 +65,12 @@ function useClient(options: Props) {
         })
       }
     },
-    setLog(logger: Logger) {
+    init(logger: Logger) {
       if (options.protocol === 'ftp') {
+        client = new Client(options.timeout);
         client.ftp.log = logger.debug.bind(logger);
       } else {
+        sftpClient = new SFTPClient() as any;
         options.sftp.debug = logger.debug.bind(logger);
       }
     },
@@ -85,7 +87,7 @@ export function useFtpTail(logger: Logger, options: Props) {
   let lastByteReceived: number | null = null;
   let currentFetchPromise: Promise<void> | null = null;
 
-  client.setLog(logger)
+  client.init(logger);
 
   const ftpOptions = {
     host: options.protocol === 'ftp' ? options.ftp.host : options.sftp.host,
@@ -129,8 +131,12 @@ export function useFtpTail(logger: Logger, options: Props) {
       // Read the data from the temporary file.
       const fileStream = createReadStream(tmpFilePath, { encoding: 'utf8' });
       const rl = readline.createInterface({ input: fileStream });
+      const randomChar = Math.random().toString(36).substring(2, 15);
 
       rl.on('line', (line) => {
+        // All logs, with a random id to identify the fileStream/rl.
+        // If you get duplicated logs, this helps identify the issue.
+        logger.trace(randomChar + ' -- ' + line);
         line$.next(line);
       });
 
@@ -146,7 +152,7 @@ export function useFtpTail(logger: Logger, options: Props) {
     });
   }
 
-  async function fetchFile() {
+  async function fetchFile(): Promise<boolean> {
     const fileSize = await client.fileSize(options.filepath);
 
     // SquadTS just launched
@@ -157,7 +163,7 @@ export function useFtpTail(logger: Logger, options: Props) {
     // Skip fetching data if the file size hasn't changed.
     if (fileSize === lastByteReceived) {
       logger.debug('File has not changed.');
-      return;
+      return false;
     }
 
     // Download the file to the temporary file.
@@ -172,15 +178,26 @@ export function useFtpTail(logger: Logger, options: Props) {
     const downloadSize = fs.statSync(tmpFilePath).size;
     lastByteReceived += downloadSize;
     logger.debug(`Downloaded file of size ${downloadSize}.`);
+
+    return true;
   }
 
   async function fetchLoop() {
     logger.debug('Connecting or reconnecting to FTP server...');
-    await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.includes('timeout'));
+    // await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
+    await connect(); // timeout may already be handle by ftp, and cause multiple connection, maybe it error but do not stop working ? (to be investigated...)
+    // I suspect this is the cause of multiple same logs, but sometime by pair or triplet...
+    // [2025.02.12-21.17.16:456][225]LogRCONServer: Warning: 55728:FRCONServer::HandleListenerConnectionAccepted(): Client is attempting multiple logins from 51.222.127.206, stopping older sessions
+    // some log like this may indicate an issue...
     logger.debug('Downloading file...');
-    await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.includes('timeout'));
-    logger.debug('Processing file...');
-    await processFile();
+    // await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
+    const hasDownloaded = await fetchFile();
+    // Don't process file again if it hasn't changed, or you get duplicated logs.
+    if (hasDownloaded) {
+      logger.debug('Processing file...');
+      await processFile();
+    }
+
   }
 
   let isFetchLoopActive = false; // Ensures no concurrent fetch loops
@@ -221,16 +238,16 @@ export function useFtpTail(logger: Logger, options: Props) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     } catch (e) {
-      logger.error(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
+      logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
       hasError = true;
-      throw e; // stop looping at unhandled error.
+      throw e; // stop looping at unhandled error. However, this will not stop the program if not awaited.
     } finally {
       isFetchLoopActive = false; // Unlock once the loop is finished
       // Only at hasError, since stopSignal is called by unwatch (in case of SIGTERM or SIGINT)
       if (hasError) {
         // Call unwatch but do not await it since unwatch also will await this current promise (no loop)
         // noinspection ES6MissingAwait
-        unwatch();
+        unwatch(true);
       }
       // Do not await here
       if (!hasError || !stopSignal) {
@@ -258,7 +275,7 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   // Needs to be called in case the fetch loop error or when SIGINT or SIGTERM
-  async function unwatch() {
+  async function unwatch(loopUnexpectedIssue = false) {
     logger.info('Cleanup initiated.');
     stopSignal = true;
     // It may be useful to keep the file for debug
@@ -279,6 +296,13 @@ export function useFtpTail(logger: Logger, options: Props) {
       await client.disconnect();
     }
 
+    // If log terminated due to an error in the loop and not due to process SIGINT or SIGTERM
+    // Then send SIGINT so RCON can properly stop, and we don't continue
+    // running squadTS with log parser disabled.
+    if (loopUnexpectedIssue) {
+      process.kill(process.pid, 'SIGINT');
+    }
+
 
     // what about rcon connection, maybe it needs a cleanup too ?
     // not sure process.exit(0) should be in this file...
@@ -290,5 +314,6 @@ export function useFtpTail(logger: Logger, options: Props) {
     line$,
     watch,
     unwatch
+
   }
 }
