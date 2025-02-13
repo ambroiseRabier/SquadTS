@@ -1,4 +1,4 @@
-import { Options, optionsSchemaRefined } from './config.schema';
+import { Options, optionsSchema } from './config.schema';
 import { describe, expect, test } from '@jest/globals';
 
 describe('parseConfig', () => {
@@ -19,7 +19,8 @@ describe('parseConfig', () => {
           PluginLoader: 'info',
           RCONSquad: 'info',
           AdminList: 'info',
-          LogReader: 'info'
+          LogReader: 'info',
+          GithubInfo: 'info'
         },
         debugLogMatching: {
           showMatching: false,
@@ -37,8 +38,7 @@ describe('parseConfig', () => {
           fetchInterval: 5000,
           initialTailSize: 1048576
         },
-        mode: 'ftp',
-        debugEmitFirstDownloadedLogs: false
+        mode: 'ftp'
       },
       cacheGameStatus: {
         updateInterval: {
@@ -55,10 +55,13 @@ describe('parseConfig', () => {
           enabled: true,
           token: 'sdfsdf'
         }
+      },
+      adminList: {
+        remote: ['https://example.com/adminlist.txt']
       }
     };
 
 
-    await expect(optionsSchemaRefined.parse(validConfig)).resolves.not.toThrow();
+    await expect(optionsSchema.parse(validConfig)).resolves.not.toThrow();
   });
 });

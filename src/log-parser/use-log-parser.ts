@@ -63,15 +63,6 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       };
     }),
     filter((value): value is NonNullable<typeof value> => !!value),
-    filter(value => {
-      if (options.debugEmitFirstDownloadedLogs) {
-        return true;
-      } else {
-        // return only recent logs, not the logs from the game of yesterday.
-        // This also avoids acting multiple times on the same logs, if for example your restart SquadTS multiple time.
-        return value.date > startTime;
-      }
-    }),
     map(lineObj => {
       const obj = parseLogLine(logParserRules, lineObj.data, {
         date: lineObj.date,

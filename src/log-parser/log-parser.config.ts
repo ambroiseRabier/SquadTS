@@ -61,12 +61,6 @@ export const logParserOptionsSchema = z.discriminatedUnion("mode", [
   // Place FTP as first item, because zod-empty will only take first element of discriminatedUnion,
   // Meaning that the documentation (`describe()`) should be placed on first element.
   z.object({
-    debugEmitFirstDownloadedLogs: z
-      .boolean()
-      .default(false)
-      .describe("Please read carefully if you enable this: Only for devs, will emit lines on the first downloaded logs. \n" +
-        "Theses logs can be from any time in the past, and therefore dry run should be enabled on RCON config.\n" +
-        "This is useful to act on a bunch of logs immediately and with a bit of luck catch some bugs :)."),
     mode: z
       .literal("ftp")
       .describe(`If you use a hosted server like awn.gg, you should use ftp or sftp, if the server run locally, use tail:
@@ -77,17 +71,11 @@ export const logParserOptionsSchema = z.discriminatedUnion("mode", [
     ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
   }),
   z.object({
-    debugEmitFirstDownloadedLogs: z
-      .boolean()
-      .default(false),
     mode: z.literal("sftp"),
     logFile: logFileSchema,
     ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
   }),
   z.object({
-    debugEmitFirstDownloadedLogs: z
-      .boolean()
-      .default(false),
     mode: z.literal("tail"),
     logFile: logFileSchema.refine(isValidLocalFilePath, 'Invalid local file path. File should exist in "tail" mode.'),
   }),

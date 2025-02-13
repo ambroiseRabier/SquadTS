@@ -31,8 +31,7 @@ describe('Log Parser events', () => {
       fetchInterval: 300,
       initialTailSize: 1024,
     },
-    mode: 'ftp',
-    debugEmitFirstDownloadedLogs: true, // Important, because our fixed logs have past dates and would be ignored!
+    mode: 'ftp'
   };
 
   beforeAll(() => {
@@ -62,30 +61,6 @@ describe('Log Parser events', () => {
         ignoreRegexMatch: []
       }
     );
-  });
-
-  it('should ignore past logs', () => {
-    logParser = useLogParser(
-      // note: Any missing function will just make the test fail without any information.
-      fakeLogger,
-      mockedLogReader as any,
-      {
-        ...logParserConfig,
-        debugEmitFirstDownloadedLogs: false // we are testing that.
-      },
-      {
-        showMatching: true,
-        showNonMatching: true,
-        ignoreRegexMatch: []
-      }
-    );
-
-    const mockEvent = jest.fn();
-    // any event subscription
-    logParser.events.adminBroadcast.subscribe(mockEvent);
-    // date is older than today, perfectly valid adminBroadcast log.
-    mockedLogReader.line$.next(`[2025.01.27-21.39.52:306][461]LogSquad: ADMIN COMMAND: Message broadcasted <coucou> from RCON`)
-    expect(mockEvent).not.toHaveBeenCalled();
   });
 
   it('should ignore first incomplete line', () => {

@@ -157,7 +157,11 @@ export function useFtpTail(logger: Logger, options: Props) {
 
     // SquadTS just launched
     if (lastByteReceived === null) {
-      lastByteReceived = Math.max(0, fileSize - options.tailLastBytes);
+      // Do not substract lastbytes. In case of repeating start and stop, with low log downloading interval,
+      // we could act twice on same log. Also, we may act initially on very old logs. It make no sense sending warning/kick
+      // on something that happened 5min, 1min, ago. Duration depend on how much action is happening in-game.
+      // lastByteReceived = Math.max(0, fileSize - options.tailLastBytes);
+      lastByteReceived = Math.max(0, fileSize);
     }
 
     // Skip fetching data if the file size hasn't changed.
@@ -184,15 +188,10 @@ export function useFtpTail(logger: Logger, options: Props) {
 
   async function fetchLoop() {
     logger.debug('Connecting or reconnecting to FTP server...');
-    // await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
-    await connect(); // timeout may already be handle by ftp, and cause multiple connection, maybe it error but do not stop working ? (to be investigated...)
-    // I suspect this is the cause of multiple same logs, but sometime by pair or triplet...
-    // [2025.02.12-21.17.16:456][225]LogRCONServer: Warning: 55728:FRCONServer::HandleListenerConnectionAccepted(): Client is attempting multiple logins from 51.222.127.206, stopping older sessions
-    // some log like this may indicate an issue...
+    await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
     logger.debug('Downloading file...');
-    // await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
-    const hasDownloaded = await fetchFile();
-    // Don't process file again if it hasn't changed, or you get duplicated logs.
+    const hasDownloaded = await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
+    // Don't process the file again if it hasn't changed, or you get duplicated logs.
     if (hasDownloaded) {
       logger.debug('Processing file...');
       await processFile();

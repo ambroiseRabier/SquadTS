@@ -47,7 +47,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
 
       // ---------- Loading JSON5 and validating ----------
       for (let pair of validConfigPairs) {
-        logger.info(`Loading config for ${pair.name}.`);
+        logger.info(`${pair.name}: Loading config...`);
 
         let json5;
         try {
@@ -58,7 +58,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        logger.info(`Validating config for ${pair.name}...`);
+        logger.info(`${pair.name}: Validating config...`);
         const parsed = await pair.configSchema.default.safeParseAsync(json5);
 
         if (!parsed.success) {
@@ -67,14 +67,14 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           ).join('\n');
 
           logger.error(errorMessages);
-          logger.warn(`Skipping ${pair.name} plugin. The config is invalid. Please check above error messages.`)
+          logger.warn(`${chalk.red.bold('Skipping')} ${pair.name} plugin. The config is invalid. Please check above error messages.`)
           continue;
         }
 
         const parsedConfig = parsed.data as PluginBaseOptions;
 
         if (!parsedConfig.enabled) {
-          logger.info(`Skipping ${pair.name} plugin. It is disabled.`);
+          logger.info(`${chalk.yellow.bold('Skipping')} ${pair.name} plugin. It is ${chalk.yellow('disabled')}.`);
           continue;
         }
 
@@ -83,7 +83,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        logger.info(`Starting plugin ${pair.name}.`);
+        logger.info(`${pair.name}: Starting plugin...`);
 
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
@@ -193,7 +193,7 @@ async function loadPlugins(logger: Logger) {
     const configSchemaPath = path.join(pluginsDirectory, configSchemaFileName);
 
     // Inform which plugin has been seen and will be loaded.
-    logger.info(`Plugin discovered: ${file} (${pluginPath})`);
+    logger.info(`Plugin discovered: ${file}`);
 
     if (!allTSFiles.includes(configSchemaFileName)) {
       logger.error(`config schema file (${configSchemaFileName}) not found. Skipping ${fileName} plugin.`);
@@ -203,7 +203,6 @@ async function loadPlugins(logger: Logger) {
     let plugin, configSchema;
 
     try {
-      logger.info(`Importing TS file: ${file}`);
       // work a day, not another...
       // register("ts-node/esm", pathToFileURL(pluginPath))
       // plugin = (await import(pathToFileURL(pluginPath).href)).default;
@@ -218,7 +217,6 @@ async function loadPlugins(logger: Logger) {
     }
 
     try {
-      logger.info(`Importing TS file: ${configSchemaFileName}`);
       // work a day, not another...
       // register("ts-node/esm", pathToFileURL(configSchemaPath))
       // configSchema = (await import(pathToFileURL(configSchemaPath).href)).default;

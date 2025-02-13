@@ -273,3 +273,49 @@ plus simple de refaire cette partie que de modifier.
 
 mesure la perf. demande cpu, ram
 repartir sur le temps de l'interval les events pour réduire les pics de CPU ?
+
+---
+
+idée plugin rating ? pour equilibrage (demande de la BDD pr stockage long terme..)
+
+---
+
+https://github.com/fantinodavide/Squad_Whitelister/blob/main/server.js meh 3700 lines
+https://github.com/fantinodavide/SquadJS/blob/de8219d2630fbfd07b355771e1b22853723edd8c/squad-server/plugins/socket-io-api.js#L36
+gerer liste d'admin/whitelist. automatique while list temporaire pour seeder.
+tt est utile il semble. dapres pika
+
+https://github.com/Ignis-Bots/SquadJS-My-Squad-Stats
+
+IMO, for both, just let SquadJS handle them
+
+https://github.com/ar1ocker/SquadJS-Commander-Vote
+---
+
+save log ds file pr aider a debug
+
+---
+
+auto back to seed if no player ? i dont remember if squad alraedy does that or battlemetric
+
+mes logs sont encore triplé...
+
+---
+
+heli crash suicide pas appelé, et pb de logs dupliqué...
+
+---
+
+[22:15:22.865] WARN: [LogParser] No match on line: [2025.02.12-21.13.34:523][360]LogSquad: Warning: Suicide -TWS- Yuca
+
+should also handle suicide by "Respawn" I suppose, better than watching playerWounded !
+
+----
+
+https://github.com/fantinodavide/squad-js-map-vote
+map vote lui meme pas necessaire, par contre, le end match peut etre bien.
+
+---
+
+script pr dll log du serveur (a des fins de tests ou observation...)
+ce serait sympa de ensuite pouvoir le feed au server pour répéter un bug ? (faudrait les responses rcon pour pouvoir faire cela propre idéalement).
