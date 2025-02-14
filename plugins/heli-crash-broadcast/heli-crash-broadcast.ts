@@ -32,9 +32,9 @@ const HELI_IDS = [
 
 // avoid the same index twice in a row
 function controlledRandom<T>(array: T[], lastIndex: number | null = null): [T, number] {
-  if (array.length < 2) {
-    throw new Error("Array must contain at least two elements to avoid consecutive repetition.");
-  }
+  // if (array.length < 2) {
+  //   throw new Error("Array must contain at least two elements to avoid consecutive repetition.");
+  // }
 
   let randomIndex: number;
 

@@ -40,6 +40,17 @@ To test on a squad server, you may host yourself (but it will be a hassle):
 To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder 
 and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
 
+### (Utility) Get output of a single RCON command
+
+```shell
+# Output in the console
+npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
+
+# save to a file
+npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-commands.txt
+```
+
+
 
 ## Aussi intéressant:
 creer un script pour load les maps une fois
@@ -331,3 +342,9 @@ l'idée c'est d'envoyer des morceaux de logs et rcon list players et squad list 
 
 opti:
 .share at tt les events?
+
+---
+
+ListPermittedCommands 1 -> extraire donnée
+les mettres en "rcon.extra" ? (bof sur la longue)
+ListCommands 1
