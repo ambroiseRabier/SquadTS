@@ -83,7 +83,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        logger.info(`${pair.name}: Starting plugin...`);
+        logger.info(`${pair.name}: ${chalk.green.bold('Starting')} plugin...`);
 
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console

@@ -47,8 +47,7 @@ function controlledRandom<T>(array: T[], lastIndex: number | null = null): [T, n
 
 const heliCrashBroadcast: SquadTSPlugin<HeliCrashBroadCastOptions> = async (server: SquadServer, connectors, logger: Logger, options) => {
   let lastIndex: number | null = null;
-  server.events.suicide.pipe(
-    tap(data => logger.info(`${data.attacker.name} - ${data.weapon} - ${data.victim.controller}`)),
+  server.events.playerDied.pipe(
     // Actual killer weapon will be BP_MI8_C_2147214443 not BP_MI8_C or BP_MI8, so we do a partial match
     filter(data => HELI_IDS.some(heliID => data.weapon.includes(heliID)))
   ).subscribe(async (data) => {

@@ -1,9 +1,8 @@
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
-import { useSquadEvents } from './use-squad-events';
-import { Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquadConfig } from './rcon-squad.config';
+import { useSquadEvents } from './squad-events/use-squad-events';
 
 // Utility type to avoid repetition.
 export type RconSquad = ReturnType<typeof useRconSquad>;

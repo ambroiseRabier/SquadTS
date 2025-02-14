@@ -319,3 +319,15 @@ map vote lui meme pas necessaire, par contre, le end match peut etre bien.
 
 script pr dll log du serveur (a des fins de tests ou observation...)
 ce serait sympa de ensuite pouvoir le feed au server pour répéter un bug ? (faudrait les responses rcon pour pouvoir faire cela propre idéalement).
+
+---
+
+pr meilleurs tests...
+mettre de quoi lire les logs séparement du reste du server ? lire et tranformer en objet voir event des logs...
+en gros, changer logReader et rcon et rcon-updates garder le reste ?
+l'idée c'est d'envoyer des morceaux de logs et rcon list players et squad list pour obtenir un teste plus fiable.
+
+---
+
+opti:
+.share at tt les events?

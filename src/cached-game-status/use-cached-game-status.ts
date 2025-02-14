@@ -237,6 +237,17 @@ export function useCachedGameStatus({rconSquad, logParser, config, logParserConf
           return merge({attacker, victim}, data);
         }),
       ),
+      playerDied: logParser.events.playerDied.pipe(
+        map(data => {
+          // Both RCON and logParser give eosID, 100% chance we get the player.
+          const attacker = getPlayerByEOSID(data.attacker.eosID)!;
+          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag);
+
+          // Send back augmented data, but playerDied log event data has priority as it is the most up-to-date.
+          // This concerns attacker.controller and victim.nameWithClanTag
+          return merge({attacker, victim}, data);
+        }),
+      ),
       deployableDamaged: logParser.events.deployableDamaged.pipe(
         map(data => {
           const attacker = tryGetPlayerByName(data.attackerName);
