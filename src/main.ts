@@ -18,7 +18,8 @@ interface Props {
    */
   mocks: {
     logReader: LogReader;
-    rconSquad: RconSquad;
+    // rconSquad: RconSquad;
+    rcon: Rcon;
   }
 }
 
@@ -54,7 +55,8 @@ export async function main(props?: Props) {
     logReaderLogger,
     githubInfoLogger
   } = useSubLogger(logger, config.logger.verboseness);
-  const rconSquad = props?.mocks.rconSquad ?? useRconSquad(rconSquadLogger, new Rcon(config.rcon, rconLogger), config.rconSquad);
+  // const rconSquad = props?.mocks.rconSquad ?? useRconSquad(rconSquadLogger, new Rcon(config.rcon, rconLogger), config.rconSquad);
+  const rconSquad = useRconSquad(rconSquadLogger, props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger), config.rconSquad);
   const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
   const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
 

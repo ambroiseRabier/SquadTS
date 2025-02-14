@@ -348,3 +348,12 @@ opti:
 ListPermittedCommands 1 -> extraire donnée
 les mettres en "rcon.extra" ? (bof sur la longue)
 ListCommands 1
+
+
+---
+
+log ds file, et aussi chatEvents separement?
+
+---
+
+faut un moyen de recup les logs du server facilement, si bug, donc en continue, et sur demande

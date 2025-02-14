@@ -18,7 +18,11 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
   }
 
   return {
-   getCurrentMap: async () => {
+    /**
+     * Raw execute, use as last ressort.
+     */
+    execute: dryRunExecute,
+    getCurrentMap: async () => {
       const response: string = await execute('ShowCurrentMap');
       const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
       return match!.groups! as { level: string; layer: string; };
@@ -36,7 +40,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     // Note: seems like Webstorm is showing ids as return type, but autocompletion is not.
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
-      const regexStr = "^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$"
+      const regexStr = "^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$";
       const regex = new RegExp(regexStr);
 
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
@@ -48,7 +52,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         .filter((match): match is NonNullable<typeof match> => match !== null)
         .map((match) => {
           const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
-          const { isLeader, teamID, squadID, ids } = groups;
+          const {isLeader, teamID, squadID, ids} = groups;
           return {
             ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
@@ -127,7 +131,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     },
 
     // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
-    ban: async  (anyID: string, banLength: string, message: string) => {
+    ban: async (anyID: string, banLength: string, message: string) => {
       await dryRunExecute(`AdminBan "${anyID}" ${banLength} ${message}`);
     },
 
@@ -153,7 +157,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
 
       if (missingKeys.length > 0) {
-        logger.warn(`Missing keys found in server info (this log is aimed at SquadTS developers): ${missingKeys.join(',')}`)
+        logger.warn(`Missing keys found in server info (this log is aimed at SquadTS developers): ${missingKeys.join(',')}`);
       }
       if (extraKeys.length > 0) {
         logger.warn(`Extra keys found in server info (this log is aimed at SquadTS developers): ${extraKeys.join(',')}`);

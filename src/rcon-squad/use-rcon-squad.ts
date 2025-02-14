@@ -17,7 +17,7 @@ export function useRconSquad(logger: Logger, rcon: Rcon, config: RconSquadConfig
   return {
     // Since rcon is a class, it needs to be passed his own context, or this inside execute will be undefined.
     ...useRconSquadExecute(rcon.execute.bind(rcon), config.dryRun, logger),
-    ...useSquadEvents(logger, rcon.chatPacketEvent), // todo event here instead of overriding in
+    ...useSquadEvents(logger, rcon.chatPacketEvent),
 
     connect: rcon.connect.bind(rcon),
     disconnect: rcon.disconnect.bind(rcon),
