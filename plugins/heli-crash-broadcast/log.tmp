@@ -1,3 +1,5 @@
+crash normal
+
 [20:15:08.977] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): SQVehicleSeat::TakeDamage[GenericDamage] BP_MI8_C_2146067116 for 1000.000000 damage (type=SQDamageType_Collision)
 [20:15:08.977] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): Yuca: 1000.00 damage taken by causer Yuca instigator (Online Ids: Yuca) EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 health remaining -155.75
 [20:15:08.977] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Pawn=BP_Soldier_RU_SL_Pilot_C_2146068204 FullPath=BP_Soldier_RU_SL_Pilot_C /Game/Maps/Manicouagan/Gameplay_Layers/Manicouagan_Invasion_v1.Manicouagan_Invasion_v1:PersistentLevel.BP_Soldier_RU_SL_Pilot_C_2146068204
@@ -13,3 +15,25 @@ ID: 12 | Online IDs: EOS: 0002d291d3f04069b0f5d3f11be15888 steam: 76561198012236
 ----- Recently Disconnected Players [Max of 15] -----
 ID: 13 | Online IDs: EOS: 00025153363e436bbc1c97879b9138f3 steam: 76561199178518625 | Since Disconnect: 01m.32s | Name:  pennytide13951
 ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277413 | Since Disconnect: 00m.31s | Name:  Othoma
+
+
+crash puis meurt ds vehicule:
+
+// collision en trop..
+[07:50:20.852] WARN: [LogParser] No match on line: [2025.02.14-06.50.18:327][663]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): SQVehicleSeat::TakeDamage[GenericDamage] BP_Loach_C_2147482308 for 0.012249 damage (type=SQDamageType_Collision)
+[07:50:20.852] WARN: [LogParser] No match on line: [2025.02.14-06.50.18:327][663]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): Yuca: 0.01 damage taken by causer Yuca instigator (Online Ids: Yuca) EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 health remaining 187.15
+
+// ici on meurt
+[07:50:48.853] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Pa
+wn=BP_Soldiers_WPMC_Rifleman_01_C_2147480937 FullPath=BP_Soldiers_WPMC_Rifleman_01_C /Game/Maps/BASRAH_CITY/Gameplay_Layers/AlBasrah_AAS_v1.AlBasrah_AAS_v1:PersistentLevel.BP_Soldiers_WPMC_Rifleman_01_C_2147480937
+[07:50:48.853] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnUnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Exited Vehicle Pawn=Yuca (Asset Name=BP_Loach_C) FullPath=BP_Loach_C /Game/Maps/BASRAH_CITY/Gameplay_Layers/AlBasrah_AAS_v1.AlBasrah_AAS_v1:PersistentLevel.BP_Loach_C_2147482308 Seat Number=0
+[07:50:48.853] WARN: [LogParser] No match on line: [2025.02.14-06.50.46:386][ 67]LogSquad: Player:-TWS- Yuca ActualDamage=50.000000 from -TWS- Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Player Controller ID: BP_PlayerController_C_2147481342)caused by nullptr
+[07:50:48.853] WARN: [LogParser] No match on line: [2025.02.14-06.50.46:386][ 67]LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:-TWS- Yuca KillingDamage=50.000000 from BP_PlayerController_C_2147481342 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Contoller ID: BP_PlayerController_C_2147481342) caused by nullptr
+[07:50:48.854] WARN: [LogParser] No match on line: [2025.02.14-06.50.46:386][ 67]LogSquad: Warning: Suicide -TWS- Yuca
+[07:50:50.854] DEBUG: [LogParser] Match on line: LogSquad: USQGameState: Server Tick Rate: 49.92
+[07:50:51.851] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnUnPossess(): PC=Yu
+
+
+----- Active Players -----
+ID: 0 | Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Name: -TWS- Yuca | Team ID: 1 | Squad ID: N/A | Is Leader: False | Role: IMF_Rifleman_01
+----- Recently Disconnected Players [Max of 15] -----

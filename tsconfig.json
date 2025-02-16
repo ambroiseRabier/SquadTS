@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-
     // Just take highest
     // es2016 is a no because it doesn't support name capturing groups in regex.
     // Doc: https://www.typescriptlang.org/docs/handbook/modules/theory.html#the-module-output-format

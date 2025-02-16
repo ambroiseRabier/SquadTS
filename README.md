@@ -357,3 +357,15 @@ log ds file, et aussi chatEvents separement?
 ---
 
 faut un moyen de recup les logs du server facilement, si bug, donc en continue, et sur demande
+
+---
+
+t obligé de géré les options, sinon, c'est trop random le résultat, et en gerant les options tu geres aussi quel plugins du enable?
+
+---
+
+gestion des date en test... rcon events...
+
+---
+
+load que certain plugins ?

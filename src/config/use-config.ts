@@ -16,11 +16,16 @@ export async function useConfig(logger: Logger) {
   // Validation
   logger.info('Validating Configuration...');
 
+  return await parseConfigs(configs, logger);
+}
 
+
+export async function parseConfigs(configs: any, logger: Logger) {
   const parsed = await optionsSchema.safeParseAsync(configs);
 
 
-  // This ridiculous code duplication actually make TS aware that when parsed.success
+  // This ridiculous code duplication (look we return the same thing in both condition bodies)
+  // actually make TS aware that when parsed.success
   // is true, the config object is not undefined.
   if (parsed.success) {
     return {

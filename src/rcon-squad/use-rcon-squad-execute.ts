@@ -4,11 +4,13 @@ import { omit } from 'lodash';
 import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
 import { Logger } from 'pino';
 import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
+import { IncludesRCONCommand, RCONCommand } from './rcon-commands';
+
 
 
 export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
 
-  function dryRunExecute(command: string): Promise<string> {
+  function dryRunExecute<T extends string>(command: IncludesRCONCommand<T>): Promise<string> {
     if (dryRun) {
       logger.warn(`Dry run: ${command}`);
       return Promise.resolve('This is a dry run, no command was executed.');
@@ -20,8 +22,11 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
   return {
     /**
      * Raw execute, use as last ressort.
+     * Note that it will ignore dry run.
+     * Recommendation is to skip execute when dry run is enabled and the command is game changing (like kick),
+     * but still execute it in dry run when the command is non game changing (like ShowCurrentMap)
      */
-    execute: dryRunExecute,
+    execute,
     getCurrentMap: async () => {
       const response: string = await execute('ShowCurrentMap');
       const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);

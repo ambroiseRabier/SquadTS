@@ -3,6 +3,7 @@ import util from 'util';
 import { Logger } from "pino";
 import { RconOptions } from './rcon.config';
 import { Subject } from 'rxjs';
+import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 
 
 enum DataType {
@@ -261,7 +262,7 @@ export class Rcon {
     });
   }
 
-  public execute(command: string) {
+  public execute<T extends string>(command: IncludesRCONCommand<T>) {
     return this.write(DataType.EXEC_COMMAND, command);
   }
 

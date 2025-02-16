@@ -32,7 +32,7 @@ describe('rcon-squad-events', () => {
       message: "r3",
       name: "-TWS- Yuca",
       steamID: "76561198016942077",
-      time: new Date()
+      time: expect.any(Date)
     });
   });
 
@@ -41,7 +41,8 @@ describe('rcon-squad-events', () => {
     expect(await firstValueFrom(events.chatEvents.possessedAdminCamera)).toEqual({
       eosID: "0002a10186d9424436bf50d22d3860ba",
       steamID: "71531192016942077",
-      time: {}
+      nameWithoutClanTag: "Yuca",
+      time: expect.any(Date)
     });
   });
 
@@ -51,7 +52,8 @@ describe('rcon-squad-events', () => {
       duration: 0,
       eosID: "0002a10186d9424436bf50d22d3860ba",
       steamID: "71531192016942077",
-      time: {}
+      nameWithoutClanTag: "Yuca",
+      time: expect.any(Date)
     });
   });
 
@@ -60,7 +62,7 @@ describe('rcon-squad-events', () => {
     expect(await firstValueFrom(events.chatEvents.playerWarned)).toEqual({
       nameWithClanTag: "-TWS- Pikado !!!",
       reason: "Yuca est en cam admin!",
-      time: {}
+      time: expect.any(Date)
     });
   });
 
@@ -76,21 +78,21 @@ describe('rcon-squad-events', () => {
       squadID: "1",
       squadName: "INF ",
       teamName: "Western Private Military Contractors",
-      time: {}
+      time: expect.any(Date)
     });
   });
 
   it('playerKicked', async () => {
     chatPacketEvent.next("");
     expect(await firstValueFrom(events.chatEvents.playerKicked)).toEqual({
-
+      // todo need data
     });
   });
 
   it('playerBanned', async () => {
     chatPacketEvent.next("");
     expect(await firstValueFrom(events.chatEvents.squadCreated)).toEqual({
-
+      // todo need data
     });
   });
 

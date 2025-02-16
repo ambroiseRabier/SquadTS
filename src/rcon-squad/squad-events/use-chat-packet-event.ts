@@ -50,7 +50,7 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
     possessedAdminCamera: chatPacketEvent.pipe(
       map(body => matchWithRegex(
         body,
-        "\\[Online Ids:(?<ids>[^\\]]+)\\] (.+) has possessed admin camera\\."
+        "\\[Online Ids:(?<ids>[^\\]]+)\\] (?<nameWithoutClanTag>.+) has possessed admin camera\\."
       )),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),
       map(data => extractIDs(data.ids)),
@@ -59,7 +59,7 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
     unPossessedAdminCamera: chatPacketEvent.pipe(
       map(body => matchWithRegex(
         body,
-        "\\[Online Ids:(?<ids>[^\\]]+)\\] (.+) has unpossessed admin camera\\."
+        "\\[Online Ids:(?<ids>[^\\]]+)\\] (?<nameWithoutClanTag>.+) has unpossessed admin camera\\."
       )),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),
       map(data => extractIDs(data.ids)),

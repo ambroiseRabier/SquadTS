@@ -27,7 +27,11 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
       return result;
     },
     fetch: async () => {
-      logger.info('Fetching admin list...');
+      if (options.remote.length === 0) {
+        logger.info('No admin list to fetch.');
+      } else {
+        logger.info(`Fetching ${options.remote.length} admin list...`);
+      }
 
       let text: string;
 

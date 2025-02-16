@@ -4,6 +4,10 @@ import { useLogger } from '../src/logger/use-logger';
 import fs from 'fs';
 import JSON5 from 'json5';
 
+/**
+ * Example: npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
+ */
+
 // Execute on custom server with all rights, there is also ListCommands 1, but this may list command that only devs
 // have access to.
 // ListPermittedCommands will error "You need a connected player to know its permitted commands."
@@ -16,7 +20,8 @@ async function rconExecute(options: RconOptions, command: string) {
   const rcon = new Rcon(options, logger);
   await rcon.connect();
   try {
-    return await rcon.execute(command);
+    // At worse, server will handle wrong command gracefully.
+    return await rcon.execute(command as any);
   } catch (error) {
     throw error;
   } finally {
@@ -45,15 +50,17 @@ async function getRconOptions() {
   return rconOptionsSchema.parse(JSON5.parse(fileTxt));
 }
 
-const command = process.argv.slice(3).join(' ');
 
-if (!command) {
-  throw new Error('No command provided');
-}
 
 
 getRconOptions()
   .then((options) => {
+    const command = process.argv.slice(3).join(' ');
+
+    if (!command) {
+      throw new Error('No command provided');
+    }
+
     return rconExecute(options, command);
   }).then((response) => {
     logger.info(response);

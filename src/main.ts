@@ -1,5 +1,5 @@
 import { useLogger, useSubLogger } from './logger/use-logger';
-import { useConfig } from './config/use-config';
+import { parseConfigs, useConfig } from './config/use-config';
 import { Rcon } from './rcon/rcon';
 import { RconSquad, useRconSquad } from './rcon-squad/use-rcon-squad';
 import { LogReader, useLogReader } from './log-parser/use-log-reader';
@@ -11,6 +11,7 @@ import { useCachedGameStatus } from './cached-game-status/use-cached-game-status
 import { useSquadServer } from './squad-server';
 import { useDiscordConnector } from './connectors/use-discord.connector';
 import { usePluginLoader } from './plugin-loader/plugin-loader';
+import { Options, optionsSchema } from './config/config.schema';
 
 interface Props {
   /**
@@ -18,9 +19,9 @@ interface Props {
    */
   mocks: {
     logReader: LogReader;
-    // rconSquad: RconSquad;
     rcon: Rcon;
-  }
+    config: Options; // todo: again mixing config and options, choose :/
+  },
 }
 
 // todo, maybe use some kind or DI, why not place logParser inside squadServer ?
@@ -28,13 +29,16 @@ interface Props {
 export async function main(props?: Props) {
   const logger = useLogger();
   logger.info('Starting SquadTS');
-  const {valid, config} = await useConfig(logger);
+
+  // Load config from object if it is a test server, or from directory if non-test server.
+  const {valid, config} = !!props?.mocks ? await parseConfigs(props.mocks.config, logger) : await useConfig(logger);
 
   if (valid) {
     logger.info('Configuration validated.');
   } else {
     logger.fatal('Invalid configuration, check above for errors.');
-    return;
+    // feels redundant, but using a return make the function return type have union undefined...
+    throw new Error('Invalid configuration, check above for errors.');
   }
 
   // This will never be called, as valid bool check, will have stopped program execution before.
@@ -66,7 +70,9 @@ export async function main(props?: Props) {
 
   const adminList = useAdminList(adminListLogger, config.adminList);
   const serverInfo = await rconSquad.showServerInfo();
-  const githubInfo = await retrieveGithubInfo( // todo use for....
+  // todo use for.... ? Wasn't there a plugin that needed that
+  // map vote maybe ? -> just allow to end match is enough with game map vote.
+  const githubInfo = await retrieveGithubInfo(
     path.join(__dirname, '..', 'github-info-cache'),
     githubInfoLogger
   );
@@ -101,4 +107,6 @@ export async function main(props?: Props) {
   await server.watch();
 
   logger.info('SquadTS fully started.');
+
+  return server;
 }

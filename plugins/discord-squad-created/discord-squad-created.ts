@@ -5,7 +5,7 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordSquadCreatedConfig } from './discord-squad-created.config';
 
-
+// todo prq majuscule ici et pas ailleurs
 const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (server, connectors, logger, options) => {
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);

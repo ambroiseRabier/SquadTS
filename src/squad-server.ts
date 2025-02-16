@@ -114,6 +114,6 @@ export function useSquadServer({logger, rconSquad, logParser, cachedGameStatus, 
 
       logger.info('SquadTS server is ready');
     },
-    unwatch: rconSquad.disconnect.bind(rconSquad)
+    unwatch: rconSquad.disconnect.bind(rconSquad) // todo pr tests
   } as const;
 }
