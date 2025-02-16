@@ -29,15 +29,16 @@ function getDescriptionsFromSchema(
 ): Record<string, string> {
   const descriptions: Record<string, string> = {};
 
-  if (schema instanceof z.ZodDiscriminatedUnion) {
+  // instanceof does not work here, see generate-config.mts comment (dynamic imports...). It does remove type assertion :(
+  if (schema.constructor.name === 'ZodDiscriminatedUnion') {
     // Handle discriminated unions by iterating through all its options
-    for (const option of schema.options) {
+    for (const option of (schema as z.ZodDiscriminatedUnion<any,any>).options) {
       const nestedDescriptions = getDescriptionsFromSchema(option, prefix); // Recursively collect descriptions for each option
       Object.assign(descriptions, nestedDescriptions);
     }
-  } else if (schema instanceof z.ZodObject) {
+  } else if (schema.constructor.name === 'ZodObject') {
     // Handle Zod objects
-    const shape = schema.shape;
+    const shape = (schema as z.ZodObject<any>).shape;
 
     for (const key in shape) {
       const field = shape[key];
@@ -47,7 +48,7 @@ function getDescriptionsFromSchema(
       }
 
       // If the field is a nested Zod object or a discriminated union, handle it
-      if (field instanceof z.ZodObject || field instanceof z.ZodDiscriminatedUnion) {
+      if (['ZodObject', 'ZodDiscriminatedUnion'].includes(field.constructor.name)) {
         const nestedDescriptions = getDescriptionsFromSchema(field, `${prefix}${key}.`);
         Object.assign(descriptions, nestedDescriptions);
       }

@@ -1,4 +1,4 @@
-import { main } from '../main';
+import { main } from '../main.mjs';
 import { LogReader } from '../log-parser/use-log-reader';
 import { Subject } from 'rxjs';
 import { Rcon } from '../rcon/rcon';

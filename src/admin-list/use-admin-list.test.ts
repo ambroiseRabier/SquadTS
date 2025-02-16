@@ -1,5 +1,5 @@
 import { Logger } from 'pino';
-import { describe, it, expect, beforeAll, beforeEach, afterAll, jest } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi, Mocked, Mock, MockedFunction } from 'vitest';
 import { useAdminList } from './use-admin-list';
 
 const validResponse = `
@@ -13,12 +13,12 @@ Admin=76561198814495522:Moderator
 
 // Note: mostly IA generated, maybe that's too much tests
 describe('useAdminList', () => {
-  let logger: jest.Mocked<Logger>;
+  let logger: Mocked<Logger>;
   const originalFetch = global.fetch; // Save the original fetch
 
   beforeAll(() => {
     // Save the original fetch before mocking to restore it later
-    global.fetch = jest.fn() as any;
+    global.fetch = vi.fn() as any;
   });
 
   afterAll(() => {
@@ -29,16 +29,16 @@ describe('useAdminList', () => {
   beforeEach(() => {
     // Mock the logger
     logger = {
-      info: jest.fn().mockImplementation((message) => console.log(message)),
+      info: vi.fn().mockImplementation((message) => console.log(message)),
       // We don't want to resort to debugging everytime something fail, if possible.
-      error: jest.fn().mockImplementation((message) => console.error(message)),
-      warn: jest.fn().mockImplementation((message) => console.warn(message)),
-      debug: jest.fn().mockImplementation((message) => console.log(message)),
+      error: vi.fn().mockImplementation((message) => console.error(message)),
+      warn: vi.fn().mockImplementation((message) => console.warn(message)),
+      debug: vi.fn().mockImplementation((message) => console.log(message)),
       // Add other methods if necessary
-    } as unknown as jest.Mocked<Logger>;
+    } as unknown as Mocked<Logger>;
 
     // Reset mocks
-    (global.fetch as jest.Mock).mockReset();
+    (global.fetch as Mock).mockReset();
   });
 
 
@@ -50,9 +50,9 @@ describe('useAdminList', () => {
     const { fetch, admins } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning a valid response
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: jest.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
     });
 
     const r = await fetch();
@@ -89,9 +89,9 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning a valid response
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: jest.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
     });
 
     await fetch();
@@ -110,7 +110,7 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning an HTTP error
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: false,
       status: 404,
       statusText: 'Not Found',
@@ -130,7 +130,7 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch failing
-    (global.fetch as jest.MockedFunction<any>).mockRejectedValueOnce(new Error('Network Error'));
+    (global.fetch as MockedFunction<any>).mockRejectedValueOnce(new Error('Network Error'));
 
     await fetch();
 
@@ -149,9 +149,9 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning an empty response
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: jest.fn<() => Promise<string>>().mockResolvedValueOnce(''),
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce(''),
     });
 
     await fetch();
@@ -175,7 +175,7 @@ describe('useAdminList', () => {
     const mockReq: any = () => {
       return {
         ok: true,
-        text: jest.fn<() => Promise<string>>().mockResolvedValue([
+        text: vi.fn<() => Promise<string>>().mockResolvedValue([
           `
 Group=Admin:balance,ban,chat
 Admin=76561198814495531:Admin
@@ -188,7 +188,7 @@ Admin=76561198814495531:Moderator
     };
 
     // Mock the `parseAdminCFG` function to simulate admins being overridden
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValue(mockReq());
+    (global.fetch as MockedFunction<any>).mockResolvedValue(mockReq());
 
     await fetch();
 
@@ -206,9 +206,9 @@ Admin=76561198814495531:Moderator
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning invalid content
-    (global.fetch as jest.MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: jest.fn<() => Promise<string>>().mockResolvedValueOnce('Invalid admin config'),
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce('Invalid admin config'),
     });
 
     await fetch();

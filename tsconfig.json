@@ -30,8 +30,8 @@
     // - This tells TypeScript to treat `src` (or whatever your primary directory is) as the root of your project and will ensure consistent directory structure when files are built into `outDir`.
 //    "rootDir": "src",
 
-    // Allow us to import modules without having to suffix with `.js` due to ESM.
-    "moduleResolution": "bundler"
+    // Allow us to import modules without having to suffix with `.js` due to ESM. (if your file is mts, you still have to do it -> `.mjs`)
+    "moduleResolution": "bundler",
   },
   "include": [
     "src",

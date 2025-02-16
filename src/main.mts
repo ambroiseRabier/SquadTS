@@ -10,8 +10,8 @@ import path from 'node:path';
 import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
 import { useSquadServer } from './squad-server';
 import { useDiscordConnector } from './connectors/use-discord.connector';
-import { usePluginLoader } from './plugin-loader/plugin-loader';
-import { Options, optionsSchema } from './config/config.schema';
+import { usePluginLoader } from './plugin-loader/plugin-loader.mjs';
+import { Options } from './config/config.schema';
 import { dirname } from 'path';
 import { fileURLToPath } from 'node:url';
 

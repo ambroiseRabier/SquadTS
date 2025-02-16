@@ -6,7 +6,8 @@ import path from 'node:path';
 import readline from 'node:readline';
 import chalk from 'chalk';
 import { dirname } from 'path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { tsImport } from 'tsx/esm/api';
 
 // You may skip asking user for pre-commit or CI/CD stuff.
 const FORCE_OVERRIDE = process.argv.includes('--force') || process.argv.includes('-f');
@@ -34,6 +35,7 @@ async function saveFiles() {
   for (const key in optionsSchema.shape) {
     const field = (optionsSchema as z.ZodObject<any>).shape[key];
 
+    // Note: compared to plugins, we are not using dynamic import here, so Zod instance is the same.
     if (field instanceof z.ZodObject || field instanceof z.ZodDiscriminatedUnion) {
       // Define the file path
       const filePath = path.join(configFolder, `${key}.json5`);
@@ -101,16 +103,20 @@ async function savePluginFiles() {
   for (const folderName of pluginFolders) {
     try {
       // Dynamically import the <folderName>/<folderName>.config.ts file
-      const pluginConfigPath = path.join(pluginsDir, folderName, `${folderName}.config.ts`);
+      const configFileName = folderName + ".config.ts";
+      const pluginConfigPath = path.join(pluginsDir, folderName, configFileName);
       if (!fs.existsSync(pluginConfigPath)) {
-        console.warn(`Config file not found for plugin: ${folderName}`);
+        console.warn(`Config file not found: ${configFileName}`);
         continue;
       }
 
-      const { default: zodSchema } = require(pluginConfigPath);
+      // todo name it SchemaPath or config path (coherence with plugin-loader)
+      const { default: zodSchema } = await tsImport(pathToFileURL(pluginConfigPath).href, fileURLToPath(import.meta.url));
 
+      // Note: for unknown reason, instanceof z.ZodType give false since esm, maybe the imported Zod in plugin is considered
+      //       different rom the one used to generate config ?
       // Ensure it's a Zod schema
-      if (!z.ZodType.isPrototypeOf(zodSchema.constructor)) {
+      if (!['ZodObject', 'ZodDiscriminatedUnion'].includes(zodSchema.constructor.name)) {
         console.error(`Invalid Zod schema in ${pluginConfigPath}`);
         continue;
       }
@@ -121,7 +127,13 @@ async function savePluginFiles() {
 
       // Write the generated config to the file
       fs.writeFileSync(json5FilePath, json5Commented, 'utf8');
-      console.log(`Generated plugin config: ${chalk.blue.bold(json5FilePath)}`);
+
+      const parsedPath = path.parse(json5FilePath);
+      const formattedPath = chalk.blue(`${parsedPath.dir}${path.sep}`) +
+                                   chalk.blue.bold(parsedPath.name) +
+                                   chalk.blue(parsedPath.ext);
+
+      console.log(`Generated plugin config: ${formattedPath}`);
     } catch (err) {
       console.error(`Error processing ${folderName}:`, err);
     }

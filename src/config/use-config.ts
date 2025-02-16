@@ -1,5 +1,5 @@
 import { Logger } from 'pino';
-import { resolveConfigsPath } from './resolve-configs-path';
+import { resolveConfigsPath } from './resolve-configs-path.mjs';
 import { loadConfigFiles } from './load-config';
 import { optionsSchema } from './config.schema';
 

@@ -369,3 +369,10 @@ gestion des date en test... rcon events...
 ---
 
 load que certain plugins ?
+
+--- 
+
+zod parse mais en refusant les props en trop ? (c possible me semble, idée c de
+indiquer si des trucs on changé et doivent être enlever si obsolète)
+( de même, ce serait bien si les defaults... était pas défault dans la validation :/ )
+

@@ -10,7 +10,7 @@ import JSON5 from 'json5';
 import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
 import { DiscordConnector } from '../connectors/use-discord.connector';
-import { resolveConfigsPath } from '../config/resolve-configs-path';
+import { resolveConfigsPath } from '../config/resolve-configs-path.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api'
 import { dirname } from 'path';
