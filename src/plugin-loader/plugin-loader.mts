@@ -10,15 +10,22 @@ import JSON5 from 'json5';
 import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
 import { DiscordConnector } from '../connectors/use-discord.connector';
-import { resolveConfigsPath } from '../config/resolve-configs-path.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api'
-import { dirname } from 'path';
+import { PLUGINS_CONFIG_ROOT, PLUGINS_ROOT } from '../config/path-constants.mjs';
 
 export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
 
   return {
-    load: async () => {
+    /**
+     *
+     * @param pluginOptionOverride Reserved for test server, allow to choose which plugin to enable and also the config.
+     */
+    load: async (pluginOptionOverride?: Record<string, any>) => {
+      if (pluginOptionOverride) {
+        logger.warn(`pluginOptionOverride enabled, use this only for testing purposes.`)
+      }
+
       logger.info('Loading plugins...');
       const pluginsPair = await loadPlugins(logger);
 
@@ -45,17 +52,35 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         );
       }
 
+      const iterateOn = !!pluginOptionOverride ?
+        Object.keys(pluginOptionOverride)
+          .map(pluginName => validConfigPairs.find(c => c.name === pluginName))
+          .filter((validConfigPair): validConfigPair is NonNullable<typeof validConfigPair> => !!validConfigPair)
+        : validConfigPairs;
+
+      // Bad usage of pluginOptionOverride, or files wrongly placed/named.
+      if (!!pluginOptionOverride && iterateOn.length === 0) {
+        throw new Error(`No plugins found with name: ${Object.keys(pluginOptionOverride)}. Did you use pluginOptionOverride with correct name of the plugin ?`);
+      }
+
       // ---------- Loading JSON5 and validating ----------
-      for (let pair of validConfigPairs) {
+      for (let pair of iterateOn) {
         logger.debug(`${pair.name}: Loading config...`);
 
         let json5;
-        try {
-          json5 = await loadJSON5(pair.configJSON5FilePath);
-        } catch (e: any) {
-          logger.error(`Invalid JSON5 file, unabled to parse. ${e.message}`, e);
-          logger.warn(`Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`);
-          continue;
+        if (!pluginOptionOverride) {
+          try {
+            json5 = await loadJSON5(pair.configJSON5FilePath);
+          } catch (e: any) {
+            logger.error(`Invalid JSON5 file, unabled to parse. ${e.message}`, e);
+            logger.warn(`Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`);
+            continue;
+          }
+        } else {
+          json5 = pluginOptionOverride[pair.name];
+          if (typeof json5 !== 'object') {
+            throw new Error(`pluginOptionOverride["${pair.name}"] should be an object but was ${typeof json5}`);
+          }
         }
 
         logger.debug(`${pair.name}: Validating config...`);
@@ -161,7 +186,7 @@ function findFilesMatchingParentDirectory(fileList: string[]): string[] {
 async function loadPlugins(logger: Logger) {
   // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
   // ts-node at runtime.
-  const pluginsDirectory = path.join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'plugins');
+  const pluginsDirectory = PLUGINS_ROOT;
   // Instead of putting every file inside plugins, better having a folder for each plugin since we require 3 files per plugin !
   // const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
   const allTSFiles = findFilesInSubfolders(pluginsDirectory, '.ts');
@@ -176,7 +201,7 @@ async function loadPlugins(logger: Logger) {
     requireConnectors: string[];
   }[] = [];
 
-  const configFolder = path.join(resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH), 'plugins');
+  const configFolder = PLUGINS_CONFIG_ROOT;
   logger.info(`Loading plugins configurations from ${configFolder}...`);
 
 

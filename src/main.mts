@@ -14,6 +14,7 @@ import { usePluginLoader } from './plugin-loader/plugin-loader.mjs';
 import { Options } from './config/config.schema';
 import { dirname } from 'path';
 import { fileURLToPath } from 'node:url';
+import { Subject } from 'rxjs';
 
 interface Props {
   /**
@@ -23,6 +24,8 @@ interface Props {
     logReader: LogReader;
     rcon: Rcon;
     config: Options; // todo: again mixing config and options, choose :/
+    pluginOptionOverride?: Record<string, any>;
+    manualRCONUpdateForTest?: Subject<void>;
   },
 }
 
@@ -85,6 +88,7 @@ export async function main(props?: Props) {
     logParserConfig: config.logParser,
     logger: cachedGameStatusLogger,
     initialServerInfo: serverInfo,
+    manualRCONUpdateForTest: props?.mocks.manualRCONUpdateForTest,
   });
   const server = useSquadServer({
     logger: squadServerLogger,
@@ -103,7 +107,7 @@ export async function main(props?: Props) {
 
   // Do authentification on RCON and FTP/SFTP first before loading plugins
   await server.prepare();
-  await pluginLoader.load();
+  await pluginLoader.load(props?.mocks.pluginOptionOverride);
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.
   // But having logs all over the place is bad.
   await server.watch();

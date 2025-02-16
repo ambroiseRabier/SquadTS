@@ -1,18 +1,25 @@
-import { concatMap, exhaustMap, interval, map, startWith, Subject, Subscription, tap } from 'rxjs';
+import { concatMap, exhaustMap, interval, map, Observable, startWith, Subject, Subscription, tap } from 'rxjs';
 import { merge } from 'lodash-es';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { Player, Squad } from './use-cached-game-status';
 
+interface Props {
+  rconSquad: RconSquad;
+  updateInterval: CachedGameStatusOptions["updateInterval"];
+  getPlayers: () => Player[];
+  getSquads: () => Squad[];
+  manualUpdateForTest?: Subject<void>;
+}
 
-export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameStatusOptions["updateInterval"], getPlayers: () => Player[], getSquads: () => Squad[]) {
+export function useRconUpdates({getPlayers, getSquads, rconSquad, updateInterval, manualUpdateForTest}: Props) {
   // Note: we cannot place behaviorSubject here, data from logs will be merged into player and maybe also squad infos.
   const squads$ = new Subject<Awaited<ReturnType<typeof rconSquad.getSquads>>>();
   const players$ = new Subject<Player[]>();
   const playersSquadChange$ = new Subject<Player[]>();
 
   // Update squads
-  const squadUpdate$ = interval(updateInterval.playersAndSquads * 1000)
+  const squadUpdate$ = !manualUpdateForTest ? interval(updateInterval.playersAndSquads * 1000)
     .pipe(
       // Emit first value immediately
       startWith(0),
@@ -25,7 +32,17 @@ export function useRconUpdates(rconSquad: RconSquad, updateInterval: CachedGameS
       // the current request completes. This is particularly useful for ensuring no queuing happens at all.
       // exhaustMap is almost correct, we may have 2x the interval waiting time if request take 1.01x the interval
       exhaustMap(rconSquad.getSquads)
-    );
+    ) : (
+      // Same behavior but without startWith that expect a more specific observable.
+      // This is only for test server as the observable name hint
+      manualUpdateForTest.pipe(
+        exhaustMap(rconSquad.getSquads)
+      )
+  );
+  // Replace startWith(0) to keep the same behavior.
+  if (!!manualUpdateForTest) {
+    manualUpdateForTest.next();
+  }
 
   // Player update interval (that depends on squads$)
   const playerUpdate$ = squadUpdate$.pipe(

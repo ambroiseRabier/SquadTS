@@ -1,15 +1,13 @@
 import { Logger } from 'pino';
-import { resolveConfigsPath } from './resolve-configs-path.mjs';
 import { loadConfigFiles } from './load-config';
 import { optionsSchema } from './config.schema';
+import { CONFIGS_ROOT } from './path-constants.mjs';
 
 
 export async function useConfig(logger: Logger) {
-  const configFolder = resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH);
-
   // Files loading
-  logger.info(`Loading configurations from ${configFolder}...`);
-  const configs = await loadConfigFiles(configFolder);
+  logger.info(`Loading configurations from ${CONFIGS_ROOT}...`);
+  const configs = await loadConfigFiles(CONFIGS_ROOT);
   logger.info('Configurations loaded.');
   logger.trace(configs);
 

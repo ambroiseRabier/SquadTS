@@ -3,8 +3,20 @@ import { LogReader } from '../log-parser/use-log-reader';
 import { Subject } from 'rxjs';
 import { Rcon } from '../rcon/rcon';
 import { IncludesRCONCommand } from '../rcon-squad/rcon-commands';
+import { Options } from '../config/config.schema';
+import { merge } from 'lodash-es';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
+
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+interface Props {
+  executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
+  optionsOverride?: DeepPartial<Options>;
+  pluginOptionOverride?: Record<string, any>;
+}
 
 /**
  * Watch out for...
@@ -14,7 +26,7 @@ export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
  * Player squad list has to be updated manually.
  * Date mismatch between logs and RCON... (may or may not impact anything)
  */
-export async function useTestServer(executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>) {
+export async function useTestServer({executeFn, optionsOverride, pluginOptionOverride}: Props) {
   console.info('Starting test server... (this may take a while)');
 
   const mockLogReader: LogReader = {
@@ -37,85 +49,101 @@ export async function useTestServer(executeFn: <T extends string>(command: Inclu
   // is used to cache a player).
   const updateInterval = 50;
 
+  const baseOptions = {
+    // rcon is not used because of the mock
+    rcon: {
+      autoReconnectDelay: 5000,
+      host: '127.0.0.1',
+      port: 25575,
+      password: 'examplePassword'
+    },
+    logger: {
+      verboseness: {
+        // recommended to keep it at least at debug to fully enable debugLogMatching,
+        // trace will also warn you if there is wrong or absent dates
+        LogParser: 'trace',
+        RCON: 'info', // not used because of the mock
+        SquadServer: 'info',
+        CachedGameStatus: 'info',
+        PluginLoader: 'info',
+        RCONSquad: 'info',
+        AdminList: 'info',
+        LogReader: 'info', // not used because of the mock
+        GithubInfo: 'info'
+      },
+      debugLogMatching: {
+        showMatching: true, // recommended to keep it true for easier debug (help you confirm the logs you've placed are processed
+        showNonMatching: true, // recommended to keep it true for easier debug (may help you find syntax error in logs you modified)
+
+        // You may enable this with default values when you are sending a huge number of logs
+        // You may also just disable showNonMatching, but this removes a little bit of help.
+        ignoreRegexMatch: []
+      }
+    },
+    // log parser config is mostly ignored as we mock log reader
+    logParser: {
+      logFile: 'C:/servers/squad_server/SquadGame/Saved/Logs',
+      ftp: {
+        host: '127.0.0.1',
+        port: 21,
+        username: 'exampleUser',
+        password: 'examplePassword',
+        fetchInterval: 5000,
+        initialTailSize: 1048576
+      },
+      mode: 'ftp'
+    },
+    cacheGameStatus: {
+      updateInterval: {
+        // 1 is min value in config...
+        serverInfo: 1, // Remember: expected value is in second in config. (probably should make a manual update trigger too)
+        layerInfo: 60, // unused for now, not implemented.
+        playersAndSquads: 60, // manually trigger update yourself.
+      }
+    },
+    rconSquad: {
+      dryRun: false, // no dry run as we mock rcon anyway.
+    },
+    // Haven't thought of connectors for testing with TestServer for now.
+    // ...
+    connectors: {
+      discord: {
+        enabled: false,
+        token: '' // ignored when enabled is false
+      }
+    },
+    adminList: {
+      remote: []
+    }
+  };
+
+
+  const manualRCONUpdateForTest = new Subject<void>();
   const server = await main({
     mocks: {
       logReader: mockLogReader,
       rcon: mockRcon as Rcon,
       // Default config for mocking, you may customize it for your tests.
-      config: {
-        // rcon is not used because of the mock
-        rcon: {
-          autoReconnectDelay: 5000,
-          host: '127.0.0.1',
-          port: 25575,
-          password: 'examplePassword'
-        },
-        logger: {
-          verboseness: {
-            LogParser: 'debug', // recommended to keep it at debug to fully enable debugLogMatching
-            RCON: 'info', // not used because of the mock
-            SquadServer: 'info',
-            CachedGameStatus: 'info',
-            PluginLoader: 'info',
-            RCONSquad: 'info',
-            AdminList: 'info',
-            LogReader: 'info', // not used because of the mock
-            GithubInfo: 'info'
-          },
-          debugLogMatching: {
-            showMatching: true, // recommended to keep it true for easier debug (help you confirm the logs you've placed are processed
-            showNonMatching: true, // recommended to keep it true for easier debug (may help you find syntax error in logs you modified)
-
-            // You may enable this with default values when you are sending a huge number of logs
-            // You may also just disable showNonMatching, but this removes a little bit of help.
-            ignoreRegexMatch: []
-          }
-        },
-        // log parser config is mostly ignored as we mock log reader
-        logParser: {
-          logFile: 'C:/servers/squad_server/SquadGame/Saved/Logs',
-          ftp: {
-            host: '127.0.0.1',
-            port: 21,
-            username: 'exampleUser',
-            password: 'examplePassword',
-            fetchInterval: 5000,
-            initialTailSize: 1048576
-          },
-          mode: 'ftp'
-        },
-        cacheGameStatus: {
-          updateInterval: {
-            serverInfo: updateInterval,
-            layerInfo: updateInterval,
-            playersAndSquads: updateInterval,
-          }
-        },
-        rconSquad: {
-          dryRun: false, // no dry run as we mock rcon anyway.
-        },
-        // Haven't thought of connectors for testing with TestServer for now.
-        // ...
-        connectors: {
-          discord: {
-            enabled: false,
-            token: '' // ignored when enabled is false
-          }
-        },
-        adminList: {
-          remote: []
-        }
-      }
+      config: merge(baseOptions, optionsOverride),
+      pluginOptionOverride: pluginOptionOverride,
+      manualRCONUpdateForTest
     }
   });
 
   console.info('Test server ready !');
 
   return {
-    updateInterval,
     server,
     line$: mockLogReader.line$ as Subject<string>,
     rcon: mockRcon as Rcon,
+    /**
+     * Call this after update RCON ListPlayers return value.
+     */
+    triggerRCONUpdate: async () => {
+      manualRCONUpdateForTest.next(); // todo: no need to close that to stop server ?
+      // Let observable do his job before proceeding.
+      await wait(0);
+    },
 
     /**
      * Helper to emit logs.
@@ -131,3 +159,5 @@ export async function useTestServer(executeFn: <T extends string>(command: Inclu
     }
   }
 }
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

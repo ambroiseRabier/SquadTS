@@ -14,10 +14,11 @@ export type LogParser = ReturnType<typeof useLogParser>;
 
 export function useLogParser(logger: Logger, logReader: LogReader, options: LogParserConfig, debugLogMatching: LoggerOptions['debugLogMatching']) {
   const now = new Date();
+  // Ok so careful here, because server time can be offset by a few minutes :/
   // adjusted to GMT+0 ! Instead of being system dependent.
   const startTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
   const queue = new Subject<string>();
-  let skipOnce = true;
+  let skipOnceIfNoDate = true;
   let emitLogs = true;
 
   // Note: you can call that before or right after logReader watch, this will give the same result, as logReader
@@ -33,6 +34,10 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
   const events = queue.pipe(
     tap(line => {
       logger.trace(`Receiving: ${line}`);
+
+      if (line.includes('DEBUG: [LogParser]')) {
+        logger.warn(`If this is a test, you most likely forgot to remove "DEBUG: [LogParser]" from the log !`);
+      }
     }),
     map(line => {
       const regex = /^\[(?<date>[0-9.:-]+)]\[ *(?<chainID>[ 0-9]*)](?<data>.*)/;
@@ -41,8 +46,8 @@ export function useLogParser(logger: Logger, logReader: LogReader, options: LogP
       // On startup, we may not start reading the server log file at a line start. Ending up with an incomplete line.
       // Just ignore it and start processing from second line.
       if (!matchDate) {
-        if (skipOnce) {
-          skipOnce = false;
+        if (skipOnceIfNoDate) {
+          skipOnceIfNoDate = false;
         } else {
           // Happens:
           // - at startup of the server.

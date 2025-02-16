@@ -110,20 +110,22 @@ interface Props {
   logParserConfig: LogParserConfig;
   logger: Logger;
   initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>;
+  manualRCONUpdateForTest?: Subject<void>;
 }
 
 /**
  * Keep track of the game status, like players, layers, squad list.
  */
-export function useCachedGameStatus({rconSquad, logParser, config, logParserConfig, logger, initialServerInfo}: Props) {
+export function useCachedGameStatus({rconSquad, logParser, config, logParserConfig, logger, initialServerInfo, manualRCONUpdateForTest}: Props) {
   const players$ = new BehaviorSubject<Player[]>([]);
   const squads$ = new BehaviorSubject<Squad[]>([]);
-  const rconUpdates = useRconUpdates(
+  const rconUpdates = useRconUpdates({
     rconSquad,
-    config.updateInterval,
-    players$.getValue.bind(players$),
-    squads$.getValue.bind(squads$)
-  );
+    updateInterval: config.updateInterval,
+    getPlayers: players$.getValue.bind(players$),
+    getSquads: squads$.getValue.bind(squads$),
+    manualUpdateForTest: manualRCONUpdateForTest
+  });
   const logUpdates = useLogUpdates({
     logParser,
     logParserConfig,

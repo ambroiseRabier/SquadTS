@@ -42,7 +42,10 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       };
     },
 
-    // Note: seems like Webstorm is showing ids as return type, but autocompletion is not.
+    // Note: It appears that Webstorm is showing ids as return type, but autocompletion is not.
+    /**
+     * Execute ListPlayers
+     */
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
       const regexStr = "^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$";

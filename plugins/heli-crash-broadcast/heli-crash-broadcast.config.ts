@@ -6,7 +6,9 @@ import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.con
 const schema = pluginBaseOptionsSchema.extend({
   messages: z.array(
     z.string().nonempty().includes('%pilot%')
-  ).nonempty().default(['%pilot% crash landed.'])
+  )
+    .nonempty()
+    .default(['%pilot% crash landed.'])
     .describe(
       'The messages to send to the server when someone crash land,\n' +
       '%pilot%is replaced by the pilot name.\n' +

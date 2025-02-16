@@ -1,11 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
 import { TestServer, useTestServer } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
-import { afterEach } from 'node:test';
-import { RconSquad } from '../../src/rcon-squad/use-rcon-squad';
 import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
-import heliCrashBroadcast from './heli-crash-broadcast';
 import { RCONCommand } from '../../src/rcon-squad/rcon-commands';
+import { HeliCrashBroadCastOptions } from './heli-crash-broadcast.config';
 
 // Note that SquadList is fetched first, before PlayerList. Same a server info, fetched immediately at startup
 function setRconMock(rconExec: MockedFunction<Rcon['execute']>, resolvedValues: Partial<{
@@ -16,25 +14,24 @@ function setRconMock(rconExec: MockedFunction<Rcon['execute']>, resolvedValues: 
   rconExec.mockImplementation((command: string) => {
     const throwFc = () => { throw new Error(`Rcon exec called with ${command}, it wasn't mocked !`); };
 
-    switch (command) {
-      case RCONCommand.ShowServerInfo:
-        // ShowServerInfo is called at the start, but is only used for:
-        // - server.helpers.getTeamName()
-        // - server.info
-        // If you are using none of them, you may skip settings ShowServerInfo
-        // Note: this server info has 0 players
-        return Promise.resolve(resolvedValues.ShowServerInfo ?? throwFc());
-      case RCONCommand.ListPlayers:
-        return Promise.resolve(resolvedValues.ListPlayers ?? throwFc());
-      case RCONCommand.ListSquads:
-        return Promise.resolve(resolvedValues.ListSquads?? throwFc());
-      default:
-        throw new Error(`Rcon exec called with ${command}, it wasn't mocked !`);
+    // We should check for mock for every command where a return value is expected.
+    if (command.match(new RegExp(`^${RCONCommand.ShowServerInfo}.*`))) {
+      // ShowServerInfo is called at the start, but is only used for:
+      // - server.helpers.getTeamName()
+      // - server.info
+      // If you are using none of them, you may skip settings ShowServerInfo
+      // Note: this server info has 0 players
+      return Promise.resolve(resolvedValues.ShowServerInfo ?? throwFc());
+    } else if (command.match(new RegExp(`^${RCONCommand.ListPlayers}.*`))) {
+      return Promise.resolve(resolvedValues.ListPlayers ?? throwFc());
+    } else if (command.match(new RegExp(`^${RCONCommand.ListSquads}.*`))) {
+      return Promise.resolve(resolvedValues.ListSquads ?? throwFc());
+    } else {
+      // AdminBroadcast for example does not return anything (or at least it is unused in SquadTS), this is ok.
+      return Promise.resolve('');
     }
   });
 }
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // test intended to run in order with one time executed initial startup
 describe('Heli crash broadcast', () => {
@@ -44,6 +41,7 @@ describe('Heli crash broadcast', () => {
   beforeAll(async () => {
     // server immediately call ShowServerInfo, player list and squd list, on startup, we provide some default
     // that we recommend you change immediately (although very little of SquadTS use server info itself)
+    // ListPlayers and ListSquads also emitted.
     setRconMock(rconExec, {
       ListPlayers: `----- Active Players -----
 ----- Recently Disconnected Players [Max of 15] -----
@@ -61,7 +59,25 @@ Team ID: 2 (Manticore Security Task Force)
       } as GameServerInfo)
       // todo place others.
     });
-    testBed = await useTestServer(rconExec as Rcon['execute']);
+
+    // An error in useTestServer result in "Failure cause not provided for 'Broadcast on heli crash'"
+    // Type error in server files will not be surfaced by vitest.
+    testBed = await useTestServer({
+      executeFn: rconExec as Rcon['execute'],
+      pluginOptionOverride: {
+        'heli-crash-broadcast': <HeliCrashBroadCastOptions>{
+          enabled: true,
+          loggerVerbosity: 'debug',
+          messages: [
+            '%pilot% crash landed.'
+          ]
+        }
+      }
+    });
+
+
+
+
     // todo: ne pas load tout les plugins ?
     // todo: config fixe, eventuellement personalisable ?
     // renvoyer les plugins à partir de main(), pour pouvoir faire spyOn
@@ -96,25 +112,23 @@ Team ID: 2 (Manticore Security Task Force)
         "ap-southeast-2_I":"289","ap-southeast-1_I":"17","Region_s":"eu-central-1","PlayerReserveCount_I":"0","PublicQueueLimit_I":"25","PublicQueue_I":"0","ReservedQueue_I":"0","BeaconPort_I":"15003"
       } as GameServerInfo)
     });
+    await testBed.triggerRCONUpdate();
     // wait for server to fetch rcon player list
-    await wait(testBed.updateInterval * 1.1); // with margin
 
 
     //testBed.rcon.chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
 
-    // Real logs
+    // Real logs (dates and chainID have been recreated for matching logs, as they were missing when I took them)
     testBed.emitLogs(`
-      [20:15:08.977] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): SQVehicleSeat::TakeDamage[GenericDamage] BP_MI8_C_2146067116 for 1000.000000 damage (type=SQDamageType_Collision)
-      [20:15:08.977] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): Yuca: 1000.00 damage taken by causer Yuca instigator (Online Ids: Yuca) EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 health remaining -155.75
-      [20:15:08.977] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Pawn=BP_Soldier_RU_SL_Pilot_C_2146068204 FullPath=BP_Soldier_RU_SL_Pilot_C /Game/Maps/Manicouagan/Gameplay_Layers/Manicouagan_Invasion_v1.Manicouagan_Invasion_v1:PersistentLevel.BP_Soldier_RU_SL_Pilot_C_2146068204
-      [20:15:08.978] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQPlayerController::OnUnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Exited Vehicle Pawn=Yuca (Asset Name=BP_MI8_C) FullPath=BP_MI8_C /Game/Maps/Manicouagan/Gameplay_Layers/Manicouagan_Invasion_v1.Manicouagan_Invasion_v1:PersistentLevel.BP_MI8_C_2146067116 Seat Number=0
-      [20:15:08.978] DEBUG: [LogParser] Match on line: LogSquad: Player:-TWS- Yuca ActualDamage=1000.000000 from -TWS- Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Player Controller ID: BP_PlayerController_C_2146085496)caused by BP_MI8_C_2146067116
-      [20:15:08.978] DEBUG: [LogParser] Match on line: LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:-TWS- Yuca KillingDamage=1000.000000 from BP_PlayerController_C_2146085496 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Contoller ID: BP_PlayerController_C_2146085496) caused by BP_MI8_C_2146067116
-      [20:15:08.978] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:868][363]LogSquad: Warning: Suicide -TWS- Yuca
+      [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): SQVehicleSeat::TakeDamage[GenericDamage] BP_MI8_C_2146067116 for 1000.000000 damage (type=SQDamageType_Collision)
+      [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): Yuca: 1000.00 damage taken by causer Yuca instigator (Online Ids: Yuca) EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 health remaining -155.75
+      [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQPlayerController::OnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Pawn=BP_Soldier_RU_SL_Pilot_C_2146068204 FullPath=BP_Soldier_RU_SL_Pilot_C /Game/Maps/Manicouagan/Gameplay_Layers/Manicouagan_Invasion_v1.Manicouagan_Invasion_v1:PersistentLevel.BP_Soldier_RU_SL_Pilot_C_2146068204
+      [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQPlayerController::OnUnPossess(): PC=Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077) Exited Vehicle Pawn=Yuca (Asset Name=BP_MI8_C) FullPath=BP_MI8_C /Game/Maps/Manicouagan/Gameplay_Layers/Manicouagan_Invasion_v1.Manicouagan_Invasion_v1:PersistentLevel.BP_MI8_C_2146067116 Seat Number=0
+      [2025.02.13-19.13.17:867][363]LogSquad: Player:-TWS- Yuca ActualDamage=1000.000000 from -TWS- Yuca (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Player Controller ID: BP_PlayerController_C_2146085496)caused by BP_MI8_C_2146067116
+      [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:-TWS- Yuca KillingDamage=1000.000000 from BP_PlayerController_C_2146085496 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Contoller ID: BP_PlayerController_C_2146085496) caused by BP_MI8_C_2146067116
+      [2025.02.13-19.13.17:868][363]LogSquad: Warning: Suicide -TWS- Yuca
     `);
-    await wait(testBed.updateInterval * 1.1); // with margin // todo uneeded?
 
-
-    expect(rconExec).toHaveBeenCalledWith(RCONCommand.AdminBroadcast, 'Yuca crash landed.');
+    expect(rconExec).toHaveBeenCalledWith('AdminBroadcast -TWS- Yuca crash landed.');
   })
 })
