@@ -1,4 +1,4 @@
-import { it, describe, expect } from '@jest/globals';
+import { it, describe, expect } from 'vitest';
 import { usePlayerGet } from './use-player-get';
 import { Player } from './use-cached-game-status';
 

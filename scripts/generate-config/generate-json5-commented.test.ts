@@ -1,4 +1,4 @@
-import { expect, test } from '@jest/globals';
+import { expect, test } from 'vitest';
 import { z } from 'zod';
 import { generateJson5Commented } from './generate-json5-commented';
 

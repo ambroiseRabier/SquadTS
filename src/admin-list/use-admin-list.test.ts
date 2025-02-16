@@ -1,5 +1,5 @@
 import { Logger } from 'pino';
-import { describe, it, expect, beforeAll, beforeEach, afterAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, jest } from 'vitest';
 import { useAdminList } from './use-admin-list';
 
 const validResponse = `

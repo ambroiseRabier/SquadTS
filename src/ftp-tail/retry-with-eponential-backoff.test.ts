@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, jest } from 'vitest';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 
 

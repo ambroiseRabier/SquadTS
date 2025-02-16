@@ -1,6 +1,6 @@
 import { AdminPerms } from '../../../src/admin-list/permissions';
 import { SwitchRequest } from './switch-helpers';
-import { beforeEach, describe, it, jest, expect } from '@jest/globals';
+import { beforeEach, describe, it, jest, expect } from 'vitest';
 import { sortRequests } from './sort-requests';
 import { SquadServer } from '../../../src/squad-server';
 

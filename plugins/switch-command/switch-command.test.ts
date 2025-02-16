@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from 'vitest';
 
 import switchCommand from './switch-command';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';

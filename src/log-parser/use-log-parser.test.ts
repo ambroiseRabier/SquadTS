@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from 'vitest';
 import { LogParser, useLogParser } from './use-log-parser';
 import EventEmitter from 'events';
 import { LogParserConfig } from './log-parser.config';

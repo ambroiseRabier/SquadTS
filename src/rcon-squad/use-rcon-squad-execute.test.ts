@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, describe, expect, it, jest } from 'vitest';
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { MockedFunction } from 'jest-mock';

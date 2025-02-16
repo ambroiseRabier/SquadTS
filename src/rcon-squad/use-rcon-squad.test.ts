@@ -1,4 +1,4 @@
-import { expect, beforeEach, describe, it, jest } from '@jest/globals';
+import { expect, beforeEach, describe, it, jest } from 'vitest';
 import { useRconSquad } from './use-rcon-squad';
 import { Packet, Rcon } from '../rcon/rcon';
 import { Subject } from 'rxjs';

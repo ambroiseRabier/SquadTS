@@ -1,5 +1,5 @@
 import { Options, optionsSchema } from './config.schema';
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 describe('parseConfig', () => {
   test('Ensure complete valid config is parsed with no errors', async () => {
@@ -62,6 +62,7 @@ describe('parseConfig', () => {
     };
 
 
-    await expect(optionsSchema.parse(validConfig)).resolves.not.toThrow();
+    // await expect(optionsSchema.parse(validConfig)).resolves.not.toThrow(); // jest only ? or always was wrong ? -> parseAsync ?
+    expect(() => optionsSchema.parse(validConfig)).not.toThrow();
   });
 });

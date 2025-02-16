@@ -1,4 +1,4 @@
-import { it, expect } from '@jest/globals';
+import { it, expect } from 'vitest';
 import { extractGroupPermissions } from './extract-group-permissions';
 
 

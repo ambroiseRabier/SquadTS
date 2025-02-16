@@ -3,7 +3,7 @@ import TailModule from 'tail';
 import { useFtpTail } from '../ftp-tail/use-ftp-tail';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
-import { omit } from 'lodash';
+import { omit } from 'lodash-es';
 
 
 export type LogReader = ReturnType<typeof useLogReader>;

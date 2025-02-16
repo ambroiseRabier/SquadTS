@@ -1,4 +1,5 @@
-import path from 'path';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Use config folder by default, unless envConfigPath env var is specified.
@@ -19,9 +20,9 @@ export function resolveConfigsPath(envConfigPath: string|undefined): string {
     } else {
       // To have path from project root, we add ".." twice before user relative path input.
       // How much ".." depends on placement of this file in directories...
-      return path.resolve(__dirname, '..', '..', dir);
+      return path.resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', dir);
     }
   } else {
-    return path.resolve(__dirname, '../config');
+    return path.resolve(dirname(fileURLToPath(import.meta.url)), '../config');
   }
 }

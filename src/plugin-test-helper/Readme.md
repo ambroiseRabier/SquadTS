@@ -193,3 +193,7 @@ Le truc, c'est que la 1ère approche est plus pratique quand on développe et qu
 Mais comme dans les 2 cas on mets des logs du jeu. Cela force de toute façon à avoir de l'info du jeu. 
 Si on veut créer la situation sans la produire dans le jeu et récup les logs de suite, faut prendre une autre approche sans le
 test server, comme celle pour switch command. switch command, qui d'ailleurs dépend de RCON mais se passe des logs facilement.
+
+---
+
+jest and await import and tsx, hard to make them work together :/ plugins not loading.

@@ -7,7 +7,7 @@ import { isEvent, parseLogLine } from './log-parser-helpers';
 import { LogReader } from './use-log-reader';
 import { LoggerOptions } from '../logger/logger.config';
 import { extractIDs } from '../rcon/id-parser';
-import { omit } from 'lodash';
+import { omit } from 'lodash-es';
 
 
 export type LogParser = ReturnType<typeof useLogParser>;

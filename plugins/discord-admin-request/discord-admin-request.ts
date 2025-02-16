@@ -4,7 +4,7 @@ import { DiscordAdminRequestEnabledOptions } from './discord-admin-request.confi
 import { filter, tap } from 'rxjs';
 import { AdminPerms } from '../../src/admin-list/permissions';
 import { APIEmbed } from 'discord.js';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 
 
 const DiscordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = async (server, connectors, logger, options) => {

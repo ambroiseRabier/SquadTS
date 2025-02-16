@@ -11,9 +11,9 @@ import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
 import { DiscordConnector } from '../connectors/use-discord.connector';
 import { resolveConfigsPath } from '../config/resolve-configs-path';
-import { pathToFileURL } from 'node:url';
-import { register } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api'
+import { dirname } from 'path';
 
 export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
 
@@ -47,7 +47,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
 
       // ---------- Loading JSON5 and validating ----------
       for (let pair of validConfigPairs) {
-        logger.info(`${pair.name}: Loading config...`);
+        logger.debug(`${pair.name}: Loading config...`);
 
         let json5;
         try {
@@ -58,7 +58,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        logger.info(`${pair.name}: Validating config...`);
+        logger.debug(`${pair.name}: Validating config...`);
         const parsed = await pair.configSchema.default.safeParseAsync(json5);
 
         if (!parsed.success) {
@@ -74,7 +74,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         const parsedConfig = parsed.data as PluginBaseOptions;
 
         if (!parsedConfig.enabled) {
-          logger.info(`${chalk.yellow.bold('Skipping')} ${pair.name} plugin. It is ${chalk.yellow('disabled')}.`);
+          logger.info(`${pair.name}: ${chalk.yellow.bold('disabled')}.`);
           continue;
         }
 
@@ -83,8 +83,7 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           continue;
         }
 
-        logger.info(`${pair.name}: ${chalk.green.bold('Starting')} plugin...`);
-
+        logger.debug(`${pair.name}: Starting plugin...`);
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
         // if logs are mixed between plugins.
@@ -102,6 +101,8 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           // A failing plugin should not stop SquadTS completely.
           logger.error(`Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`, error);
         });
+
+        logger.info(`${pair.name}: ${chalk.green.bold('Started')}`);
       }
     }
   };
@@ -160,7 +161,7 @@ function findFilesMatchingParentDirectory(fileList: string[]): string[] {
 async function loadPlugins(logger: Logger) {
   // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
   // ts-node at runtime.
-  const pluginsDirectory = path.join(__dirname, '..', '..', 'plugins');
+  const pluginsDirectory = path.join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'plugins');
   // Instead of putting every file inside plugins, better having a folder for each plugin since we require 3 files per plugin !
   // const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
   const allTSFiles = findFilesInSubfolders(pluginsDirectory, '.ts');
@@ -210,7 +211,7 @@ async function loadPlugins(logger: Logger) {
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       // plugin = require(pluginPath); // .replace(/\\/g, '/')
       // plugin = await import(pluginPath);
-      plugin = await tsImport(pathToFileURL(pluginPath).href, __filename);
+      plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
       continue;
@@ -224,7 +225,7 @@ async function loadPlugins(logger: Logger) {
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
       // configSchema = require(configSchemaPath);
       // configSchema = await import(configSchemaPath);
-      configSchema = await tsImport(pathToFileURL(configSchemaPath).href, __filename);
+      configSchema = await tsImport(pathToFileURL(configSchemaPath).href, fileURLToPath(import.meta.url));
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`, e);
       continue;

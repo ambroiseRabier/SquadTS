@@ -2,7 +2,7 @@ import { init } from 'zod-empty';
 import JSON5 from 'json5';
 import { addCommentJson5Zod } from './add-comment-json5-zod';
 import { z } from 'zod';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 
 export function generateJson5Commented(schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>, overrideDefaults?: any) {
   /**

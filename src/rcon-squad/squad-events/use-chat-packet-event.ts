@@ -1,5 +1,5 @@
 import { filter, map, share, Subject, tap } from 'rxjs';
-import { omit } from 'lodash';
+import { omit } from 'lodash-es';
 import { Logger } from 'pino';
 import { matchWithRegex } from '../../log-parser/log-parser-helpers';
 import { extractIDs } from '../../rcon/id-parser';

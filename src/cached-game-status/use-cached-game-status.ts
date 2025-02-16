@@ -1,7 +1,7 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
-import { merge, omit } from 'lodash';
+import { merge, omit } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';

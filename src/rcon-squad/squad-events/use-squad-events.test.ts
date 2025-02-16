@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it, jest } from 'vitest';
 import { useSquadEvents } from './use-squad-events';
 import { firstValueFrom, ReplaySubject, Subject } from 'rxjs';
 

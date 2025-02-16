@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
 import { TestServer, useTestServer } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
 import { afterEach } from 'node:test';
@@ -8,7 +8,7 @@ import heliCrashBroadcast from './heli-crash-broadcast';
 import { RCONCommand } from '../../src/rcon-squad/rcon-commands';
 
 // Note that SquadList is fetched first, before PlayerList. Same a server info, fetched immediately at startup
-function setRconMock(rconExec: jest.MockedFunction<Rcon['execute']>, resolvedValues: Partial<{
+function setRconMock(rconExec: MockedFunction<Rcon['execute']>, resolvedValues: Partial<{
   ShowServerInfo: string;
   ListPlayers: string;
   ListSquads: string;
@@ -39,7 +39,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // test intended to run in order with one time executed initial startup
 describe('Heli crash broadcast', () => {
   let testBed: TestServer;
-  let rconExec: jest.MockedFunction<Rcon['execute']> = jest.fn();
+  let rconExec: MockedFunction<Rcon['execute']> = vi.fn();
 
   beforeAll(async () => {
     // server immediately call ShowServerInfo, player list and squd list, on startup, we provide some default

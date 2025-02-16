@@ -12,6 +12,8 @@ import { useSquadServer } from './squad-server';
 import { useDiscordConnector } from './connectors/use-discord.connector';
 import { usePluginLoader } from './plugin-loader/plugin-loader';
 import { Options, optionsSchema } from './config/config.schema';
+import { dirname } from 'path';
+import { fileURLToPath } from 'node:url';
 
 interface Props {
   /**
@@ -73,7 +75,7 @@ export async function main(props?: Props) {
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
   const githubInfo = await retrieveGithubInfo(
-    path.join(__dirname, '..', 'github-info-cache'),
+    path.join(dirname(fileURLToPath(import.meta.url)), '..', 'github-info-cache'),
     githubInfoLogger
   );
   const cachedGameStatus = useCachedGameStatus({

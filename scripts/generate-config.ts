@@ -5,10 +5,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
 import chalk from 'chalk';
+import { dirname } from 'path';
+import { fileURLToPath } from 'node:url';
 
 // You may skip asking user for pre-commit or CI/CD stuff.
 const FORCE_OVERRIDE = process.argv.includes('--force') || process.argv.includes('-f');
-const configFolder = path.join(__dirname, '..', 'config');
+const configFolder = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'config');
 
 // Best to ask user confirmation, we don't want someone unfamiliar with NPM to override his config !
 const askUser = (question: string): Promise<boolean> => {
@@ -67,7 +69,7 @@ async function saveFiles() {
 async function savePluginFiles() {
   console.info(`Generating plugin files...`);
 
-  const pluginsDir = path.join(__dirname, '..', 'plugins'); // Assume 'plugins' is the root directory for plugins
+  const pluginsDir = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins'); // Assume 'plugins' is the root directory for plugins
 
   // Ensure the 'config/plugins' folder exists
   const configPluginsFolder = path.join(configFolder, 'plugins');

@@ -1,5 +1,5 @@
 import { concatMap, exhaustMap, interval, map, startWith, Subject, Subscription, tap } from 'rxjs';
-import { merge } from 'lodash';
+import { merge } from 'lodash-es';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { Player, Squad } from './use-cached-game-status';

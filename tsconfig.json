@@ -21,7 +21,17 @@
     "skipLibCheck": true,
 
     // Build dir
-    "outDir": "dist"
+    "outDir": "dist",
+
+    // todo
+    // may be usefull for build, however, this conflict with me using some stuff in scripts directory.
+    // I may have to refactor so that src does not rely on scripts...
+    // You could add the `rootDir` option to make the relationship between your source (`src`, etc.) and output (`dist`) directories explicit:
+    // - This tells TypeScript to treat `src` (or whatever your primary directory is) as the root of your project and will ensure consistent directory structure when files are built into `outDir`.
+//    "rootDir": "src",
+
+    // Allow us to import modules without having to suffix with `.js` due to ESM.
+    "moduleResolution": "bundler"
   },
   "include": [
     "src",

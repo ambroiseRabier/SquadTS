@@ -1,10 +1,10 @@
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it, jest } from 'vitest';
 import { LogParser } from '../log-parser/use-log-parser';
 import { CachedGameStatus, Player, useCachedGameStatus } from './use-cached-game-status';
 import { from, Observable, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { merge, omit, pick } from 'lodash';
+import { merge, omit, pick } from 'lodash-es';
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];

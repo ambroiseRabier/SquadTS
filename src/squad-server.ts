@@ -3,7 +3,7 @@ import { RconSquad } from './rcon-squad/use-rcon-squad';
 import { LogParser } from './log-parser/use-log-parser';
 import { filter } from 'rxjs';
 import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-status';
-import { omit } from "lodash";
+import { omit } from "lodash-es";
 import { AdminList } from './admin-list/use-admin-list';
 import { AdminPerms } from './admin-list/permissions';
 
