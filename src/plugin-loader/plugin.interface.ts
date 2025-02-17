@@ -9,5 +9,9 @@ import { DiscordConnector } from '../connectors/use-discord.connector';
  * Force extending PluginBaseOptions, however, there is no need for a plugin to know they have enabled to true
  * and to know logger verbosity through options. Logger verbosity can still be obtained through the logger itself.
  */
-export type SquadTSPlugin<PluginOptions extends PluginBaseOptions> =
-  (server: SquadServer, connectors: {discord: DiscordConnector},  logger: Logger, options: Omit<PluginOptions, 'enabled' | 'loggerVerbosity'>) => Promise<void>;
+export type SquadTSPlugin<PluginOptions extends PluginBaseOptions> = (
+  server: SquadServer,
+  connectors: { discord: DiscordConnector },
+  logger: Logger,
+  options: Omit<PluginOptions, 'enabled' | 'loggerVerbosity'>
+) => Promise<void>;

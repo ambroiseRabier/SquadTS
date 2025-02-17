@@ -22,26 +22,28 @@ describe('rcon-squad', () => {
     } as unknown as jest.Mocked<Rcon>;
     mockedRcon.connect.mockResolvedValue();
     mockedRcon.disconnect.mockResolvedValue();
-    squadRcon = useRconSquad({
-      trace: console.log,
-      debug: console.log,
-      info: console.info,
-      warn: console.warn,
-      error: console.error,
-    } as any,
+    squadRcon = useRconSquad(
+      {
+        trace: console.log,
+        debug: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+      } as any,
       mockedRcon,
       // Note, as for now, config only used by mocked sub modules.
       {} as any
     );
   });
 
-
   it('getCurrentMap', async () => {
     // const rconInstance = (Rcon as unknown as jest.Mocked<typeof Rcon>).mock.instances[0];
-    mockedRcon.execute.mockResolvedValue("Current level is Sumari Bala, layer is Sumari_Seed_v1, factions INS WPMC");
+    mockedRcon.execute.mockResolvedValue(
+      'Current level is Sumari Bala, layer is Sumari_Seed_v1, factions INS WPMC'
+    );
     expect(await squadRcon.getCurrentMap()).toEqual({
-      "layer": "Sumari_Seed_v1",
-      "level": "Sumari Bala"
+      layer: 'Sumari_Seed_v1',
+      level: 'Sumari Bala',
     });
   });
 });

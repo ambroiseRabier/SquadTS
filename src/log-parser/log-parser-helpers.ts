@@ -21,7 +21,7 @@ export function matchWithRegex<T extends string>(
   regexStr: T
 ): ObjectFromRegexStr<T> | null {
   // If needed we can cache the regex in a Map, to avoid GC.
-  const match = (new RegExp(regexStr)).exec(body);
+  const match = new RegExp(regexStr).exec(body);
   return match ? (match.groups as ObjectFromRegexStr<T>) : null;
 }
 
@@ -56,22 +56,26 @@ type LogEventUnion<ExtraData> = {
   [K in LogParserRules[number] as K[0]]: readonly [
     K[0],
     ObjectFromRegexStr<K[1]>,
-    ExtraData
+    ExtraData,
   ];
 }[LogParserRules[number][0]];
 
 // Having extra data make it harder to type, but that's how it is.
-type ExtraData = {date: Date; chainID: string; };
+type ExtraData = { date: Date; chainID: string };
 type LogEventUnionWithExtraData = LogEventUnion<ExtraData>;
 
-export function parseLogLine(rules: LogParserRules, line: string, extraData: ExtraData) {
+export function parseLogLine(
+  rules: LogParserRules,
+  line: string,
+  extraData: ExtraData
+) {
   for (const [eventName, regex] of rules) {
     const match = new RegExp(regex).exec(line);
     if (match) {
       return [
         eventName,
         match.groups! as ObjectFromRegexStr<typeof regex>,
-        extraData
+        extraData,
       ] as LogEventUnionWithExtraData;
     }
   }
@@ -110,7 +114,7 @@ export function parseLogLine(rules: LogParserRules, line: string, extraData: Ext
  * @param event
  * @param type
  */
-export function isEvent<T extends LogEventUnionWithExtraData["0"]>(
+export function isEvent<T extends LogEventUnionWithExtraData['0']>(
   event: LogEventUnionWithExtraData,
   type: T
 ): event is Extract<LogEventUnionWithExtraData, readonly [T, any, any]> {

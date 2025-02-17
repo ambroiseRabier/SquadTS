@@ -2,7 +2,11 @@
  * After HANDLING switches that DO NOT CHANGE balance, we use this one to know how many switches we can perform
  * based on maxAllowedPlayerCountDiff and current balance.
  */
-export function checkUnbalancedSwitchability(team1Count: number, team2Count: number, maxAllowedPlayerCountDiff: number) {
+export function checkUnbalancedSwitchability(
+  team1Count: number,
+  team2Count: number,
+  maxAllowedPlayerCountDiff: number
+) {
   // ex: 50v49,
   // maxAllowedPlayerCountDiff min is 1,
   // team 1 allowed: 50 - 49 = 1 (can switch)
@@ -36,7 +40,6 @@ export function checkUnbalancedSwitchability(team1Count: number, team2Count: num
       maxTeam2MoveAllowed: b2 + extra2,
     };
   }
-
 
   // Team are balanced, like 50v50
   return {

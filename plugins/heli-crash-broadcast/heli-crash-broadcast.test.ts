@@ -1,5 +1,16 @@
-import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
-import { TestServer, useTestServer } from '../../src/plugin-test-helper/plugin-test-helper';
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  MockedFunction,
+  vi,
+} from 'vitest';
+import {
+  TestServer,
+  useTestServer,
+} from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
 import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
 import { RCONCommand } from '../../src/rcon-squad/rcon-commands';
@@ -10,13 +21,19 @@ import { HeliCrashBroadCastOptions } from './heli-crash-broadcast.config';
 //
 
 // Note that SquadList is fetched first, before PlayerList. Same a server info, fetched immediately at startup
-function setRconMock(rconExec: MockedFunction<Rcon['execute']>, resolvedValues: Partial<{
-  ShowServerInfo: string;
-  ListPlayers: string;
-  ListSquads: string;
-}> & Record<string, string>) {
+function setRconMock(
+  rconExec: MockedFunction<Rcon['execute']>,
+  resolvedValues: Partial<{
+    ShowServerInfo: string;
+    ListPlayers: string;
+    ListSquads: string;
+  }> &
+    Record<string, string>
+) {
   rconExec.mockImplementation((command: string) => {
-    const throwFc = () => { throw new Error(`Rcon exec called with ${command}, it wasn't mocked !`); };
+    const throwFc = () => {
+      throw new Error(`Rcon exec called with ${command}, it wasn't mocked !`);
+    };
 
     // We should check for mock for every command where a return value is expected.
     if (command.match(new RegExp(`^${RCONCommand.ShowServerInfo}.*`))) {
@@ -55,12 +72,41 @@ Team ID: 1 (Irregular Battle Group)
 Team ID: 2 (Manticore Security Task Force)
 `,
       ShowServerInfo: JSON.stringify({
-        "MaxPlayers":24,"GameMode_s":"Skirmish","MapName_s":"Skorpo_Skirmish_v1","SEARCHKEYWORDS_s":"squadtstestserver,skorposkirmishv1,skirmish","GameVersion_s":"v8.2.1.369429.845","LICENSEDSERVER_b":false,
-        "PLAYTIME_I":"5616","Flags_I":"7","MATCHHOPPER_s":"TeamDeathmatch","MatchTimeout_d":120,"SESSIONTEMPLATENAME_s":"GameSession","Password_b":false,"PlayerCount_I":"0",
-        "ServerName_s":"SquadTS Test Server","CurrentModLoadedCount_I":"0","AllModsWhitelisted_b":false,"TeamTwo_s":"USA_S_CombinedArms","TeamOne_s":"IMF_S_CombinedArms",
-        "NextLayer_s":"Al Basrah RAAS v1","eu-central-1_I":"14","eu-west-2_I":"15","eu-north-1_I":"50","us-east-1_I":"84","me-central-1_I":"79","us-west-1_I":"152","ap-east-1_I":"238",
-        "ap-southeast-2_I":"289","ap-southeast-1_I":"17","Region_s":"eu-central-1","PlayerReserveCount_I":"0","PublicQueueLimit_I":"25","PublicQueue_I":"0","ReservedQueue_I":"0","BeaconPort_I":"15003"
-      } as GameServerInfo)
+        MaxPlayers: 24,
+        GameMode_s: 'Skirmish',
+        MapName_s: 'Skorpo_Skirmish_v1',
+        SEARCHKEYWORDS_s: 'squadtstestserver,skorposkirmishv1,skirmish',
+        GameVersion_s: 'v8.2.1.369429.845',
+        LICENSEDSERVER_b: false,
+        PLAYTIME_I: '5616',
+        Flags_I: '7',
+        MATCHHOPPER_s: 'TeamDeathmatch',
+        MatchTimeout_d: 120,
+        SESSIONTEMPLATENAME_s: 'GameSession',
+        Password_b: false,
+        PlayerCount_I: '0',
+        ServerName_s: 'SquadTS Test Server',
+        CurrentModLoadedCount_I: '0',
+        AllModsWhitelisted_b: false,
+        TeamTwo_s: 'USA_S_CombinedArms',
+        TeamOne_s: 'IMF_S_CombinedArms',
+        NextLayer_s: 'Al Basrah RAAS v1',
+        'eu-central-1_I': '14',
+        'eu-west-2_I': '15',
+        'eu-north-1_I': '50',
+        'us-east-1_I': '84',
+        'me-central-1_I': '79',
+        'us-west-1_I': '152',
+        'ap-east-1_I': '238',
+        'ap-southeast-2_I': '289',
+        'ap-southeast-1_I': '17',
+        Region_s: 'eu-central-1',
+        PlayerReserveCount_I: '0',
+        PublicQueueLimit_I: '25',
+        PublicQueue_I: '0',
+        ReservedQueue_I: '0',
+        BeaconPort_I: '15003',
+      } as GameServerInfo),
       // todo place others.
     });
 
@@ -72,11 +118,9 @@ Team ID: 2 (Manticore Security Task Force)
         'heli-crash-broadcast': <HeliCrashBroadCastOptions>{
           enabled: true,
           loggerVerbosity: 'debug',
-          messages: [
-            '%pilot% crash landed.'
-          ]
-        }
-      }
+          messages: ['%pilot% crash landed.'],
+        },
+      },
     });
   });
 
@@ -99,16 +143,44 @@ Team ID: 1 (Irregular Battle Group)
 Team ID: 2 (Manticore Security Task Force)
 `,
       ShowServerInfo: JSON.stringify({
-        "MaxPlayers":24,"GameMode_s":"Skirmish","MapName_s":"Skorpo_Skirmish_v1","SEARCHKEYWORDS_s":"squadtstestserver,skorposkirmishv1,skirmish","GameVersion_s":"v8.2.1.369429.845","LICENSEDSERVER_b":false,
-        "PLAYTIME_I":"5616","Flags_I":"7","MATCHHOPPER_s":"TeamDeathmatch","MatchTimeout_d":120,"SESSIONTEMPLATENAME_s":"GameSession","Password_b":false,"PlayerCount_I":"0",
-        "ServerName_s":"SquadTS Test Server","CurrentModLoadedCount_I":"0","AllModsWhitelisted_b":false,"TeamTwo_s":"USA_S_CombinedArms","TeamOne_s":"IMF_S_CombinedArms",
-        "NextLayer_s":"Al Basrah RAAS v1","eu-central-1_I":"14","eu-west-2_I":"15","eu-north-1_I":"50","us-east-1_I":"84","me-central-1_I":"79","us-west-1_I":"152","ap-east-1_I":"238",
-        "ap-southeast-2_I":"289","ap-southeast-1_I":"17","Region_s":"eu-central-1","PlayerReserveCount_I":"0","PublicQueueLimit_I":"25","PublicQueue_I":"0","ReservedQueue_I":"0","BeaconPort_I":"15003"
-      } as GameServerInfo)
+        MaxPlayers: 24,
+        GameMode_s: 'Skirmish',
+        MapName_s: 'Skorpo_Skirmish_v1',
+        SEARCHKEYWORDS_s: 'squadtstestserver,skorposkirmishv1,skirmish',
+        GameVersion_s: 'v8.2.1.369429.845',
+        LICENSEDSERVER_b: false,
+        PLAYTIME_I: '5616',
+        Flags_I: '7',
+        MATCHHOPPER_s: 'TeamDeathmatch',
+        MatchTimeout_d: 120,
+        SESSIONTEMPLATENAME_s: 'GameSession',
+        Password_b: false,
+        PlayerCount_I: '0',
+        ServerName_s: 'SquadTS Test Server',
+        CurrentModLoadedCount_I: '0',
+        AllModsWhitelisted_b: false,
+        TeamTwo_s: 'USA_S_CombinedArms',
+        TeamOne_s: 'IMF_S_CombinedArms',
+        NextLayer_s: 'Al Basrah RAAS v1',
+        'eu-central-1_I': '14',
+        'eu-west-2_I': '15',
+        'eu-north-1_I': '50',
+        'us-east-1_I': '84',
+        'me-central-1_I': '79',
+        'us-west-1_I': '152',
+        'ap-east-1_I': '238',
+        'ap-southeast-2_I': '289',
+        'ap-southeast-1_I': '17',
+        Region_s: 'eu-central-1',
+        PlayerReserveCount_I: '0',
+        PublicQueueLimit_I: '25',
+        PublicQueue_I: '0',
+        ReservedQueue_I: '0',
+        BeaconPort_I: '15003',
+      } as GameServerInfo),
     });
     await testBed.triggerRCONUpdate();
     // wait for server to fetch rcon player list
-
 
     //testBed.rcon.chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
 
@@ -123,6 +195,8 @@ Team ID: 2 (Manticore Security Task Force)
       [2025.02.13-19.13.17:868][363]LogSquad: Warning: Suicide -TWS- Yuca
     `);
 
-    expect(rconExec).toHaveBeenCalledWith('AdminBroadcast -TWS- Yuca crash landed.');
+    expect(rconExec).toHaveBeenCalledWith(
+      'AdminBroadcast -TWS- Yuca crash landed.'
+    );
   });
-})
+});

@@ -5,7 +5,8 @@ import { sortRequests } from './sort-requests';
 import { SquadServer } from '../../../src/squad-server';
 
 describe('sortRequests', () => {
-  const mockPlayerHasPermissions = vi.fn<SquadServer['helpers']['playerHasPermissions']>();
+  const mockPlayerHasPermissions =
+    vi.fn<SquadServer['helpers']['playerHasPermissions']>();
 
   beforeEach(() => {
     vi.clearAllMocks(); // Reset mock between tests
@@ -34,5 +35,4 @@ describe('sortRequests', () => {
       { eosID: 'player3', date: new Date('2023-01-03') },
     ]);
   });
-
 });

@@ -3,18 +3,22 @@ import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 import { AutoRejoinOptions } from './auto-rejoin-team.config';
 
+const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (
+  server: SquadServer,
+  connectors,
+  logger: Logger,
+  options
+) => {
+  const trackedPlayers = new Map<
+    string,
+    { disconnectDate: Date; teamID: '1' | '2' }
+  >();
 
-const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (server: SquadServer, connectors, logger: Logger, options) => {
-  const trackedPlayers = new Map<string, { disconnectDate: Date; teamID: '1' | '2' }>();
-  
   server.events.playerDisconnected.subscribe(async (data) => {
-    trackedPlayers.set(
-      data.player.eosID,
-      {
-        disconnectDate: data.date,
-        teamID: data.player.teamID,
-      }
-    );
+    trackedPlayers.set(data.player.eosID, {
+      disconnectDate: data.date,
+      teamID: data.player.teamID,
+    });
   });
 
   function filterOldDisconnectOut() {
@@ -23,7 +27,10 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (server: SquadServer,
     const now = new Date();
 
     trackedPlayers.forEach((data, eosID) => {
-      if (now.getTime() - data.disconnectDate.getTime() > disconnectionThreshold) {
+      if (
+        now.getTime() - data.disconnectDate.getTime() >
+        disconnectionThreshold
+      ) {
         trackedPlayers.delete(eosID);
       }
     });
@@ -41,9 +48,8 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (server: SquadServer,
         await server.rcon.warn(newPlayer.teamID, options.message);
       } // else joined his previous team, do nothing
     } // if not tracked, do nothing
-  })
+  });
 };
 
 // noinspection JSUnusedGlobalSymbols
 export default autoRejoin;
-

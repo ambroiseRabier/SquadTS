@@ -3,7 +3,6 @@ import { loadConfigFiles } from './load-config';
 import { optionsSchema } from './config.schema';
 import { CONFIGS_ROOT } from './path-constants.mjs';
 
-
 export async function useConfig(logger: Logger) {
   // Files loading
   logger.info(`Loading configurations from ${CONFIGS_ROOT}...`);
@@ -17,10 +16,8 @@ export async function useConfig(logger: Logger) {
   return await parseConfigs(configs, logger);
 }
 
-
 export async function parseConfigs(configs: any, logger: Logger) {
   const parsed = await optionsSchema.safeParseAsync(configs);
-
 
   // This ridiculous code duplication (look we return the same thing in both condition bodies)
   // actually make TS aware that when parsed.success
@@ -28,18 +25,18 @@ export async function parseConfigs(configs: any, logger: Logger) {
   if (parsed.success) {
     return {
       valid: parsed.success,
-      config: parsed.data
-    }
+      config: parsed.data,
+    };
   } else {
-    const errorMessages = parsed.error.issues.map(
-      (issue) => `- ${issue.path.join('.')}: ${issue.message}`
-    ).join('\n');
+    const errorMessages = parsed.error.issues
+      .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+      .join('\n');
 
     logger.error(errorMessages);
 
     return {
       valid: parsed.success,
-      config: parsed.data
-    }
+      config: parsed.data,
+    };
   }
 }

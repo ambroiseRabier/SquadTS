@@ -3,12 +3,16 @@
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
-const enabledSchema = pluginBaseOptionsSchema.extend({
-  enabled: z.literal(true),
-  channelID: z.string().nonempty(),
-}).describe("Logs damage done to FOBs and HABs by explosions to help identify engineers blowing up friendly FOBs and HABs.");
+const enabledSchema = pluginBaseOptionsSchema
+  .extend({
+    enabled: z.literal(true),
+    channelID: z.string().nonempty(),
+  })
+  .describe(
+    'Logs damage done to FOBs and HABs by explosions to help identify engineers blowing up friendly FOBs and HABs.'
+  );
 
-const schema = z.discriminatedUnion("enabled", [
+const schema = z.discriminatedUnion('enabled', [
   enabledSchema,
   pluginBaseOptionsSchema.extend({
     enabled: z.literal(false),

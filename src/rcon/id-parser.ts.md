@@ -4,7 +4,7 @@ Seems like we can update the syntax of IdsIterator and get the same result.
 
 Moved some more logic inside id-parser for DRY.
 
-I don't know if Id are always parsed successfully, regex may not always match the string given. 
+I don't know if Id are always parsed successfully, regex may not always match the string given.
 
 ---
 

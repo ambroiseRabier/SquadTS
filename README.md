@@ -1,4 +1,3 @@
-
 ## Run
 
 1. Install NodeJS
@@ -6,7 +5,6 @@
 3. `npm run`
 
 or run with watch file with `npm run watch`
-
 
 ## From release (pre-transpiled)
 
@@ -18,26 +16,24 @@ or run with watch file with `npm run watch`
 ## Config folder
 
 Config folder will be `./config`.
-If you need a different location, you can set `SQUAD_TS_CONFIG_PATH` env variable to an 
+If you need a different location, you can set `SQUAD_TS_CONFIG_PATH` env variable to an
 absolute path or relative to project root directory.
 
 ## Docker
 
 ...
 
-
-
 ## Dev
 
 1. `npm i`
 2. `npm run watch`
 
-
 To test on a squad server, you may host yourself (but it will be a hassle):
+
 - https://squad.fandom.com/wiki/Server_Installation
 - https://hub.docker.com/r/cm2network/squad/
 
-To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder 
+To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
 and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
 
 ### (Utility) Get output of a single RCON command
@@ -50,9 +46,8 @@ npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
 npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-commands.txt
 ```
 
-
-
 ## Aussi intéressant:
+
 creer un script pour load les maps une fois
 https://github.com/iamalone98/SquadJS/blob/master/src/core/maps/vanilla.json
 
@@ -76,7 +71,6 @@ pre-commit hook pr generate la config ?
 
 log parsing lib or some better way to handle logs ?
 
-
 ---
 
 find a way to automatically detect unparsed logs or variation of logs (when Squad update)
@@ -84,7 +78,6 @@ find a way to automatically detect unparsed logs or variation of logs (when Squa
 ---
 
 for ci, ts-node generateconfig.ts -f
-
 
 ---
 
@@ -115,8 +108,7 @@ faut changer la methode watch pr enelver son param comme dit plus haut
 ---
 
 plugin: roulette russe ? (kick) hehe
-PLYUGIN: auto balance, sur vote, et place les gens de meme team ensemble en options 
-
+PLYUGIN: auto balance, sur vote, et place les gens de meme team ensemble en options
 
 ## Log parser max file size
 
@@ -150,8 +142,8 @@ prio:
     "MaxPlayerInSquad"
 ]
 ```
-knife truc aussi
 
+knife truc aussi
 
 ---
 
@@ -185,7 +177,7 @@ todo, ya moyen de s'assurer que les plugins modifie pas ce qui leur aient donné
 
 ---
 
-todo: si je fais rien des logs initial (potentiellement de la veille...) (on veut pas agir 2 fois sur les meme logs si on 
+todo: si je fais rien des logs initial (potentiellement de la veille...) (on veut pas agir 2 fois sur les meme logs si on
 restart squadJS plusieurs fois de suite aussi !!), aussi bien enlever non ?
 ( en plus niveau logs, cela fait une pause pas forcément bien comprise )
 
@@ -215,12 +207,12 @@ huumm pas naturel ?
 la CI ou pre-commit hook, devrait regenerer la config (on peut tjrs enlever le hook pr des commit WIP).
 si rien a changé tt est bon,si quelque chose a chngé le dev doit faire un commit.
 
-----
+---
 
 (gen plugin config ?)
 prq je genere la config si le json5 manque ? cela est pa coherent avec la gen de config de la base squadTS
 
-----
+---
 
 requireConnectors, c du plugin a SquadTS, le user s'en fou et devrait pas y toucher ?
 Laisser au plugin le soin d'ajouter en description les requirement ?
@@ -240,9 +232,10 @@ strucutre pas adapté a plusieurs connecteur, en particulier le required<> typin
 
 todo: DiscordBaseMessageUpdater pr server status
 
-----
+---
 
 refléxion: Ce serait pas mieux d'avoir useSquadServer ds les tests des plugins ?
+
 - Faudrait mock logParser pour sûr
 - Faudrait bien envoyer les bons event dans l'ordre avec tout les infos correctes dedans... (genre date, id, teamid, etc)
 - Faudrait réussir à mock playerlist rcon Updates, sinon faudrait attendre trop.
@@ -258,7 +251,6 @@ ce qui est un no-no
 ---
 
 AUTO-update depuis github ? seulement si pas besoin de input manuel du user... peu probable :/
-
 
 ---
 
@@ -296,8 +288,7 @@ https://github.com/Ignis-Bots/SquadJS-My-Squad-Stats
 
 IMO, for both, just let SquadJS handle them
 
-https://github.com/ar1ocker/SquadJS-Commander-Vote
----
+## https://github.com/ar1ocker/SquadJS-Commander-Vote
 
 save log ds file pr aider a debug
 
@@ -317,7 +308,7 @@ heli crash suicide pas appelé, et pb de logs dupliqué...
 
 should also handle suicide by "Respawn" I suppose, better than watching playerWounded !
 
-----
+---
 
 https://github.com/fantinodavide/squad-js-map-vote
 map vote lui meme pas necessaire, par contre, le end match peut etre bien.
@@ -345,7 +336,6 @@ ListPermittedCommands 1 -> extraire donnée
 les mettres en "rcon.extra" ? (bof sur la longue)
 ListCommands 1
 
-
 ---
 
 log ds file, et aussi chatEvents separement?
@@ -366,9 +356,8 @@ gestion des date en test... rcon events...
 
 load que certain plugins ?
 
---- 
+---
 
 zod parse mais en refusant les props en trop ? (c possible me semble, idée c de
 indiquer si des trucs on changé et doivent être enlever si obsolète)
 ( de même, ce serait bien si les defaults... était pas défault dans la validation :/ )
-

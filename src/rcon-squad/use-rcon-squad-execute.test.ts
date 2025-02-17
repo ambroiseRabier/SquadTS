@@ -1,4 +1,12 @@
-import { beforeAll, describe, expect, it, vi, MockedFunction, beforeEach } from 'vitest';
+import {
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  MockedFunction,
+  beforeEach,
+} from 'vitest';
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { gameServerInfoKeys } from './server-info.type';
@@ -16,11 +24,7 @@ describe('rcon-squad-execute', () => {
   };
 
   beforeAll(() => {
-    rc = useRconSquadExecute(
-      execute as any,
-      false,
-      mockLogger as any
-    );
+    rc = useRconSquadExecute(execute as any, false, mockLogger as any);
   });
 
   beforeEach(() => {
@@ -31,25 +35,27 @@ describe('rcon-squad-execute', () => {
     const dryRunRCON = useRconSquadExecute(
       execute as any,
       true,
-      mockLogger as any,
+      mockLogger as any
     );
 
     // todo params check or error, will have to udpate the test here.
     await dryRunRCON.broadcast('hello');
     await dryRunRCON.kick('', '');
-    await dryRunRCON.ban('','', '');
+    await dryRunRCON.ban('', '', '');
     await dryRunRCON.warn('', '');
     await dryRunRCON.forceTeamChange('');
     await dryRunRCON.disbandSquad('', '');
     expect(execute).not.toHaveBeenCalled();
-    expect(mockLogger.warn).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'Dry run: AdminBroadcast hello'
+    );
   });
 
   it('does call execute on non game modifying command when dry run is enabled', async () => {
     const dryRunRCON = useRconSquadExecute(
       execute as any,
       true,
-      mockLogger as any,
+      mockLogger as any
     );
 
     await dryRunRCON.getListPlayers();
@@ -60,10 +66,12 @@ describe('rcon-squad-execute', () => {
   });
 
   it('getCurrentMap', async () => {
-    execute.mockResolvedValue("Current level is Sumari Bala, layer is Sumari_Seed_v1, factions INS WPMC");
+    execute.mockResolvedValue(
+      'Current level is Sumari Bala, layer is Sumari_Seed_v1, factions INS WPMC'
+    );
     expect(await rc.getCurrentMap()).toEqual({
-      "layer": "Sumari_Seed_v1",
-      "level": "Sumari Bala"
+      layer: 'Sumari_Seed_v1',
+      level: 'Sumari Bala',
     });
   });
 
@@ -79,24 +87,24 @@ ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277
     // Yes, many players seem to have a space in front of their name .-.
     expect(await rc.getListPlayers()).toStrictEqual([
       {
-        eosID: "0002fac23f7e47a682750a2b969b3701",
-        nameWithClanTag: "[FR] ComboAz",
-        role: "INS_Sapper_01",
+        eosID: '0002fac23f7e47a682750a2b969b3701',
+        nameWithClanTag: '[FR] ComboAz',
+        role: 'INS_Sapper_01',
         isLeader: false,
-        id: "3",
+        id: '3',
         squadID: undefined,
-        steamID: "76561198080109192",
-        teamID: "1",
+        steamID: '76561198080109192',
+        teamID: '1',
       },
       {
-        eosID: "0002d291d3f04069b0f5d3f11be15888",
-        nameWithClanTag: " JO Diabolo",
-        role: "INS_Grenadier_01",
+        eosID: '0002d291d3f04069b0f5d3f11be15888',
+        nameWithClanTag: ' JO Diabolo',
+        role: 'INS_Grenadier_01',
         isLeader: true,
-        id: "12",
-        squadID: "1",
-        steamID: "76561198012236668",
-        teamID: "1",
+        id: '12',
+        squadID: '1',
+        steamID: '76561198012236668',
+        teamID: '1',
       },
     ]);
   });
@@ -115,56 +123,56 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
     expect(await rc.getSquads()).toStrictEqual([
       {
         creator: {
-          eosID: "0002d1a8ee534edab8f366b826c1abf3",
-          name: "stefjimanez76",
-          steamID: "76561198214250793"
+          eosID: '0002d1a8ee534edab8f366b826c1abf3',
+          name: 'stefjimanez76',
+          steamID: '76561198214250793',
         },
         locked: false,
         size: 3,
-        squadID: "1",
-        name: "Squad 1",
-        teamID: "1",
-        teamName: "Irregular Battle Group"
+        squadID: '1',
+        name: 'Squad 1',
+        teamID: '1',
+        teamName: 'Irregular Battle Group',
       },
       {
         creator: {
-          eosID: "00020817daeb4e2faf717bdeeb18a9da",
-          name: "ComboAz",
-          steamID: "76561197996303481"
+          eosID: '00020817daeb4e2faf717bdeeb18a9da',
+          name: 'ComboAz',
+          steamID: '76561197996303481',
         },
         locked: false,
         size: 3,
-        squadID: "2",
-        name: "TWS",
-        teamID: "1",
-        teamName: "Irregular Battle Group"
+        squadID: '2',
+        name: 'TWS',
+        teamID: '1',
+        teamName: 'Irregular Battle Group',
       },
       {
         creator: {
-          eosID: "0002eca389864a621f1a51e2722df6be",
-          name: "Amzer",
-          steamID: "76561199594212551"
+          eosID: '0002eca389864a621f1a51e2722df6be',
+          name: 'Amzer',
+          steamID: '76561199594212551',
         },
         locked: true,
         size: 9,
-        squadID: "1",
-        name: "SPEC OPS TWS",
-        teamID: "2",
-        teamName: "Manticore Security Task Force"
+        squadID: '1',
+        name: 'SPEC OPS TWS',
+        teamID: '2',
+        teamName: 'Manticore Security Task Force',
       },
       {
         creator: {
-          eosID: "00021617235142d796774a04ed3d82fd",
-          name: "kilmol",
-          steamID: "76561199579221103"
+          eosID: '00021617235142d796774a04ed3d82fd',
+          name: 'kilmol',
+          steamID: '76561199579221103',
         },
         locked: false,
         size: 8,
-        squadID: "2",
-        name: "Squad 2",
-        teamID: "2",
-        teamName: "Manticore Security Task Force"
-      }
+        squadID: '2',
+        name: 'Squad 2',
+        teamID: '2',
+        teamName: 'Manticore Security Task Force',
+      },
     ]);
   });
 
@@ -180,18 +188,20 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
       fatal: console.error,
     } as any);
 
-    const obj = Object.fromEntries(gameServerInfoKeys.map(key => [key, ''] as const));
+    const obj = Object.fromEntries(
+      gameServerInfoKeys.map((key) => [key, ''] as const)
+    );
     obj['new_key_that_should_be_detected'] = '';
     delete obj[gameServerInfoKeys[0]];
 
-    localExecute.mockResolvedValue(JSON.stringify(obj))
+    localExecute.mockResolvedValue(JSON.stringify(obj));
 
     await localRcon.showServerInfo();
     expect(loggerWarn).toHaveBeenCalledWith(
-      'Missing keys found in server info (will only log once per start): MaxPlayers',
+      'Missing keys found in server info (will only log once per start): MaxPlayers'
     );
     expect(loggerWarn).toHaveBeenCalledWith(
-      'Extra keys found in server info (will only log once per start): new_key_that_should_be_detected',
+      'Extra keys found in server info (will only log once per start): new_key_that_should_be_detected'
     );
   });
 

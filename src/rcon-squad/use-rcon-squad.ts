@@ -7,11 +7,15 @@ import { useSquadEvents } from './squad-events/use-squad-events';
 // Utility type to avoid repetition.
 export type RconSquad = ReturnType<typeof useRconSquad>;
 
-
-export function useRconSquad(logger: Logger, rcon: Rcon, config: RconSquadConfig) {
-
+export function useRconSquad(
+  logger: Logger,
+  rcon: Rcon,
+  config: RconSquadConfig
+) {
   if (config.dryRun) {
-    logger.warn('Dry run mode enabled, game modifying commands will not be executed.');
+    logger.warn(
+      'Dry run mode enabled, game modifying commands will not be executed.'
+    );
   }
 
   return {

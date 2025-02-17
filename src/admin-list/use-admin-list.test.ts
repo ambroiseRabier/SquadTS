@@ -1,5 +1,16 @@
 import { Logger } from 'pino';
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi, Mocked, Mock, MockedFunction } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  vi,
+  Mocked,
+  Mock,
+  MockedFunction,
+} from 'vitest';
 import { useAdminList } from './use-admin-list';
 
 const validResponse = `
@@ -41,7 +52,6 @@ describe('useAdminList', () => {
     (global.fetch as Mock).mockReset();
   });
 
-
   it('should return completed adminList', async () => {
     const mockOptions = {
       remote: ['http://example.com/admin.cfg'],
@@ -58,28 +68,13 @@ describe('useAdminList', () => {
     const r = await fetch();
 
     expect(Object.fromEntries(r)).toEqual({
-      "76561198814495511": [
-        "balance",
-        "ban",
-        "chat"
-      ],
-      "76561198814495512": [
-        "balance",
-        "ban",
-        "chat"
-      ],
-      "76561198814495521": [
-        "balance",
-        "kick"
-      ],
-      "76561198814495522": [
-        "balance",
-        "kick"
-      ]
-    })
+      '76561198814495511': ['balance', 'ban', 'chat'],
+      '76561198814495512': ['balance', 'ban', 'chat'],
+      '76561198814495521': ['balance', 'kick'],
+      '76561198814495522': ['balance', 'kick'],
+    });
     expect(admins).toEqual(r);
   });
-
 
   it('should log info when fetching admin list starts', async () => {
     const mockOptions = {
@@ -97,10 +92,15 @@ describe('useAdminList', () => {
     await fetch();
 
     expect(logger.info).toHaveBeenNthCalledWith(1, 'Fetching 1 admin list...');
-    expect(logger.info).toHaveBeenNthCalledWith(2, 'Fetching http://example.com/admin.cfg');
-    expect(logger.info).toHaveBeenNthCalledWith(3, 'Admin list fetched. 4 admins found.');
+    expect(logger.info).toHaveBeenNthCalledWith(
+      2,
+      'Fetching http://example.com/admin.cfg'
+    );
+    expect(logger.info).toHaveBeenNthCalledWith(
+      3,
+      'Admin list fetched. 4 admins found.'
+    );
   });
-
 
   it('should handle HTTP errors correctly', async () => {
     const mockOptions = {
@@ -118,9 +118,10 @@ describe('useAdminList', () => {
 
     await fetch();
 
-    expect(logger.error).toHaveBeenCalledWith('HTTP error! Status: 404 Not Found');
+    expect(logger.error).toHaveBeenCalledWith(
+      'HTTP error! Status: 404 Not Found'
+    );
   });
-
 
   it('should handle fetch failure errors', async () => {
     const mockOptions = {
@@ -130,7 +131,9 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch failing
-    (global.fetch as MockedFunction<any>).mockRejectedValueOnce(new Error('Network Error'));
+    (global.fetch as MockedFunction<any>).mockRejectedValueOnce(
+      new Error('Network Error')
+    );
 
     await fetch();
 
@@ -139,7 +142,6 @@ describe('useAdminList', () => {
       expect.any(Error)
     );
   });
-
 
   it('should log an error if the response text is empty', async () => {
     const mockOptions = {
@@ -159,13 +161,9 @@ describe('useAdminList', () => {
     expect(logger.error).toHaveBeenCalledWith('Received admin.cfg is empty!');
   });
 
-
   it('should log a warning if an admin is being overridden', async () => {
     const mockOptions = {
-      remote: [
-        'http://example.com/admin.cfg',
-        'http://example2.com/admin.cfg'
-      ],
+      remote: ['http://example.com/admin.cfg', 'http://example2.com/admin.cfg'],
     };
 
     const { fetch, admins } = useAdminList(logger, mockOptions);
@@ -175,15 +173,18 @@ describe('useAdminList', () => {
     const mockReq: any = () => {
       return {
         ok: true,
-        text: vi.fn<() => Promise<string>>().mockResolvedValue([
-          `
+        text: vi.fn<() => Promise<string>>().mockResolvedValue(
+          [
+            `
 Group=Admin:balance,ban,chat
 Admin=76561198814495531:Admin
-      `,`
+      `,
+            `
 Group=Moderator:balance,kick
 Admin=76561198814495531:Moderator
-      `
-        ][index++]),
+      `,
+          ][index++]
+        ),
       };
     };
 
@@ -197,7 +198,6 @@ Admin=76561198814495531:Moderator
     );
   });
 
-
   it('should handle parsing errors properly', async () => {
     const mockOptions = {
       remote: ['http://example.com/admin.cfg'],
@@ -208,11 +208,15 @@ Admin=76561198814495531:Moderator
     // Simulate fetch returning invalid content
     (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce('Invalid admin config'),
+      text: vi
+        .fn<() => Promise<string>>()
+        .mockResolvedValueOnce('Invalid admin config'),
     });
 
     await fetch();
 
-    expect(logger.error).toHaveBeenCalledWith('Failed to parse admin.cfg! No groups found.');
+    expect(logger.error).toHaveBeenCalledWith(
+      'Failed to parse admin.cfg! No groups found.'
+    );
   });
 });

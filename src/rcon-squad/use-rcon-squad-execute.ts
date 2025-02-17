@@ -6,12 +6,16 @@ import { Logger } from 'pino';
 import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
 import { IncludesRCONCommand, RCONCommand } from './rcon-commands';
 
-
-
-export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
+export function useRconSquadExecute(
+  execute: Rcon['execute'],
+  dryRun: boolean,
+  logger: Logger
+) {
   let missingAndExtraCalledOnce = false;
 
-  function dryRunExecute<T extends string>(command: IncludesRCONCommand<T>): Promise<string> {
+  function dryRunExecute<T extends string>(
+    command: IncludesRCONCommand<T>
+  ): Promise<string> {
     if (dryRun) {
       logger.warn(`Dry run: ${command}`);
       return Promise.resolve('This is a dry run, no command was executed.');
@@ -30,8 +34,10 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     execute,
     getCurrentMap: async () => {
       const response: string = await execute('ShowCurrentMap');
-      const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
-      return match!.groups! as { level: string; layer: string; };
+      const match = response.match(
+        /^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/
+      );
+      return match!.groups! as { level: string; layer: string };
     },
 
     getNextMap: async () => {
@@ -39,7 +45,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       const match = response.match(/^Next level is ([^,]*), layer is ([^,]*)/);
       return {
         level: match ? (match[1] !== '' ? match[1] : null) : null,
-        layer: match ? (match[2] !== 'To be voted' ? match[2] : null) : null
+        layer: match ? (match[2] !== 'To be voted' ? match[2] : null) : null,
       };
     },
 
@@ -49,25 +55,24 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
      */
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
-      const regexStr = "^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$";
+      const regexStr =
+        '^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$';
       const regex = new RegExp(regexStr);
 
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
       return (response ?? '')
         .split('\n')
-        .map((line) => (
-          regex.exec(line)
-        ))
+        .map((line) => regex.exec(line))
         .filter((match): match is NonNullable<typeof match> => match !== null)
         .map((match) => {
           const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
-          const {isLeader, teamID, squadID, ids} = groups;
+          const { isLeader, teamID, squadID, ids } = groups;
           return {
             ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
             teamID: teamID as '1' | '2', // teamID !== 'N/A' ? teamID : null, // todo: actually possible ? admin cam perhaps ?
             squadID: squadID !== 'N/A' ? squadID : undefined,
-            ...extractIDs(ids)
+            ...extractIDs(ids),
           };
         });
     },
@@ -75,50 +80,54 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     getSquads: async () => {
       const response = await execute('ListSquads');
       // Attention: creator name is without clan tag here...
-      const regexStr = "ID: (?<squadID>\\d+) \\| Name: (?<name>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)";
+      const regexStr =
+        'ID: (?<squadID>\\d+) \\| Name: (?<name>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)';
       const regex = new RegExp(regexStr);
       let side: {
         teamID: string;
         teamName: string;
       };
 
-
       // Using functional approach (.map) is preferred as typing can be inferred.
       // Each line is either a player or a Team. (and there is only two teams)
-      return (response ?? '')
-        .split('\n')
-        // Assume map run in order.
-        .map((line) => {
-          const match = regex.exec(line);
-          const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
+      return (
+        (response ?? '')
+          .split('\n')
+          // Assume map run in order.
+          .map((line) => {
+            const match = regex.exec(line);
+            const matchSide = line.match(
+              /Team ID: (?<teamID>\d) \((?<teamName>.+)\)/
+            );
 
-          if (matchSide) {
-            // check for yourself, this is ok. Let's keep it simple here
-            side = matchSide.groups! as any;
-          }
+            if (matchSide) {
+              // check for yourself, this is ok. Let's keep it simple here
+              side = matchSide.groups! as any;
+            }
 
-          if (!match) {
-            // same as continue in a for loop when combined with filter null bellow
-            return null;
-          }
+            if (!match) {
+              // same as continue in a for loop when combined with filter null bellow
+              return null;
+            }
 
-          const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
+            const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
 
-          return {
-            ...omit(groups, ['creator_ids', 'creatorName', 'size', 'locked']),
-            size: parseInt(groups.size),
-            locked: groups.locked === 'True',
-            // assume that map process in order.
-            ...side,
-            // creator ids is not to be confused with squad leader ids.
-            creator: {
-              ...extractIDs(groups.creator_ids),
-              name: groups.creatorName,
-            },
-          };
-        })
-        // Remove null entries
-        .filter((squad): squad is NonNullable<typeof squad> => squad !== null);
+            return {
+              ...omit(groups, ['creator_ids', 'creatorName', 'size', 'locked']),
+              size: parseInt(groups.size),
+              locked: groups.locked === 'True',
+              // assume that map process in order.
+              ...side,
+              // creator ids is not to be confused with squad leader ids.
+              creator: {
+                ...extractIDs(groups.creator_ids),
+                name: groups.creatorName,
+              },
+            };
+          })
+          // Remove null entries
+          .filter((squad): squad is NonNullable<typeof squad> => squad !== null)
+      );
     },
 
     // todo: renvoie quoi ? quoi que ce soit utile ?
@@ -162,8 +171,12 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
       // We check for change in returned data, and inform user/dev that something changed.
       const infoKeys = Object.keys(info);
-      const missingKeys = gameServerInfoKeys.filter(key => !infoKeys.includes(key));
-      const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
+      const missingKeys = gameServerInfoKeys.filter(
+        (key) => !infoKeys.includes(key)
+      );
+      const extraKeys = infoKeys.filter(
+        (key) => !gameServerInfoKeys.includes(key as any)
+      );
 
       // Mostly aimed at SquadTS developers
       if (!missingAndExtraCalledOnce) {
@@ -171,13 +184,16 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         if (missingKeys.length > 0) {
           // Right now we get: LicenseId_s,LicenseSig1_s,LicenseSig2_s,LicenseSig3_s,TagLanguage_s,TagGameMode-0_s,TagGameMode-1_s,TagGameMode-2_s,TagGameMode_s,TagPlaystyle_s,TagMapRotation_s,TagExperience_s,TagRules_s
           // For an unlicensed server with almost no config on it.
-          logger.warn(`Missing keys found in server info (will only log once per start): ${missingKeys.join(',')}`);
+          logger.warn(
+            `Missing keys found in server info (will only log once per start): ${missingKeys.join(',')}`
+          );
         }
         if (extraKeys.length > 0) {
-          logger.warn(`Extra keys found in server info (will only log once per start): ${extraKeys.join(',')}`);
+          logger.warn(
+            `Extra keys found in server info (will only log once per start): ${extraKeys.join(',')}`
+          );
         }
       }
-
 
       function getMatchStartTimeByPlaytime(playtime: number) {
         return new Date(Date.now() - playtime * 1000);
@@ -200,15 +216,17 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         nextLayer: info.NextLayer_s,
         isSeed: info.MapName_s.search(/seed/i) !== -1,
 
-        teamOne: info.TeamOne_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
-        teamTwo: info.TeamTwo_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+        teamOne:
+          info.TeamOne_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+        teamTwo:
+          info.TeamTwo_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
 
         matchTimeout: info.MatchTimeout_d,
         matchStartTime: getMatchStartTimeByPlaytime(parseInt(info.PLAYTIME_I)),
         gameVersion: info.GameVersion_s,
 
         publicSlots: info.MaxPlayers - parseInt(info.PlayerReserveCount_I),
-        nextLayerToBeVoted: info.NextLayer_s === 'To be voted'
+        nextLayerToBeVoted: info.NextLayer_s === 'To be voted',
       };
     },
   };

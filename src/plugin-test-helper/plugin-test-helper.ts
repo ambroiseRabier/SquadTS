@@ -13,7 +13,9 @@ type DeepPartial<T> = {
 };
 
 interface Props {
-  executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
+  executeFn: <T extends string>(
+    command: IncludesRCONCommand<T>
+  ) => Promise<string>;
   optionsOverride?: DeepPartial<Options>;
   pluginOptionOverride?: Record<string, any>;
 }
@@ -26,7 +28,11 @@ interface Props {
  * Player squad list has to be updated manually.
  * Date mismatch between logs and RCON... (may or may not impact anything)
  */
-export async function useTestServer({executeFn, optionsOverride, pluginOptionOverride}: Props) {
+export async function useTestServer({
+  executeFn,
+  optionsOverride,
+  pluginOptionOverride,
+}: Props) {
   console.info('Starting test server... (this may take a while)');
 
   const mockLogReader: LogReader = {
@@ -36,12 +42,16 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
   };
 
   // Since it is a class, TS complain even though all public properties are present.
-  const mockRcon: Partial<Rcon> & {chatPacketEvent: Subject<string>} = {
+  const mockRcon: Partial<Rcon> & { chatPacketEvent: Subject<string> } = {
     execute: executeFn,
-    connect: async () => { /* no-op */ },
-    disconnect: async () => { /* no-op */ },
-    chatPacketEvent: new Subject<string>()
-  }
+    connect: async () => {
+      /* no-op */
+    },
+    disconnect: async () => {
+      /* no-op */
+    },
+    chatPacketEvent: new Subject<string>(),
+  };
 
   // Update interval in ms, you should set it very low, because you will have to wait for it in the tests.
   // For server info and players and squads to be updated.
@@ -55,7 +65,7 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
       autoReconnectDelay: 5000,
       host: '127.0.0.1',
       port: 25575,
-      password: 'examplePassword'
+      password: 'examplePassword',
     },
     logger: {
       verboseness: {
@@ -69,7 +79,7 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
         RCONSquad: 'info',
         AdminList: 'info',
         LogReader: 'info', // not used because of the mock
-        GithubInfo: 'info'
+        GithubInfo: 'info',
       },
       debugLogMatching: {
         showMatching: true, // recommended to keep it true for easier debug (help you confirm the logs you've placed are processed
@@ -77,8 +87,8 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
 
         // You may enable this with default values when you are sending a huge number of logs
         // You may also just disable showNonMatching, but this removes a little bit of help.
-        ignoreRegexMatch: []
-      }
+        ignoreRegexMatch: [],
+      },
     },
     // log parser config is mostly ignored as we mock log reader
     logParser: {
@@ -89,9 +99,9 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
         username: 'exampleUser',
         password: 'examplePassword',
         fetchInterval: 5000,
-        initialTailSize: 1048576
+        initialTailSize: 1048576,
       },
-      mode: 'ftp'
+      mode: 'ftp',
     },
     cacheGameStatus: {
       updateInterval: {
@@ -99,7 +109,7 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
         serverInfo: 1, // Remember: expected value is in second in config. (probably should make a manual update trigger too)
         layerInfo: 60, // unused for now, not implemented.
         playersAndSquads: 60, // manually trigger update yourself.
-      }
+      },
     },
     rconSquad: {
       dryRun: false, // no dry run as we mock rcon anyway.
@@ -109,14 +119,13 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
     connectors: {
       discord: {
         enabled: false,
-        token: '' // ignored when enabled is false
-      }
+        token: '', // ignored when enabled is false
+      },
     },
     adminList: {
-      remote: []
-    }
+      remote: [],
+    },
   };
-
 
   const manualRCONUpdateForTest = new Subject<void>();
   const server = await main({
@@ -126,8 +135,8 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
       // Default config for mocking, you may customize it for your tests.
       config: merge(baseOptions, optionsOverride),
       pluginOptionOverride: pluginOptionOverride,
-      manualRCONUpdateForTest
-    }
+      manualRCONUpdateForTest,
+    },
   });
 
   console.info('Test server ready !');
@@ -153,11 +162,11 @@ export async function useTestServer({executeFn, optionsOverride, pluginOptionOve
     emitLogs: (logs: string) => {
       logs
         .split('\n')
-        .map(line => line.trimStart()) // trimStart allow indentation in test file
-        .filter(line => line.length > 0) // Remove possible empty line due to code formatting
-        .forEach(line => (mockLogReader.line$ as Subject<string>).next(line))
-    }
-  }
+        .map((line) => line.trimStart()) // trimStart allow indentation in test file
+        .filter((line) => line.length > 0) // Remove possible empty line due to code formatting
+        .forEach((line) => (mockLogReader.line$ as Subject<string>).next(line));
+    },
+  };
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

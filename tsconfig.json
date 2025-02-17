@@ -28,18 +28,11 @@
     // I may have to refactor so that src does not rely on scripts...
     // You could add the `rootDir` option to make the relationship between your source (`src`, etc.) and output (`dist`) directories explicit:
     // - This tells TypeScript to treat `src` (or whatever your primary directory is) as the root of your project and will ensure consistent directory structure when files are built into `outDir`.
-//    "rootDir": "src",
+    //    "rootDir": "src",
 
     // Allow us to import modules without having to suffix with `.js` due to ESM. (if your file is mts, you still have to do it -> `.mjs`)
-    "moduleResolution": "bundler",
+    "moduleResolution": "bundler"
   },
-  "include": [
-    "src",
-    "scripts",
-    "plugins"
-  ],
-  "exclude": [
-    "**/*.test.ts",
-    "**/tests/**"
-  ]
+  "include": ["src", "scripts", "plugins"],
+  "exclude": ["**/*.test.ts", "**/tests/**"]
 }

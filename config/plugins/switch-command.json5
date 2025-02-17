@@ -12,7 +12,7 @@
   cooldown: 1200,
   // Allow to ignore cooldown if the player increase balance by switching.
   // A value of 2 allow team 1 in 51v49 to switch even if team 1 player is on cooldown, but do not allow switching if 50v49 is on cooldown.
-  // The issue this solve, is exceptionally allowing more switches to urgently balance a game, even if that pose the risk of a 
+  // The issue this solve, is exceptionally allowing more switches to urgently balance a game, even if that pose the risk of a
   // cheating (ghosting) by using his info from the previous team. As so, it is recommended to keep it somewhat high, like 6.
   // A value of 6 allow team 1 in 50v44 (or 40v34) scenario to switch one guy with cooldown, so that balance becomes 49v45.
   ignoreCooldownStartingUnbalance: 4,

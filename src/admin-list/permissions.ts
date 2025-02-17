@@ -5,105 +5,105 @@ export enum AdminPerms {
   /**
    * Not used currently
    */
-  StartVote = "startvote",
+  StartVote = 'startvote',
 
   /**
    * Switch to another map on the server
    */
-  ChangeMap = "changemap",
+  ChangeMap = 'changemap',
 
   /**
    * Pause server gameplay
    */
-  Pause = "pause",
+  Pause = 'pause',
 
   /**
    * Use server cheat commands
    */
-  Cheat = "cheat",
+  Cheat = 'cheat',
 
   /**
    * Password protect the server
    */
-  Private = "private",
+  Private = 'private',
 
   /**
    * Group ignores server team balance rules
    */
-  Balance = "balance",
+  Balance = 'balance',
 
   /**
    * Kick a player from the server
    */
-  Kick = "kick",
+  Kick = 'kick',
 
   /**
    * Ban a player from the server
    */
-  Ban = "ban",
+  Ban = 'ban',
 
   /**
    * Change server configuration settings
    */
-  Config = "config",
+  Config = 'config',
 
   /**
    * Admin spectate mode (cameraman functionality)
    */
-  Cameraman = "cameraman",
+  Cameraman = 'cameraman',
 
   /**
    * Cannot be kicked or banned from the server
    */
-  Immune = "immune",
+  Immune = 'immune',
 
   /**
    * Shutdown or manage the server
    */
-  ManageServer = "manageserver",
+  ManageServer = 'manageserver',
 
   /**
    * Access to features added for developer testing
    */
-  FeatureTest = "featuretest",
+  FeatureTest = 'featuretest',
 
   /**
    * Reserve slot on the server
    */
-  Reserve = "reserve",
+  Reserve = 'reserve',
 
   /**
    * Record demos ("demos" permission combined with "demo" and "ClientDemos" enables functionality)
    */
-  Demos = "demos",
+  Demos = 'demos',
 
   /**
    * Record demos
    */
-  Demo = "demo",
+  Demo = 'demo',
 
   /**
    * Record demos for clients
    */
-  ClientDemos = "ClientDemos",
+  ClientDemos = 'ClientDemos',
 
   /**
    * Show admin stats and other debugging info
    */
-  Debug = "debug",
+  Debug = 'debug',
 
   /**
    * No timer limits on team changes
    */
-  TeamChange = "teamchange",
+  TeamChange = 'teamchange',
 
   /**
    * Permission to force team changes with a command
    */
-  ForceTeamChange = "forceteamchange",
+  ForceTeamChange = 'forceteamchange',
 
   /**
    * Can see admin chat and teamkill/admin-join notifications
    */
-  CanSeeAdminChat = "canseeadminchat",
+  CanSeeAdminChat = 'canseeadminchat',
 }

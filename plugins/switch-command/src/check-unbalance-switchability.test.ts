@@ -1,3 +1,6 @@
+/* prettier-ignore */
+// vertical alignement of toEqual make it more readable. But prettier can't know that.
+
 import { describe, expect, it } from 'vitest';
 import { checkUnbalancedSwitchability } from './check-unbalance-switchability';
 

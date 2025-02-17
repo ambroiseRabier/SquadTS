@@ -1,5 +1,3 @@
-
-
 // 1.
 // Player and Squad should be merged properly
 

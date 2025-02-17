@@ -25,14 +25,15 @@ import { z } from 'zod';
 
 function getDescriptionsFromSchema(
   schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>,
-  prefix = ""
+  prefix = ''
 ): Record<string, string> {
   const descriptions: Record<string, string> = {};
 
   // instanceof does not work here, see generate-config.mts comment (dynamic imports...). It does remove type assertion :(
   if (schema.constructor.name === 'ZodDiscriminatedUnion') {
     // Handle discriminated unions by iterating through all its options
-    for (const option of (schema as z.ZodDiscriminatedUnion<any,any>).options) {
+    for (const option of (schema as z.ZodDiscriminatedUnion<any, any>)
+      .options) {
       const nestedDescriptions = getDescriptionsFromSchema(option, prefix); // Recursively collect descriptions for each option
       Object.assign(descriptions, nestedDescriptions);
     }
@@ -48,8 +49,13 @@ function getDescriptionsFromSchema(
       }
 
       // If the field is a nested Zod object or a discriminated union, handle it
-      if (['ZodObject', 'ZodDiscriminatedUnion'].includes(field.constructor.name)) {
-        const nestedDescriptions = getDescriptionsFromSchema(field, `${prefix}${key}.`);
+      if (
+        ['ZodObject', 'ZodDiscriminatedUnion'].includes(field.constructor.name)
+      ) {
+        const nestedDescriptions = getDescriptionsFromSchema(
+          field,
+          `${prefix}${key}.`
+        );
         Object.assign(descriptions, nestedDescriptions);
       }
     }
@@ -61,7 +67,7 @@ function getDescriptionsFromSchema(
 // Helper to get indentation of a line
 function getIndent(line: string): string {
   const match = line.match(/^(\s*)/);
-  return match ? match[1] : "";
+  return match ? match[1] : '';
 }
 
 /**
@@ -73,13 +79,15 @@ export function addCommentJson5Zod(
   json5String: string
 ): string {
   const topLevelDescription = schema._def.description;
-  const topLevelComment = !!topLevelDescription ? `\/**\n * ${topLevelDescription.replaceAll("\n", "\n * ")}\n *\/\n` : '';
+  const topLevelComment = !!topLevelDescription
+    ? `\/**\n * ${topLevelDescription.replaceAll('\n', '\n * ')}\n *\/\n`
+    : '';
 
   // Generate description map from the schema
   const descriptions = getDescriptionsFromSchema(schema);
 
   // Process the JSON5 string line by line
-  const lines = json5String.split("\n");
+  const lines = json5String.split('\n');
   const commentedLines: string[] = [];
   const scopedKeys: string[] = [];
 
@@ -91,15 +99,18 @@ export function addCommentJson5Zod(
     const keyMatch = trimmedLine.match(/^"?(?<key>\w+)"?:/);
     if (keyMatch) {
       const { key } = keyMatch.groups!;
-      const description = descriptions[`${scopedKeys.join('.')}${scopedKeys.length > 0 ? '.': ''}${key}`];
+      const description =
+        descriptions[
+          `${scopedKeys.join('.')}${scopedKeys.length > 0 ? '.' : ''}${key}`
+        ];
 
       // If a description is available, add it as a comment
       if (description) {
         const indent = getIndent(line); // Match the current line's indentation
         const multiLineDescription = description
-          .split("\n")
-          .map(line => `${indent}// ${line}`)
-          .join("\n");
+          .split('\n')
+          .map((line) => `${indent}// ${line}`)
+          .join('\n');
         commentedLines.push(multiLineDescription); // Add comment(s)
       }
     }
@@ -119,5 +130,5 @@ export function addCommentJson5Zod(
     commentedLines.push(line);
   }
 
-  return topLevelComment + commentedLines.join("\n");
+  return topLevelComment + commentedLines.join('\n');
 }

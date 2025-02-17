@@ -15,7 +15,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
       const result: [steamId64: string, AdminPerms[]][] = [];
 
       for (const [adminID, adminPerms] of admins.entries()) {
-        const hasAllPermissions = permissions.every(permission =>
+        const hasAllPermissions = permissions.every((permission) =>
           adminPerms.includes(permission)
         );
 
@@ -42,7 +42,9 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
           const response = await fetch(url);
 
           if (!response.ok) {
-            logger.error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+            logger.error(
+              `HTTP error! Status: ${response.status} ${response.statusText}`
+            );
             continue;
           }
 
@@ -55,7 +57,10 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
             continue;
           }
         } catch (error: any) {
-          logger.error(`Failed to fetch ${url}. Error: ${error?.message}`, error);
+          logger.error(
+            `Failed to fetch ${url}. Error: ${error?.message}`,
+            error
+          );
           continue;
         }
 
@@ -67,7 +72,9 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
 
         for (let [key, value] of admins) {
           if (parsed.has(key)) {
-            logger.warn(`${key} is already in admin list. Overriding with new permissions.`)
+            logger.warn(
+              `${key} is already in admin list. Overriding with new permissions.`
+            );
           }
         }
 
@@ -79,10 +86,9 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
       }
 
       return admins;
-    }
-  }
+    },
+  };
 }
-
 
 function parseAdminCFG(adminCFG: string, logger: Logger) {
   const groupToPermissions = extractGroupPermissions(adminCFG);

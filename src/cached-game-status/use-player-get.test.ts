@@ -8,7 +8,7 @@ describe('use-player-get', () => {
     name: 'NeverMatchMe',
     nameWithClanTag: 'NeverMatchMe',
     eosID: 'eos9999',
-  }
+  };
 
   it('Find player (normal happy case)', () => {
     const mockData: Pick<Player, 'name' | 'nameWithClanTag' | 'eosID'>[] = [
@@ -27,9 +27,9 @@ describe('use-player-get', () => {
         nameWithClanTag: undefined,
         eosID: 'eos1',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     // Explicit by name
     expect(pg.getPlayersByName('Yuca')).toEqual([mockData[0]]);
@@ -47,9 +47,9 @@ describe('use-player-get', () => {
         nameWithClanTag: 'Yuca',
         eosID: 'eos0',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.getPlayersByName('Yuca')).toEqual([mockData[0]]);
     expect(pg.getPlayersByNameWithClanTag('Yuca')).toEqual([mockData[0]]);
@@ -67,17 +67,18 @@ describe('use-player-get', () => {
         nameWithClanTag: '-TWS- Yuca',
         eosID: 'eos1',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     // Cannot find a unique player, send nothing back.
     expect(pg.getPlayersByName('Yuca')).toEqual(mockData.slice(0, 2));
-    expect(pg.getPlayersByNameWithClanTag('-TWS- Yuca')).toEqual(mockData.slice(0, 2));
+    expect(pg.getPlayersByNameWithClanTag('-TWS- Yuca')).toEqual(
+      mockData.slice(0, 2)
+    );
     expect(pg.tryGetPlayerByName('Yuca')).toEqual(undefined);
     expect(pg.tryGetPlayerByNameWithClanTag('-TWS- Yuca')).toEqual(undefined);
   });
-
 
   it('tryGetPlayerByName will match nameWithClanTag if no name found (SquadRCON.getListPlayers is up-to-date but logParser.playerConnected is not)', () => {
     const mockData: Pick<Player, 'name' | 'nameWithClanTag' | 'eosID'>[] = [
@@ -85,9 +86,9 @@ describe('use-player-get', () => {
         nameWithClanTag: 'Yuca',
         eosID: 'eos0',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.tryGetPlayerByName('Yuca')).toEqual(mockData[0]);
   });
@@ -102,9 +103,9 @@ describe('use-player-get', () => {
         nameWithClanTag: 'Yuca -TWS-', // clan tag is always at the start, a simple includes will fail here
         eosID: 'eos1',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.tryGetPlayerByName('Yuca')).toEqual(mockData[0]);
   });
@@ -119,9 +120,9 @@ describe('use-player-get', () => {
         nameWithClanTag: '-FR- Yuca',
         eosID: 'eos0',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.tryGetPlayerByName('Yuca')).toEqual(undefined);
   });
@@ -132,9 +133,9 @@ describe('use-player-get', () => {
         name: '-TWS- Yuca',
         eosID: 'eos0',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.tryGetPlayerByNameWithClanTag('-TWS- Yuca')).toEqual(mockData[0]);
   });
@@ -153,9 +154,9 @@ describe('use-player-get', () => {
         name: 'uca', // and this one too...
         eosID: 'eos2',
       },
-      anotherPlayer
+      anotherPlayer,
     ];
-    const pg = usePlayerGet(() => (mockData as any)); // as any because we don't need the full Player for the tests
+    const pg = usePlayerGet(() => mockData as any); // as any because we don't need the full Player for the tests
 
     expect(pg.tryGetPlayerByNameWithClanTag('-TWS- Yuca')).toEqual(undefined);
   });
@@ -171,5 +172,4 @@ describe('use-player-get', () => {
   //     nameWithClanTag: '[FR]Yuca',
   //   eosID: 'eos1',
   // }
-
 });

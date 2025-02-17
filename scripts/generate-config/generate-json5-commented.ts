@@ -4,7 +4,10 @@ import { addCommentJson5Zod } from './add-comment-json5-zod';
 import { z } from 'zod';
 import { merge } from 'lodash-es';
 
-export function generateJson5Commented(schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>, overrideDefaults?: any) {
+export function generateJson5Commented(
+  schema: z.ZodObject<any> | z.ZodDiscriminatedUnion<any, any>,
+  overrideDefaults?: any
+) {
   /**
    * See https://github.com/colinhacks/zod/discussions/1953
    *

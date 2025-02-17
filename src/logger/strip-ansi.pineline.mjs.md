@@ -5,33 +5,36 @@ import stripAnsi from 'strip-ansi';
 
 // See https://github.com/pinojs/pino/blob/main/docs/transports.md#creating-a-transport-pipeline
 export default async function (options) {
-  return build(function (source) {
-    const myTransportStream = new Transform({
-      // Make sure autoDestroy is set,
-      // this is needed in Node v12 or when using the
-      // readable-stream module.
-      autoDestroy: true,
+  return build(
+    function (source) {
+      const myTransportStream = new Transform({
+        // Make sure autoDestroy is set,
+        // this is needed in Node v12 or when using the
+        // readable-stream module.
+        autoDestroy: true,
 
-      objectMode: true, // false would be nice, as we don't need to parse to object ot strip ansi.
-      // chunk has: level, time, msg in objectMode true
-      // chunk is Buffer or string in objectMode false
-      transform (chunk, enc, cb) {
-        // In object mode:
-        // modifies the payload somehow
-        // chunk.service = 'pino';
-        chunk.msg = stripAnsi(chunk.msg)
-        // stringify the payload again
-        this.push(`${JSON.stringify(chunk)}\n`);
+        objectMode: true, // false would be nice, as we don't need to parse to object ot strip ansi.
+        // chunk has: level, time, msg in objectMode true
+        // chunk is Buffer or string in objectMode false
+        transform(chunk, enc, cb) {
+          // In object mode:
+          // modifies the payload somehow
+          // chunk.service = 'pino';
+          chunk.msg = stripAnsi(chunk.msg);
+          // stringify the payload again
+          this.push(`${JSON.stringify(chunk)}\n`);
 
-        cb();
-      }
-    })
-    pipeline(source, myTransportStream, () => {});
-    return myTransportStream;
-  }, {
-    // This is needed to be able to pipeline transports.
-    enablePipelining: true
-  });
+          cb();
+        },
+      });
+      pipeline(source, myTransportStream, () => {});
+      return myTransportStream;
+    },
+    {
+      // This is needed to be able to pipeline transports.
+      enablePipelining: true,
+    }
+  );
 }
 ```
 
@@ -58,12 +61,10 @@ export default async function (options) {
     );
   });
 }
-
-
-
 ```
 
-give 
+give
+
 ```
 [11:23:11.262] INFO: Starting SquadTS
 Pipeline error: TypeError: Invalid non-string/buffer chunk

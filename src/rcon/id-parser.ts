@@ -1,5 +1,3 @@
-
-
 /** All possible IDs that a player can have. */
 export const playerIdNames = ['steamID', 'eosID'] as const;
 
@@ -8,13 +6,12 @@ export const playerIdNames = ['steamID', 'eosID'] as const;
  */
 const ID_MATCHER = /\s*(?<platform>[^\s:]+)\s*:\s*(?<id>[^\s]+)/g;
 
-
 /**
  * Returns {steamID: string, eosID: string}
  */
 export function extractIDs(
-  idsStr: string,
-): Record<typeof playerIdNames[number], string> {
+  idsStr: string
+): Record<(typeof playerIdNames)[number], string> {
   return Object.fromEntries(
     Array.from(idsStr.matchAll(ID_MATCHER)).map((match) => {
       const { platform, id } = match.groups ?? {};
@@ -24,7 +21,6 @@ export function extractIDs(
   ) as any;
 }
 
-
 /**
  * Generates lowercase ID names. Examples:
  *   steam -> steamID
@@ -33,4 +29,3 @@ export function extractIDs(
 const lowerPlatform = (str: string) => {
   return str.toLowerCase() + 'ID';
 };
-

@@ -3,10 +3,13 @@ import { Logger } from 'pino';
 import { useAdminInCam } from './use-admin-in-cam';
 import { useChatPacketEvent } from './use-chat-packet-event';
 
-
-export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>) {
+export function useSquadEvents(
+  logger: Logger,
+  chatPacketEvent: Subject<string>
+) {
   const chatEvents = useChatPacketEvent(logger, chatPacketEvent);
-  const {adminsInAdminCam, unPossessedAdminCamera, possessedAdminCamera} = useAdminInCam(chatEvents);
+  const { adminsInAdminCam, unPossessedAdminCamera, possessedAdminCamera } =
+    useAdminInCam(chatEvents);
 
   return {
     adminsInAdminCam,
@@ -14,7 +17,7 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
     chatEvents: {
       ...chatEvents,
       possessedAdminCamera,
-      unPossessedAdminCamera
+      unPossessedAdminCamera,
     },
   };
 }

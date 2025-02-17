@@ -26,7 +26,7 @@ interface Props {
     config: Options; // todo: again mixing config and options, choose :/
     pluginOptionOverride?: Record<string, any>;
     manualRCONUpdateForTest?: Subject<void>;
-  },
+  };
 }
 
 // todo, maybe use some kind or DI, why not place logParser inside squadServer ?
@@ -36,7 +36,9 @@ export async function main(props?: Props) {
   logger.info('Starting SquadTS');
 
   // Load config from object if it is a test server, or from directory if non-test server.
-  const {valid, config} = !!props?.mocks ? await parseConfigs(props.mocks.config, logger) : await useConfig(logger);
+  const { valid, config } = !!props?.mocks
+    ? await parseConfigs(props.mocks.config, logger)
+    : await useConfig(logger);
 
   if (valid) {
     logger.info('Configuration validated.');
@@ -62,12 +64,18 @@ export async function main(props?: Props) {
     pluginLoaderLogger,
     adminListLogger,
     logReaderLogger,
-    githubInfoLogger
+    githubInfoLogger,
   } = useSubLogger(logger, config.logger.verboseness);
-  const rcon = props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger)
+  const rcon = props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
-  const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
-  const logParser = useLogParser(logParserLogger, logReader, config.logParser, config.logger.debugLogMatching);
+  const logReader =
+    props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
+  const logParser = useLogParser(
+    logParserLogger,
+    logReader,
+    config.logParser,
+    config.logger.debugLogMatching
+  );
 
   // I need to connect to RCON early to get serverInfo and avoid having to deal with empty or undefined data in BehaviorSubject
   // inside cachedGameStatus...
@@ -78,7 +86,11 @@ export async function main(props?: Props) {
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
   const githubInfo = await retrieveGithubInfo(
-    path.join(dirname(fileURLToPath(import.meta.url)), '..', 'github-info-cache'),
+    path.join(
+      dirname(fileURLToPath(import.meta.url)),
+      '..',
+      'github-info-cache'
+    ),
     githubInfoLogger
   );
   const cachedGameStatus = useCachedGameStatus({
@@ -95,15 +107,22 @@ export async function main(props?: Props) {
     rconSquad,
     logParser,
     cachedGameStatus,
-    adminList
+    adminList,
   });
-  const discordConnector = config.connectors.discord.enabled ?
-    await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
-      logger.error(`Discord connector failed to start: ${error?.message}`)
-      return undefined;
-    })
+  const discordConnector = config.connectors.discord.enabled
+    ? await useDiscordConnector(config.connectors.discord.token, logger).catch(
+        (error) => {
+          logger.error(`Discord connector failed to start: ${error?.message}`);
+          return undefined;
+        }
+      )
     : undefined;
-  const pluginLoader = usePluginLoader(server, { discord: discordConnector }, pluginLoaderLogger, logger);
+  const pluginLoader = usePluginLoader(
+    server,
+    { discord: discordConnector },
+    pluginLoaderLogger,
+    logger
+  );
 
   // Do authentification on RCON and FTP/SFTP first before loading plugins
   await server.prepare();

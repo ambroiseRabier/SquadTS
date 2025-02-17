@@ -57,13 +57,13 @@ export type GameServerInfo = {
   TagLanguage_s: string;
 
   // e.g. "003;009;015;021;027;033;..."
-  "TagGameMode-0_s": string;
+  'TagGameMode-0_s': string;
 
   // e.g. "001;007;013;019;025;..."
-  "TagGameMode-1_s": string;
+  'TagGameMode-1_s': string;
 
   // e.g. "005;011;017;023;..."
-  "TagGameMode-2_s": string;
+  'TagGameMode-2_s': string;
 
   // e.g. ";1;"
   TagGameMode_s: string;
@@ -90,31 +90,31 @@ export type GameServerInfo = {
   TeamTwo_s: string;
 
   // e.g. "19"
-  "eu-central-1_I": string;
+  'eu-central-1_I': string;
 
   // e.g. "40"
-  "eu-north-1_I": string;
+  'eu-north-1_I': string;
 
   // e.g. "26"
-  "eu-west-2_I": string;
+  'eu-west-2_I': string;
 
   // e.g. "90"
-  "me-central-1_I": string;
+  'me-central-1_I': string;
 
   // e.g. "75"
-  "us-east-1_I": string;
+  'us-east-1_I': string;
 
   // e.g. "137"
-  "us-west-1_I": string;
+  'us-west-1_I': string;
 
   // e.g. "267"
-  "ap-southeast-2_I": string;
+  'ap-southeast-2_I': string;
 
   // e.g. "260"
-  "ap-east-1_I": string;
+  'ap-east-1_I': string;
 
   // e.g. "35"
-  "ap-southeast-1_I": string;
+  'ap-southeast-1_I': string;
 
   // e.g. "eu-central-1"
   Region_s: string;
@@ -142,51 +142,51 @@ export type GameServerInfo = {
 };
 
 export const gameServerInfoKeys: (keyof GameServerInfo)[] = [
-  "MaxPlayers",
-  "GameMode_s",
-  "MapName_s",
-  "SEARCHKEYWORDS_s",
-  "GameVersion_s",
-  "LICENSEDSERVER_b",
-  "PLAYTIME_I",
-  "Flags_I",
-  "MATCHHOPPER_s",
-  "MatchTimeout_d",
-  "SESSIONTEMPLATENAME_s",
-  "Password_b",
-  "PlayerCount_I",
-  "ServerName_s",
-  "LicenseId_s",
-  "LicenseSig1_s",
-  "LicenseSig2_s",
-  "LicenseSig3_s",
-  "TagLanguage_s",
-  "TagGameMode-0_s",
-  "TagGameMode-1_s",
-  "TagGameMode-2_s",
-  "TagGameMode_s",
-  "TagPlaystyle_s",
-  "TagMapRotation_s",
-  "TagExperience_s",
-  "TagRules_s",
-  "CurrentModLoadedCount_I",
-  "AllModsWhitelisted_b",
-  "TeamTwo_s",
-  "eu-central-1_I",
-  "eu-north-1_I",
-  "eu-west-2_I",
-  "me-central-1_I",
-  "us-east-1_I",
-  "us-west-1_I",
-  "ap-southeast-2_I",
-  "ap-east-1_I",
-  "ap-southeast-1_I",
-  "Region_s",
-  "NextLayer_s",
-  "TeamOne_s",
-  "PlayerReserveCount_I",
-  "PublicQueueLimit_I",
-  "PublicQueue_I",
-  "ReservedQueue_I",
-  "BeaconPort_I",
+  'MaxPlayers',
+  'GameMode_s',
+  'MapName_s',
+  'SEARCHKEYWORDS_s',
+  'GameVersion_s',
+  'LICENSEDSERVER_b',
+  'PLAYTIME_I',
+  'Flags_I',
+  'MATCHHOPPER_s',
+  'MatchTimeout_d',
+  'SESSIONTEMPLATENAME_s',
+  'Password_b',
+  'PlayerCount_I',
+  'ServerName_s',
+  'LicenseId_s',
+  'LicenseSig1_s',
+  'LicenseSig2_s',
+  'LicenseSig3_s',
+  'TagLanguage_s',
+  'TagGameMode-0_s',
+  'TagGameMode-1_s',
+  'TagGameMode-2_s',
+  'TagGameMode_s',
+  'TagPlaystyle_s',
+  'TagMapRotation_s',
+  'TagExperience_s',
+  'TagRules_s',
+  'CurrentModLoadedCount_I',
+  'AllModsWhitelisted_b',
+  'TeamTwo_s',
+  'eu-central-1_I',
+  'eu-north-1_I',
+  'eu-west-2_I',
+  'me-central-1_I',
+  'us-east-1_I',
+  'us-west-1_I',
+  'ap-southeast-2_I',
+  'ap-east-1_I',
+  'ap-southeast-1_I',
+  'Region_s',
+  'NextLayer_s',
+  'TeamOne_s',
+  'PlayerReserveCount_I',
+  'PublicQueueLimit_I',
+  'PublicQueue_I',
+  'ReservedQueue_I',
+  'BeaconPort_I',
 ];

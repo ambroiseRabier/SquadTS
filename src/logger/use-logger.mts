@@ -16,7 +16,7 @@ export function useLogger() {
   // Pino will show pretty logs only in dev as per their recommendation.
   const prettyStream = pretty({
     colorize: true,
-    sync: process.env.NODE_ENV === 'test'
+    sync: process.env.NODE_ENV === 'test',
   });
   //
   // const logger = pino({
@@ -70,8 +70,8 @@ export function useLogger() {
         options: {
           colorize: true,
           // pino recommendation to have it synchrone in tests
-          sync: process.env.NODE_ENV === 'test'
-        }
+          sync: process.env.NODE_ENV === 'test',
+        },
       },
 
       // https://github.com/pinojs/pino/blob/main/docs/transports.md#pinofile
@@ -79,7 +79,10 @@ export function useLogger() {
         level: 'trace',
         pipeline: [
           {
-            target: fileURLToPath(import.meta.url).replace('use-logger.mts', 'strip-ansi.pipeline.mjs')
+            target: fileURLToPath(import.meta.url).replace(
+              'use-logger.mts',
+              'strip-ansi.pipeline.mjs'
+            ),
           },
           // {
           //   target: 'pino/file',
@@ -104,9 +107,9 @@ export function useLogger() {
               // Note that it is not a complete fix as it won't handle file created from a previous execution.
               limit: { count: 25 },
               // Would prefer the date being placed before .log not after...
-              dateFormat: 'yyyy-MM-dd-hh'
+              dateFormat: 'yyyy-MM-dd-hh',
             },
-          }
+          },
         ],
       },
 
@@ -114,15 +117,23 @@ export function useLogger() {
       // pino-roll maybe, do I actually need it ? todo
     ],
   });
-  const logger = pino({
-    base: null, // Remove processID and hostname
-  }, transport);
-
+  const logger = pino(
+    {
+      base: null, // Remove processID and hostname
+    },
+    transport
+  );
 
   return logger;
 }
 
-export function useSubLogger(logger: Logger, verboseness: Options['logger']['verboseness']) {
+
+export function useSubLogger(
+  logger: Logger,
+  verboseness: Options['logger']['verboseness']
+) {
+  /* prettier-ignore-start */
+  // More readable with less line breaks.
   return {
     squadServerLogger: logger.child({}, {
       msgPrefix: chalk.yellowBright('[SquadServer] '),
@@ -159,6 +170,7 @@ export function useSubLogger(logger: Logger, verboseness: Options['logger']['ver
     githubInfoLogger: logger.child({}, {
       msgPrefix: chalk.magentaBright('[GithubInfo] '),
       level: verboseness.GithubInfo
-    })
+    }),
   };
+  /* prettier-ignore-end */
 }

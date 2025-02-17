@@ -1,4 +1,5 @@
-const adminRgx = /(?<=^Admin=)(?<adminID>\d{17}|[a-f0-9]{32}):(?<groupID>\S+)/gm;
+const adminRgx =
+  /(?<=^Admin=)(?<adminID>\d{17}|[a-f0-9]{32}):(?<groupID>\S+)/gm;
 
 export function extractAdmins(data: string) {
   const admins = new Map<string, string>(); // Create a Map to store adminID -> groupID

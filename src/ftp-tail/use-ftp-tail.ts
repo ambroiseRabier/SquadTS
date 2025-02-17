@@ -10,7 +10,6 @@ import readline from 'node:readline';
 import { createReadStream } from 'node:fs';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 
-
 type Props = {
   timeout?: number;
 
@@ -20,22 +19,27 @@ type Props = {
   fetchIntervalMs: number;
   // Number of bytes to tail, probably shouldn't go lower than 10000
   tailLastBytes: number;
-} & ({
-    protocol: 'ftp';
-    ftp: NonNullable<Parameters<Client['access']>[0]>;
-  } | {
-    protocol: 'sftp';
-    sftp: Parameters<SFTPClient['connect']>[0];
-  })
+} & (
+  | {
+      protocol: 'ftp';
+      ftp: NonNullable<Parameters<Client['access']>[0]>;
+    }
+  | {
+      protocol: 'sftp';
+      sftp: Parameters<SFTPClient['connect']>[0];
+    }
+);
 
 function useClient(options: Props) {
   let client: Client;
   // quick fix for lib typing being incorrect.
-  let sftpClient: SFTPClient & {sftp: any};
+  let sftpClient: SFTPClient & { sftp: any };
 
   return {
     async connect() {
-      return options.protocol === 'ftp' ? client.access(options.ftp) : sftpClient.connect(options.sftp);
+      return options.protocol === 'ftp'
+        ? client.access(options.ftp)
+        : sftpClient.connect(options.sftp);
     },
     async disconnect() {
       if (options.protocol === 'ftp') {
@@ -45,9 +49,15 @@ function useClient(options: Props) {
       }
     },
     fileSize(filepath: string): Promise<number> {
-      return options.protocol === 'ftp' ? client.size(filepath) : sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
+      return options.protocol === 'ftp'
+        ? client.size(filepath)
+        : sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
     },
-    async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
+    async downloadFile(
+      filepath: string,
+      toLocalPath: string,
+      lastByteReceived: number
+    ) {
       if (options.protocol === 'ftp') {
         await client.downloadTo(
           fs.createWriteStream(toLocalPath, { flags: 'w' }),
@@ -55,14 +65,14 @@ function useClient(options: Props) {
           lastByteReceived
         );
       } else {
-       await sftpClient.get(filepath, toLocalPath, {
+        await sftpClient.get(filepath, toLocalPath, {
           readStreamOptions: {
             // Typing is not up to date here, this is valid:
             // https://github.com/theophilusx/ssh2-sftp-client/blob/eda4510f8814c45fb500517dd0dc4d20519b7852/src/index.js#L501
             // @ts-ignore
             start: lastByteReceived,
           },
-        })
+        });
       }
     },
     init(logger: Logger) {
@@ -76,8 +86,8 @@ function useClient(options: Props) {
     },
     isConnected() {
       return options.protocol === 'ftp' ? !client.closed : !!sftpClient.sftp;
-    }
-  }
+    },
+  };
 }
 
 export function useFtpTail(logger: Logger, options: Props) {
@@ -95,7 +105,8 @@ export function useFtpTail(logger: Logger, options: Props) {
 
     // FTP and SFTP have a slight difference in field:
     user: options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
-    username: options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
+    username:
+      options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
   };
 
   const tmpFilePath = path.join(
@@ -105,7 +116,6 @@ export function useFtpTail(logger: Logger, options: Props) {
       .update(`${ftpOptions.host}:${ftpOptions.port}:${options.filepath}`)
       .digest('hex') + '.tmp'
   );
-
 
   // Deleting may remove useful logs for debug.
   function removeTempFile() {
@@ -172,11 +182,7 @@ export function useFtpTail(logger: Logger, options: Props) {
 
     // Download the file to the temporary file.
     logger.debug(`Downloading file with offset ${lastByteReceived}...`);
-    await client.downloadFile(
-      options.filepath,
-      tmpFilePath,
-      lastByteReceived
-    );
+    await client.downloadFile(options.filepath, tmpFilePath, lastByteReceived);
 
     // Update the last byte marker.
     const downloadSize = fs.statSync(tmpFilePath).size;
@@ -188,15 +194,26 @@ export function useFtpTail(logger: Logger, options: Props) {
 
   async function fetchLoop() {
     logger.debug('Connecting or reconnecting to FTP server...');
-    await retryWithExponentialBackoff(connect, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
+    await retryWithExponentialBackoff(
+      connect,
+      12,
+      logger,
+      () => stopSignal,
+      (error: any) => error?.message.toLowerCase().includes('timeout')
+    );
     logger.debug('Downloading file...');
-    const hasDownloaded = await retryWithExponentialBackoff(fetchFile, 12, logger, () => stopSignal, (error: any) => error?.message.toLowerCase().includes('timeout'));
+    const hasDownloaded = await retryWithExponentialBackoff(
+      fetchFile,
+      12,
+      logger,
+      () => stopSignal,
+      (error: any) => error?.message.toLowerCase().includes('timeout')
+    );
     // Don't process the file again if it hasn't changed, or you get duplicated logs.
     if (hasDownloaded) {
       logger.debug('Processing file...');
       await processFile();
     }
-
   }
 
   let isFetchLoopActive = false; // Ensures no concurrent fetch loops
@@ -227,8 +244,9 @@ export function useFtpTail(logger: Logger, options: Props) {
 
       if (executionTime > options.fetchIntervalMs) {
         logger.info(
-          `Fetch loop took ${executionTime}ms, which is longer than the requested interval of ${options.fetchIntervalMs}ms.`
-        + 'This is fine, but reaction time of plugins will be slower than requested.');
+          `Fetch loop took ${executionTime}ms, which is longer than the requested interval of ${options.fetchIntervalMs}ms.` +
+            'This is fine, but reaction time of plugins will be slower than requested.'
+        );
       }
 
       // If fetchLoop took less time than the interval, wait the remaining time
@@ -237,7 +255,10 @@ export function useFtpTail(logger: Logger, options: Props) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     } catch (e) {
-      logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
+      logger.fatal(
+        `Error in fetch loop: ${(e as Error)?.message}`,
+        (e as Error)?.stack
+      );
       hasError = true;
       throw e; // stop looping at unhandled error. However, this will not stop the program if not awaited.
     } finally {
@@ -267,10 +288,12 @@ export function useFtpTail(logger: Logger, options: Props) {
     process.on('SIGTERM', unwatch);
 
     // First execution, this one has huge chances to fail, wrong credentials will fail here.
-    currentFetchPromise = executeFetchLoop()
+    currentFetchPromise = executeFetchLoop();
     await currentFetchPromise;
 
-    logger.info('Connect and first download went fine. (If you need more info on fetch loop, enable debug logs).');
+    logger.info(
+      'Connect and first download went fine. (If you need more info on fetch loop, enable debug logs).'
+    );
   }
 
   // Needs to be called in case the fetch loop error or when SIGINT or SIGTERM
@@ -302,7 +325,6 @@ export function useFtpTail(logger: Logger, options: Props) {
       process.kill(process.pid, 'SIGINT');
     }
 
-
     // what about rcon connection, maybe it needs a cleanup too ?
     // not sure process.exit(0) should be in this file...
     // not sure about that, Don't want to force exit.
@@ -312,7 +334,6 @@ export function useFtpTail(logger: Logger, options: Props) {
   return {
     line$,
     watch,
-    unwatch
-
-  }
+    unwatch,
+  };
 }

@@ -11,11 +11,18 @@ import { ZodObject } from 'zod';
 import { generateJson5Commented } from '../../scripts/generate-config/generate-json5-commented';
 import { DiscordConnector } from '../connectors/use-discord.connector';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { tsImport } from 'tsx/esm/api'
-import { PLUGINS_CONFIG_ROOT, PLUGINS_ROOT } from '../config/path-constants.mjs';
+import { tsImport } from 'tsx/esm/api';
+import {
+  PLUGINS_CONFIG_ROOT,
+  PLUGINS_ROOT,
+} from '../config/path-constants.mjs';
 
-export function usePluginLoader(server: SquadServer, connectors: {discord?: DiscordConnector}, logger: Logger, mainLogger: Logger) {
-
+export function usePluginLoader(
+  server: SquadServer,
+  connectors: { discord?: DiscordConnector },
+  logger: Logger,
+  mainLogger: Logger
+) {
   return {
     /**
      *
@@ -23,7 +30,9 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
      */
     load: async (pluginOptionOverride?: Record<string, any>) => {
       if (pluginOptionOverride) {
-        logger.warn(`pluginOptionOverride enabled, use this only for testing purposes.`)
+        logger.warn(
+          `pluginOptionOverride enabled, use this only for testing purposes.`
+        );
       }
 
       logger.info('Loading plugins...');
@@ -33,16 +42,27 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
       logger.info(`${pluginsPair.length} plugins discovered and imported.`);
 
       // ---------- Check missing json5 file ----------
-      const missingConfigPairs = pluginsPair.filter(pair => !existsSync(pair.configJSON5FilePath));
-      const validConfigPairs = pluginsPair.filter(pair => existsSync(pair.configJSON5FilePath));
+      const missingConfigPairs = pluginsPair.filter(
+        (pair) => !existsSync(pair.configJSON5FilePath)
+      );
+      const validConfigPairs = pluginsPair.filter((pair) =>
+        existsSync(pair.configJSON5FilePath)
+      );
       for (let pair of missingConfigPairs) {
-        logger.warn(`Missing json5 config file for ${pair.name}. It will be created from the schema.`);
+        logger.warn(
+          `Missing json5 config file for ${pair.name}. It will be created from the schema.`
+        );
         try {
-          const json5Commented = generateJson5Commented(pair.configSchema.default);
+          const json5Commented = generateJson5Commented(
+            pair.configSchema.default
+          );
           writeFileSync(pair.configJSON5FilePath, json5Commented, 'utf8');
           logger.info(`Creating config file: ${pair.configJSON5FilePath}`);
         } catch (e: any) {
-          logger.error(`Failed to create config file: ${pair.configJSON5FilePath}. Please create it yourself. Error: ${e.message}`, e);
+          logger.error(
+            `Failed to create config file: ${pair.configJSON5FilePath}. Please create it yourself. Error: ${e.message}`,
+            e
+          );
         }
       }
 
@@ -52,15 +72,24 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         );
       }
 
-      const iterateOn = !!pluginOptionOverride ?
-        Object.keys(pluginOptionOverride)
-          .map(pluginName => validConfigPairs.find(c => c.name === pluginName))
-          .filter((validConfigPair): validConfigPair is NonNullable<typeof validConfigPair> => !!validConfigPair)
+      const iterateOn = !!pluginOptionOverride
+        ? Object.keys(pluginOptionOverride)
+            .map((pluginName) =>
+              validConfigPairs.find((c) => c.name === pluginName)
+            )
+            .filter(
+              (
+                validConfigPair
+              ): validConfigPair is NonNullable<typeof validConfigPair> =>
+                !!validConfigPair
+            )
         : validConfigPairs;
 
       // Bad usage of pluginOptionOverride, or files wrongly placed/named.
       if (!!pluginOptionOverride && iterateOn.length === 0) {
-        throw new Error(`No plugins found with name: ${Object.keys(pluginOptionOverride)}. Did you use pluginOptionOverride with correct name of the plugin ?`);
+        throw new Error(
+          `No plugins found with name: ${Object.keys(pluginOptionOverride)}. Did you use pluginOptionOverride with correct name of the plugin ?`
+        );
       }
 
       // ---------- Loading JSON5 and validating ----------
@@ -72,14 +101,21 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
           try {
             json5 = await loadJSON5(pair.configJSON5FilePath);
           } catch (e: any) {
-            logger.error(`Invalid JSON5 file, unabled to parse. ${e.message}`, e);
-            logger.warn(`Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`);
+            logger.error(
+              `Invalid JSON5 file, unabled to parse. ${e.message}`,
+              e
+            );
+            logger.warn(
+              `Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`
+            );
             continue;
           }
         } else {
           json5 = pluginOptionOverride[pair.name];
           if (typeof json5 !== 'object') {
-            throw new Error(`pluginOptionOverride["${pair.name}"] should be an object but was ${typeof json5}`);
+            throw new Error(
+              `pluginOptionOverride["${pair.name}"] should be an object but was ${typeof json5}`
+            );
           }
         }
 
@@ -87,12 +123,14 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         const parsed = await pair.configSchema.default.safeParseAsync(json5);
 
         if (!parsed.success) {
-          const errorMessages = parsed.error.issues.map(
-            (issue) => `- ${issue.path.join('.')}: ${issue.message}`
-          ).join('\n');
+          const errorMessages = parsed.error.issues
+            .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+            .join('\n');
 
           logger.error(errorMessages);
-          logger.warn(`${chalk.red.bold('Skipping')} ${pair.name} plugin. The config is invalid. Please check above error messages.`)
+          logger.warn(
+            `${chalk.red.bold('Skipping')} ${pair.name} plugin. The config is invalid. Please check above error messages.`
+          );
           continue;
         }
 
@@ -104,7 +142,9 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
         }
 
         if (pair.requireConnectors.includes('discord') && !connectors.discord) {
-          logger.error(`Skipping ${pair.name} plugin. Discord connector has not been enabled in connectors config, or check above for errors related to Discord (like an invalid token).`)
+          logger.error(
+            `Skipping ${pair.name} plugin. Discord connector has not been enabled in connectors config, or check above for errors related to Discord (like an invalid token).`
+          );
           continue;
         }
 
@@ -112,24 +152,34 @@ export function usePluginLoader(server: SquadServer, connectors: {discord?: Disc
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
         // if logs are mixed between plugins.
-        await pair.plugin.default(
-          server,
-          // this typing is correct, as long as the plugin correctly fill requireConnectors field...
-          // Although..... only if there only one connector !! (todo !)
-          connectors as Required<typeof connectors>,
-          mainLogger.child({}, {
-            msgPrefix: chalk.magenta('[Plugin]') + chalk.magentaBright(`[${pair.name}] `),
-            level: parsedConfig.loggerVerbosity
-          }),
-          parsedConfig
-        ).catch(error => {
-          // A failing plugin should not stop SquadTS completely.
-          logger.error(`Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`, error);
-        });
+        await pair.plugin
+          .default(
+            server,
+            // this typing is correct, as long as the plugin correctly fill requireConnectors field...
+            // Although..... only if there only one connector !! (todo !)
+            connectors as Required<typeof connectors>,
+            mainLogger.child(
+              {},
+              {
+                msgPrefix:
+                  chalk.magenta('[Plugin]') +
+                  chalk.magentaBright(`[${pair.name}] `),
+                level: parsedConfig.loggerVerbosity,
+              }
+            ),
+            parsedConfig
+          )
+          .catch((error) => {
+            // A failing plugin should not stop SquadTS completely.
+            logger.error(
+              `Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`,
+              error
+            );
+          });
 
         logger.info(`${pair.name}: ${chalk.green.bold('Started')}`);
       }
-    }
+    },
   };
 }
 
@@ -141,7 +191,9 @@ async function loadJSON5(filePath: string) {
     // Parse the JSON5 content
     return JSON5.parse(rawContent);
   } catch (err) {
-    throw new Error(`Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`);
+    throw new Error(
+      `Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`
+    );
   }
 }
 
@@ -152,17 +204,17 @@ async function loadJSON5(filePath: string) {
  * @returns Array of file paths matching the extension.
  */
 function findFilesInSubfolders(directory: string, extension: string): string[] {
-  const subfolders = readdirSync(directory).filter(subfolder => {
+  const subfolders = readdirSync(directory).filter((subfolder) => {
     const subfolderPath = path.join(directory, subfolder);
     return statSync(subfolderPath).isDirectory(); // Only include directories
   });
 
   const files: string[] = [];
-  subfolders.forEach(subfolder => {
+  subfolders.forEach((subfolder) => {
     const subfolderPath = path.join(directory, subfolder);
     const filteredFiles = readdirSync(subfolderPath)
-      .filter(file => file.endsWith(extension)) // Only include files with the desired extension
-      .map(file => path.join(subfolder, file)); // Maintain relative paths
+      .filter((file) => file.endsWith(extension)) // Only include files with the desired extension
+      .map((file) => path.join(subfolder, file)); // Maintain relative paths
     files.push(...filteredFiles);
   });
 
@@ -176,7 +228,7 @@ function findFilesInSubfolders(directory: string, extension: string): string[] {
  * @returns Array of matching file paths.
  */
 function findFilesMatchingParentDirectory(fileList: string[]): string[] {
-  return fileList.filter(filePath => {
+  return fileList.filter((filePath) => {
     const fileName = path.basename(filePath, path.extname(filePath)); // File name without extension
     const parentDir = path.basename(path.dirname(filePath)); // Name of the parent directory
     return fileName === parentDir; // Check if file name matches parent directory name
@@ -204,11 +256,10 @@ async function loadPlugins(logger: Logger) {
   const configFolder = PLUGINS_CONFIG_ROOT;
   logger.info(`Loading plugins configurations from ${configFolder}...`);
 
-
   for (const file of pluginMainFiles) {
     // Skip config files initially
     if (file.endsWith('.config.ts')) {
-      continue
+      continue;
     }
 
     const fileName = path.parse(file).name;
@@ -222,7 +273,9 @@ async function loadPlugins(logger: Logger) {
     logger.info(`Plugin discovered: ${file}`);
 
     if (!allTSFiles.includes(configSchemaFileName)) {
-      logger.error(`config schema file (${configSchemaFileName}) not found. Skipping ${fileName} plugin.`);
+      logger.error(
+        `config schema file (${configSchemaFileName}) not found. Skipping ${fileName} plugin.`
+      );
       continue;
     }
 
@@ -236,9 +289,15 @@ async function loadPlugins(logger: Logger) {
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       // plugin = require(pluginPath); // .replace(/\\/g, '/')
       // plugin = await import(pluginPath);
-      plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
+      plugin = await tsImport(
+        pathToFileURL(pluginPath).href,
+        fileURLToPath(import.meta.url)
+      );
     } catch (e: any) {
-      logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
+      logger.error(
+        `Failed to import plugin files: ${file}. Error: ${e.message}`,
+        e
+      );
       continue;
     }
 
@@ -250,19 +309,34 @@ async function loadPlugins(logger: Logger) {
       // configSchema = await import(pathToFileURL(configSchemaPath).href);
       // configSchema = require(configSchemaPath);
       // configSchema = await import(configSchemaPath);
-      configSchema = await tsImport(pathToFileURL(configSchemaPath).href, fileURLToPath(import.meta.url));
+      configSchema = await tsImport(
+        pathToFileURL(configSchemaPath).href,
+        fileURLToPath(import.meta.url)
+      );
     } catch (e: any) {
-      logger.error(`Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`, e);
+      logger.error(
+        `Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`,
+        e
+      );
       continue;
     }
 
     if (typeof plugin.default !== 'function') {
-      logger.error(`Plugin ${file} should have a function as default export. Got ${typeof plugin.default}. (${pluginPath}).`);
+      logger.error(
+        `Plugin ${file} should have a function as default export. Got ${typeof plugin.default}. (${pluginPath}).`
+      );
       continue;
     }
 
-    if (typeof configSchema.default !== 'object' || !['ZodObject', 'ZodDiscriminatedUnion'].includes(configSchema.default.constructor.name)) {
-      logger.error(`Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof configSchema.default} and ${configSchema.default.constructor.name}.`);
+    if (
+      typeof configSchema.default !== 'object' ||
+      !['ZodObject', 'ZodDiscriminatedUnion'].includes(
+        configSchema.default.constructor.name
+      )
+    ) {
+      logger.error(
+        `Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof configSchema.default} and ${configSchema.default.constructor.name}.`
+      );
       continue;
     }
 

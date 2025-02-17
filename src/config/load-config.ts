@@ -16,7 +16,11 @@ export async function loadConfigFiles(dir: string): Promise<Configs> {
     // Read all files in the directory,
     files = await fs.readdir(dir);
   } catch (err) {
-    throw new Error(chalk.red(`Failed to read directory: ${dir}. Error: ${(err as Error).message}`));
+    throw new Error(
+      chalk.red(
+        `Failed to read directory: ${dir}. Error: ${(err as Error).message}`
+      )
+    );
   }
 
   const configs: Configs = {};
@@ -37,7 +41,9 @@ export async function loadConfigFiles(dir: string): Promise<Configs> {
         const fileNameWithoutExt = path.basename(file, path.extname(file));
         configs[fileNameWithoutExt] = parsedContent;
       } catch (err) {
-        throw new Error(`Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`);
+        throw new Error(
+          `Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`
+        );
       }
     }
   }

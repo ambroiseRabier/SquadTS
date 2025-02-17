@@ -3,12 +3,16 @@
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
-const enabledSchema = pluginBaseOptionsSchema.extend({
-  enabled: z.literal(true),
-  channelID: z.string().nonempty(),
-}).describe("Send a copy of admin broadcasts made in game to a Discord channel.");
+const enabledSchema = pluginBaseOptionsSchema
+  .extend({
+    enabled: z.literal(true),
+    channelID: z.string().nonempty(),
+  })
+  .describe(
+    'Send a copy of admin broadcasts made in game to a Discord channel.'
+  );
 
-const schema = z.discriminatedUnion("enabled", [
+const schema = z.discriminatedUnion('enabled', [
   enabledSchema,
   pluginBaseOptionsSchema.extend({
     enabled: z.literal(false),

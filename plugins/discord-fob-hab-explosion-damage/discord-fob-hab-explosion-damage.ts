@@ -3,8 +3,9 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordFOBExplosionEnabledOptions } from './discord-fob-hab-explosion-damage.config';
 
-
-const DiscordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOptions> = async (server, connectors, logger, options) => {
+const DiscordFOBHABExplosionDamage: SquadTSPlugin<
+  DiscordFOBExplosionEnabledOptions
+> = async (server, connectors, logger, options) => {
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
@@ -19,34 +20,33 @@ const DiscordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOpti
       fields: [
         {
           name: "Player's Name",
-          value: data.attacker.name ?? "Unknown", // Well, hopefully nobody call themselves Unknown...
-          inline: true
+          value: data.attacker.name ?? 'Unknown', // Well, hopefully nobody call themselves Unknown...
+          inline: true,
         },
         {
           name: "Player's SteamID",
           value: `[${data.attacker.steamID}](https://steamcommunity.com/profiles/${data.attacker.steamID})`,
-          inline: true
+          inline: true,
         },
         {
           name: "Player's EosID",
           value: data.attacker.eosID,
-          inline: true
+          inline: true,
         },
         {
           name: 'Deployable',
-          value: data.deployable
+          value: data.deployable,
         },
         {
           name: 'Weapon',
-          value: data.weapon
-        }
+          value: data.weapon,
+        },
       ],
-      timestamp: data.date.toISOString()
+      timestamp: data.date.toISOString(),
     };
 
-    await channel.send({embeds: [embed]});
-
+    await channel.send({ embeds: [embed] });
   });
-}
+};
 
 export default DiscordFOBHABExplosionDamage;

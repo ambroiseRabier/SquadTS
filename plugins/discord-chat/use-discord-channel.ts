@@ -10,18 +10,30 @@ const COPYRIGHT_MESSAGE = `Powered by SquadTS, Copyright © ${new Date().getFull
  * @param discordClient
  * @param channelID
  */
-export async function useDiscordChannel(discordClient: Client, channelID: string) {
-  const channel = await discordClient.channels.fetch(channelID).then(channel => {
-    if (!channel) {
-      throw new Error(`Could not fetch Discord channel with channelID "${channelID}". Are you sure the channelID is correct?`);
-    }
-    return channel;
-  }).catch(error => {
-    throw new Error(`Could not fetch Discord channel with channelID "${channelID}". Error: ${error?.message}`);
-  });
+export async function useDiscordChannel(
+  discordClient: Client,
+  channelID: string
+) {
+  const channel = await discordClient.channels
+    .fetch(channelID)
+    .then((channel) => {
+      if (!channel) {
+        throw new Error(
+          `Could not fetch Discord channel with channelID "${channelID}". Are you sure the channelID is correct?`
+        );
+      }
+      return channel;
+    })
+    .catch((error) => {
+      throw new Error(
+        `Could not fetch Discord channel with channelID "${channelID}". Error: ${error?.message}`
+      );
+    });
 
   if (!channel.isSendable()) {
-    throw new Error(`Invalid channel type, it should be text based, type for channelID "${channelID}" is ${channel.type}`)
+    throw new Error(
+      `Invalid channel type, it should be text based, type for channelID "${channelID}" is ${channel.type}`
+    );
   }
 
   return channel;

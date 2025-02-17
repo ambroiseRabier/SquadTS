@@ -14,12 +14,15 @@ import { pino } from 'pino';
 // ListPermittedCommands will error "You need a connected player to know its permitted commands."
 
 const prettyStream = pretty({
-  colorize: true
+  colorize: true,
 });
 
-const logger = pino({
-  base: null,  // Remove processID and hostname
-}, prettyStream);
+const logger = pino(
+  {
+    base: null, // Remove processID and hostname
+  },
+  prettyStream
+);
 
 logger.level = 'info';
 
@@ -58,9 +61,6 @@ async function getRconOptions() {
   return rconOptionsSchema.parse(JSON5.parse(fileTxt));
 }
 
-
-
-
 getRconOptions()
   .then((options) => {
     const command = process.argv.slice(3).join(' ');
@@ -70,10 +70,10 @@ getRconOptions()
     }
 
     return rconExecute(options, command);
-  }).then((response) => {
+  })
+  .then((response) => {
     logger.info(response);
   })
   .then(() => {
     process.exit(0);
   });
-

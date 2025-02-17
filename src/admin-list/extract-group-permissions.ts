@@ -1,4 +1,5 @@
-const groupRgx = /(?<=^Group=)(?<groupID>.*?):(?<groupPerms>.*?)(?=(?:\r\n|\r|\n|\s+\/\/))/gm;
+const groupRgx =
+  /(?<=^Group=)(?<groupID>.*?):(?<groupPerms>.*?)(?=(?:\r\n|\r|\n|\s+\/\/))/gm;
 
 export function extractGroupPermissions(adminCFG: string) {
   const map = new Map<string, string[]>();

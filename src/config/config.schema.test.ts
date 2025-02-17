@@ -8,7 +8,7 @@ describe('parseConfig', () => {
         autoReconnectDelay: 5000,
         host: '127.0.0.1',
         port: 25575,
-        password: 'examplePassword'
+        password: 'examplePassword',
       },
       logger: {
         verboseness: {
@@ -20,13 +20,13 @@ describe('parseConfig', () => {
           RCONSquad: 'info',
           AdminList: 'info',
           LogReader: 'info',
-          GithubInfo: 'info'
+          GithubInfo: 'info',
         },
         debugLogMatching: {
           showMatching: false,
           showNonMatching: false,
-          ignoreRegexMatch: ['^LogEOS:']
-        }
+          ignoreRegexMatch: ['^LogEOS:'],
+        },
       },
       logParser: {
         logFile: 'C:/servers/squad_server/SquadGame/Saved/Logs',
@@ -36,16 +36,16 @@ describe('parseConfig', () => {
           username: 'exampleUser',
           password: 'examplePassword',
           fetchInterval: 5000,
-          initialTailSize: 1048576
+          initialTailSize: 1048576,
         },
-        mode: 'ftp'
+        mode: 'ftp',
       },
       cacheGameStatus: {
         updateInterval: {
           serverInfo: 1000,
           layerInfo: 1000,
           playersAndSquads: 1000,
-        }
+        },
       },
       rconSquad: {
         dryRun: false,
@@ -53,14 +53,13 @@ describe('parseConfig', () => {
       connectors: {
         discord: {
           enabled: true,
-          token: 'sdfsdf'
-        }
+          token: 'sdfsdf',
+        },
       },
       adminList: {
-        remote: ['https://example.com/adminlist.txt']
-      }
+        remote: ['https://example.com/adminlist.txt'],
+      },
     };
-
 
     // await expect(optionsSchema.parse(validConfig)).resolves.not.toThrow(); // jest only ? or always was wrong ? -> parseAsync ?
     expect(() => optionsSchema.parse(validConfig)).not.toThrow();

@@ -1,6 +1,5 @@
-
-export type IncludesRCONCommand<T extends string> = T extends `${string}${RCONCommand}${string}` ? T : never;
-
+export type IncludesRCONCommand<T extends string> =
+  T extends `${string}${RCONCommand}${string}` ? T : never;
 
 // To generate:
 // 1. npx tsx scripts/rcon-execute.ts ListCommands 1 > tmp/commands.txt
@@ -13,288 +12,287 @@ export type IncludesRCONCommand<T extends string> = T extends `${string}${RCONCo
  */
 export enum RCONCommand {
   /** Prints out the information for all commands in the game. */
-  ListCommands = "ListCommands",
+  ListCommands = 'ListCommands',
 
   /** Prints out the details of a particular command. */
-  ShowCommandInfo = "ShowCommandInfo",
+  ShowCommandInfo = 'ShowCommandInfo',
 
   /** Prints out the information for all commands the player is currently permitted to execute. */
-  ListPermittedCommands = "ListPermittedCommands",
+  ListPermittedCommands = 'ListPermittedCommands',
 
   /** Get information about the current configuration and state of the server. */
-  ShowServerInfo = "ShowServerInfo",
+  ShowServerInfo = 'ShowServerInfo',
 
   /** Tells the server to stop execution. */
-  AdminKillServer = "AdminKillServer",
+  AdminKillServer = 'AdminKillServer',
 
   /** Set the maximum number of players for this server. */
-  AdminSetMaxNumPlayers = "AdminSetMaxNumPlayers",
+  AdminSetMaxNumPlayers = 'AdminSetMaxNumPlayers',
 
   /** Set the number of reserved player slots. */
-  AdminSetNumReservedSlots = "AdminSetNumReservedSlots",
+  AdminSetNumReservedSlots = 'AdminSetNumReservedSlots',
 
   /** Set the password for a server or use "" to remove it. */
-  AdminSetServerPassword = "AdminSetServerPassword",
+  AdminSetServerPassword = 'AdminSetServerPassword',
 
   /** Set the clock speed on the server 0.1 is 10% of normal speed 2.0 is twice the normal speed. */
-  AdminSlomo = "AdminSlomo",
+  AdminSlomo = 'AdminSlomo',
 
   /** Set the limit of the public queue size. */
-  AdminSetPublicQueueLimit = "AdminSetPublicQueueLimit",
+  AdminSetPublicQueueLimit = 'AdminSetPublicQueueLimit',
 
   /** Set the target player count for seeding. Bots will be used to fill the server up to this player count. Teams will be balanced so that both teams have an equal number of players+bots. */
-  AdminSetSeedTargetPlayerCount = "AdminSetSeedTargetPlayerCount",
+  AdminSetSeedTargetPlayerCount = 'AdminSetSeedTargetPlayerCount',
 
   /** List player ids with associated player name and SteamId. */
-  ListPlayers = "ListPlayers",
+  ListPlayers = 'ListPlayers',
 
   /** List Squads by their Index numbers's. */
-  ListSquads = "ListSquads",
+  ListSquads = 'ListSquads',
 
   /** List recently disconnected player ids with associated player name and SteamId. */
-  AdminListDisconnectedPlayers = "AdminListDisconnectedPlayers",
+  AdminListDisconnectedPlayers = 'AdminListDisconnectedPlayers',
 
   /** Teleports you to a given player on the server. */
-  AdminTeleportToPlayer = "AdminTeleportToPlayer",
+  AdminTeleportToPlayer = 'AdminTeleportToPlayer',
 
   /** Teleports you to a given player on the server by ID. */
-  AdminTeleportToPlayerById = "AdminTeleportToPlayerById",
+  AdminTeleportToPlayerById = 'AdminTeleportToPlayerById',
 
   /** Kicks a player from the server. */
-  AdminKick = "AdminKick",
+  AdminKick = 'AdminKick',
 
   /** Kicks a player with Id from the server. */
-  AdminKickById = "AdminKickById",
+  AdminKickById = 'AdminKickById',
 
   /** Bans a player from the server for a length of time. 0 = Perm, 1d = 1 Day, 1M = 1 Month, etc. */
-  AdminBan = "AdminBan",
+  AdminBan = 'AdminBan',
 
   /** Bans a player with Id from the server for a length of time. 0 = Perm, 1d = 1 Day, 1M = 1 Month, etc. */
-  AdminBanById = "AdminBanById",
+  AdminBanById = 'AdminBanById',
 
   /** Warns a player from the server for being abusive. */
-  AdminWarn = "AdminWarn",
+  AdminWarn = 'AdminWarn',
 
   /** Warns a player with Id from the server for being abusive. */
-  AdminWarnById = "AdminWarnById",
+  AdminWarnById = 'AdminWarnById',
 
   /** Changes a player's team. */
-  AdminForceTeamChange = "AdminForceTeamChange",
+  AdminForceTeamChange = 'AdminForceTeamChange',
 
   /** Changes a player with a certain id's team. */
-  AdminForceTeamChangeById = "AdminForceTeamChangeById",
+  AdminForceTeamChangeById = 'AdminForceTeamChangeById',
 
   /** Remove a player from their squad without kicking them via Id. */
-  AdminRemovePlayerFromSquadById = "AdminRemovePlayerFromSquadById",
+  AdminRemovePlayerFromSquadById = 'AdminRemovePlayerFromSquadById',
 
   /** Remove a player from their squad without kicking them. */
-  AdminRemovePlayerFromSquad = "AdminRemovePlayerFromSquad",
+  AdminRemovePlayerFromSquad = 'AdminRemovePlayerFromSquad',
 
   /** Demote a commander specified by player name or EOS Id. */
-  AdminDemoteCommander = "AdminDemoteCommander",
+  AdminDemoteCommander = 'AdminDemoteCommander',
 
   /** Demote a commander with Id from the server. */
-  AdminDemoteCommanderById = "AdminDemoteCommanderById",
+  AdminDemoteCommanderById = 'AdminDemoteCommanderById',
 
   /** Disbands the specified Squad. */
-  AdminDisbandSquad = "AdminDisbandSquad",
+  AdminDisbandSquad = 'AdminDisbandSquad',
 
   /** Renames the specified Squad. */
-  AdminRenameSquad = "AdminRenameSquad",
+  AdminRenameSquad = 'AdminRenameSquad',
 
   /** Invite a member to your squad, the name can be partial. */
-  SLInviteMember = "SLInviteMember",
+  SLInviteMember = 'SLInviteMember',
 
   /** Prints out the list of available levels. */
-  ListLevels = "ListLevels",
+  ListLevels = 'ListLevels',
 
   /** Prints out the list of available layers. */
-  ListLayers = "ListLayers",
+  ListLayers = 'ListLayers',
 
   /** Change the level (and pick a random layer on it) and travel to it immediately. */
-  AdminChangeLevel = "AdminChangeLevel",
+  AdminChangeLevel = 'AdminChangeLevel',
 
   /** Change the layer and travel to it immediately. */
-  AdminChangeLayer = "AdminChangeLayer",
+  AdminChangeLayer = 'AdminChangeLayer',
 
   /** Set the next Level (and pick a random layer on it) to travel to after this match ends. */
-  AdminSetNextLevel = "AdminSetNextLevel",
+  AdminSetNextLevel = 'AdminSetNextLevel',
 
   /** Set the next layer to travel to after this match ends. */
-  AdminSetNextLayer = "AdminSetNextLayer",
+  AdminSetNextLayer = 'AdminSetNextLayer',
 
   /** Clear selection of next layer (only in voting mode). */
-  AdminClearNextLayer = "AdminClearNextLayer",
+  AdminClearNextLayer = 'AdminClearNextLayer',
 
   /** Reloads server config. */
-  AdminReloadServerConfig = "AdminReloadServerConfig",
+  AdminReloadServerConfig = 'AdminReloadServerConfig',
 
   /** Ask the server what the current level & layer are. */
-  ShowCurrentMap = "ShowCurrentMap",
+  ShowCurrentMap = 'ShowCurrentMap',
 
   /** Ask the server what the next level & layer are. */
-  ShowNextMap = "ShowNextMap",
+  ShowNextMap = 'ShowNextMap',
 
   /** Switch between voting and layer rotation mode. */
-  AdminEnableVoting = "AdminEnableVoting",
+  AdminEnableVoting = 'AdminEnableVoting',
 
   /** Send system message to all players on the server. */
-  AdminBroadcast = "AdminBroadcast",
+  AdminBroadcast = 'AdminBroadcast',
 
   /** Send system message to all admins on the server. */
-  ChatToAdmin = "ChatToAdmin",
+  ChatToAdmin = 'ChatToAdmin',
 
   /** Trigger a vote on given question and choices. */
-  AdminVote = "AdminVote",
+  AdminVote = 'AdminVote',
 
   /** Tell the server to restart the match. */
-  AdminRestartMatch = "AdminRestartMatch",
+  AdminRestartMatch = 'AdminRestartMatch',
 
   /** Tell the server to immediately end the match. */
-  AdminEndMatch = "AdminEndMatch",
+  AdminEndMatch = 'AdminEndMatch',
 
   /** Tell the server to put the match on hold. */
-  AdminPauseMatch = "AdminPauseMatch",
+  AdminPauseMatch = 'AdminPauseMatch',
 
   /** Tell the server to take off the hold. */
-  AdminUnpauseMatch = "AdminUnpauseMatch",
-
+  AdminUnpauseMatch = 'AdminUnpauseMatch',
 
   /** Sets the fog of war active in the match. */
-  AdminSetFogOfWar = "AdminSetFogOfWar",
+  AdminSetFogOfWar = 'AdminSetFogOfWar',
 
   /** Force all vehicle availability. */
-  AdminForceAllVehicleAvailability = "AdminForceAllVehicleAvailability",
+  AdminForceAllVehicleAvailability = 'AdminForceAllVehicleAvailability',
 
   /** Force all deployables availability. */
-  AdminForceAllDeployableAvailability = "AdminForceAllDeployableAvailability",
+  AdminForceAllDeployableAvailability = 'AdminForceAllDeployableAvailability',
 
   /** Force all roles availability. */
-  AdminForceAllRoleAvailability = "AdminForceAllRoleAvailability",
+  AdminForceAllRoleAvailability = 'AdminForceAllRoleAvailability',
 
   /** Force all actions availability. */
-  AdminForceAllActionAvailability = "AdminForceAllActionAvailability",
+  AdminForceAllActionAvailability = 'AdminForceAllActionAvailability',
 
   /** Disable Team change timer. */
-  AdminNoTeamChangeTimer = "AdminNoTeamChangeTimer",
+  AdminNoTeamChangeTimer = 'AdminNoTeamChangeTimer',
 
   /** Disable respawn timer. */
-  AdminNoRespawnTimer = "AdminNoRespawnTimer",
+  AdminNoRespawnTimer = 'AdminNoRespawnTimer',
 
   /** Sets the server to disable vehicle claiming. */
-  AdminDisableVehicleClaiming = "AdminDisableVehicleClaiming",
+  AdminDisableVehicleClaiming = 'AdminDisableVehicleClaiming',
 
   /** Sets the server to disable vehicle Team Requirement. */
-  AdminDisableVehicleTeamRequirement = "AdminDisableVehicleTeamRequirement",
+  AdminDisableVehicleTeamRequirement = 'AdminDisableVehicleTeamRequirement',
 
   /** Sets the server to disable vehicle Kit Requirement. */
-  AdminDisableVehicleKitRequirement = "AdminDisableVehicleKitRequirement",
+  AdminDisableVehicleKitRequirement = 'AdminDisableVehicleKitRequirement',
 
   /** Sets the server to ignore placement rules for deployables. */
-  AdminAlwaysValidPlacement = "AdminAlwaysValidPlacement",
+  AdminAlwaysValidPlacement = 'AdminAlwaysValidPlacement',
 
   /** If true, when a connection becomes saturated, all remaining actors that couldn't complete replication will have ForceNetUpdate called on them. */
-  AdminForceNetUpdateOnClientSaturation = "AdminForceNetUpdateOnClientSaturation",
+  AdminForceNetUpdateOnClientSaturation = 'AdminForceNetUpdateOnClientSaturation',
 
   /** Add a player to the camera man list. */
-  AdminAddCameraman = "AdminAddCameraman",
+  AdminAddCameraman = 'AdminAddCameraman',
 
   /** Create a Vehicle for testing. */
-  AdminCreateVehicle = "AdminCreateVehicle",
+  AdminCreateVehicle = 'AdminCreateVehicle',
 
   /** Create a Deployable for testing. */
-  AdminCreateDeployable = "AdminCreateDeployable",
+  AdminCreateDeployable = 'AdminCreateDeployable',
 
   /** Create an inventory item for testing. */
-  AdminGiveEquipment = "AdminGiveEquipment",
+  AdminGiveEquipment = 'AdminGiveEquipment',
 
   /** Create an Actor for testing. */
-  AdminSpawnActor = "AdminSpawnActor",
+  AdminSpawnActor = 'AdminSpawnActor',
 
   /** Plays back the demo recording, must have file from server. */
-  AdminDemoPlay = "AdminDemoPlay",
+  AdminDemoPlay = 'AdminDemoPlay',
 
   /** Records gameplay on the server into a demo file, which can be opened on a client. Also use the AdminDemoStop command to stop the replay. */
-  AdminDemoRec = "AdminDemoRec",
+  AdminDemoRec = 'AdminDemoRec',
 
   /** Stops recording and saves the demo to disk. */
-  AdminDemoStop = "AdminDemoStop",
+  AdminDemoStop = 'AdminDemoStop',
 
   /** Starts profiling on the server for a fixed length of time, after which the profiling data is saved to disk. */
-  AdminProfileServer = "AdminProfileServer",
+  AdminProfileServer = 'AdminProfileServer',
 
   /** Runs a lightweight CSV profile. Results will be stored in memory until stopped, so be wary of long profiles. */
-  AdminProfileServerCSV = "AdminProfileServerCSV",
+  AdminProfileServerCSV = 'AdminProfileServerCSV',
 
   /** Prints all vehicles in the level. */
-  DebugVehicleList = "DebugVehicleList",
+  DebugVehicleList = 'DebugVehicleList',
 
   /** Sets a specific component health. Use DebugVehicleInterrogateComponents to figure out which component has what index. */
-  DebugVehicleSetComponentHealthByName = "DebugVehicleSetComponentHealthByName",
+  DebugVehicleSetComponentHealthByName = 'DebugVehicleSetComponentHealthByName',
 
   /** Prints the current server's custom options to the console. */
-  DebugPrintCustomOptions = "DebugPrintCustomOptions",
+  DebugPrintCustomOptions = 'DebugPrintCustomOptions',
 
   /** Set a server custom option. */
-  AdminSetCustomOption = "AdminSetCustomOption",
+  AdminSetCustomOption = 'AdminSetCustomOption',
 
   /** Remove a server custom option. */
-  AdminRemoveCustomOption = "AdminRemoveCustomOption",
+  AdminRemoveCustomOption = 'AdminRemoveCustomOption',
 
   /** Adds X amount of build supply to the nearest friendly FOB. */
-  DebugAddBuildSupply = "DebugAddBuildSupply",
+  DebugAddBuildSupply = 'DebugAddBuildSupply',
 
   /** Adds X amount of ammo supply to the nearest friendly FOB. */
-  DebugAddAmmoSupply = "DebugAddAmmoSupply",
+  DebugAddAmmoSupply = 'DebugAddAmmoSupply',
 
   /** Rearm all weapons. */
-  DebugRearm = "DebugRearm",
+  DebugRearm = 'DebugRearm',
 
   /** Rearm all weapons for a specific player. */
-  DebugRearmPlayer = "DebugRearmPlayer",
+  DebugRearmPlayer = 'DebugRearmPlayer',
 
   /** Prints all stats of selected player. */
-  DebugPrintPlayerStats = "DebugPrintPlayerStats",
+  DebugPrintPlayerStats = 'DebugPrintPlayerStats',
 
   /** Prints number of vehicles for all the possible factions in the current level. */
-  DebugFactionVehicleCount = "DebugFactionVehicleCount",
+  DebugFactionVehicleCount = 'DebugFactionVehicleCount',
 
   /** Prints all possible combinations of factions. */
-  DebugPrintFactionsList = "DebugPrintFactionsList",
+  DebugPrintFactionsList = 'DebugPrintFactionsList',
 
   /** Set next layer to next possible option. */
-  MoveToNextFactionVariant = "MoveToNextFactionVariant",
+  MoveToNextFactionVariant = 'MoveToNextFactionVariant',
 
   /** Lists all skins that exist. */
-  SQSkinsListAllSkins = "SQ.Skins.ListAllSkins",
+  SQSkinsListAllSkins = 'SQ.Skins.ListAllSkins',
 
   /** Lists all skins that have been replicated back to our client for the current faction. */
-  SQSkinsListReplicatedEquippedSkins = "SQ.Skins.ListReplicatedEquippedSkins",
+  SQSkinsListReplicatedEquippedSkins = 'SQ.Skins.ListReplicatedEquippedSkins',
 
   /** Lists all skins currently equipped for all factions from our game settings. */
-  SQSkinsListAllEquippedSkins = "SQ.Skins.ListAllEquippedSkins",
+  SQSkinsListAllEquippedSkins = 'SQ.Skins.ListAllEquippedSkins',
 
   /** Clears all equipped skins. */
-  SQSkinsClearEquippedSkins = "SQ.Skins.ClearEquippedSkins",
+  SQSkinsClearEquippedSkins = 'SQ.Skins.ClearEquippedSkins',
 
   /** Toggles a specific skin on/off. */
-  SQSkinsToggleSkin = "SQ.Skins.ToggleSkin",
+  SQSkinsToggleSkin = 'SQ.Skins.ToggleSkin',
 
   /** Sets allowing all skins to function without checking requirements or not. */
-  SQSkinsForceAllowAll = "SQ.Skins.ForceAllowAll",
+  SQSkinsForceAllowAll = 'SQ.Skins.ForceAllowAll',
 
   /** Start recording a dated replay locally. */
-  RecordingStart = "RecordingStart",
+  RecordingStart = 'RecordingStart',
 
   /** Start recording a named replay locally. */
-  RecordingStart_Named = "RecordingStart_Named",
+  RecordingStart_Named = 'RecordingStart_Named',
 
   /** Stop recording local replay. */
-  RecordingStop = "RecordingStop",
+  RecordingStop = 'RecordingStop',
 
   /** Print out debug information about the loading screen. */
-  DebugLoadingScreen = "DebugLoadingScreen",
+  DebugLoadingScreen = 'DebugLoadingScreen',
 
   /** Changes the target KBytes/Sec for the RepGraph's Dynamic Spatial Frequency node. */
-  RepGraphSetDSFTargetKBytesSec = "RepGraphSetDSFTargetKBytesSec",
+  RepGraphSetDSFTargetKBytesSec = 'RepGraphSetDSFTargetKBytesSec',
 }

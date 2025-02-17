@@ -6,16 +6,15 @@ import { pino } from 'pino';
 const logLevels = Object.keys(pino.levels.values);
 
 export const pluginBaseOptionsSchema = z.object({
-  enabled: z
-    .boolean()
-    .default(true),
+  enabled: z.boolean().default(true),
 
   loggerVerbosity: z
     .string()
     .default('info')
     .describe(
       `Available levels: ${logLevels.join(', ')}.\n` +
-      `To disable a logger, set it to silent.`)
+        `To disable a logger, set it to silent.`
+    ),
 });
 
 export type PluginBaseOptions = z.infer<typeof pluginBaseOptionsSchema>;

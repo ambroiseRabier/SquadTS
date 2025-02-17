@@ -1,8 +1,10 @@
 import { map, tap } from 'rxjs';
 import { useChatPacketEvent } from './use-chat-packet-event';
 
-
-type Props = Pick<ReturnType<typeof useChatPacketEvent>, 'possessedAdminCamera' | 'unPossessedAdminCamera'>
+type Props = Pick<
+  ReturnType<typeof useChatPacketEvent>,
+  'possessedAdminCamera' | 'unPossessedAdminCamera'
+>;
 
 export function useAdminInCam(p: Props) {
   const adminsInAdminCam = new Map<string, Date>();
@@ -10,14 +12,16 @@ export function useAdminInCam(p: Props) {
   return {
     adminsInAdminCam,
     possessedAdminCamera: p.possessedAdminCamera.pipe(
-      tap(data => adminsInAdminCam.set(data.eosID, data.date))
+      tap((data) => adminsInAdminCam.set(data.eosID, data.date))
     ),
     unPossessedAdminCamera: p.unPossessedAdminCamera.pipe(
-      map(data => ({
+      map((data) => ({
         ...data,
-        duration: adminsInAdminCam.has(data.eosID) ? data.date.getTime() - adminsInAdminCam.get(data.eosID)!.getTime() : 0
+        duration: adminsInAdminCam.has(data.eosID)
+          ? data.date.getTime() - adminsInAdminCam.get(data.eosID)!.getTime()
+          : 0,
       })),
-      tap(data => adminsInAdminCam.delete(data.eosID))
-    )
-  }
+      tap((data) => adminsInAdminCam.delete(data.eosID))
+    ),
+  };
 }

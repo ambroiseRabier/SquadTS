@@ -10,11 +10,11 @@ describe('balanceIncreaseSwitch', () => {
   it('should handle unequal team sizes by limiting switches to the smaller array', () => {
     const reqTeam1: SwitchRequest[] = [
       { eosID: 'player1', date: new Date('2023-10-01') },
-      { eosID: 'player2', date: new Date('2023-10-02') }
+      { eosID: 'player2', date: new Date('2023-10-02') },
     ];
 
     const reqTeam2: SwitchRequest[] = [
-      { eosID: 'player3', date: new Date('2023-10-01') }
+      { eosID: 'player3', date: new Date('2023-10-01') },
     ];
 
     const result = balanceIncreaseSwitch(reqTeam1, reqTeam2);
@@ -27,16 +27,12 @@ describe('unbalanceSwitch', () => {
   it('should throw if you have not properly prepared the data', () => {
     expect(() => {
       unbalanceSwitch({
-        reqTeam1: [
-          {eosID: 'player1', date: new Date('2023-10-01')},
-        ],
-        reqTeam2: [
-          {eosID: 'player2', date: new Date('2023-10-01')},
-        ],
+        reqTeam1: [{ eosID: 'player1', date: new Date('2023-10-01') }],
+        reqTeam2: [{ eosID: 'player2', date: new Date('2023-10-01') }],
         team1Count: 20,
         team2Count: 22,
-        maxAllowedPlayerCountDiff: 4
-      })
+        maxAllowedPlayerCountDiff: 4,
+      });
     }).toThrow();
   });
 
@@ -44,18 +40,17 @@ describe('unbalanceSwitch', () => {
     const reqTeam1: SwitchRequest[] = [
       { eosID: 'player1', date: new Date('2023-10-01') },
       { eosID: 'player2', date: new Date('2023-10-02') },
-      { eosID: 'player5', date: new Date('2023-10-03') }
+      { eosID: 'player5', date: new Date('2023-10-03') },
     ];
 
-    const reqTeam2: SwitchRequest[] = [
-    ];
+    const reqTeam2: SwitchRequest[] = [];
 
     const result = unbalanceSwitch({
       reqTeam1,
       reqTeam2,
       team1Count: 20,
       team2Count: 22,
-      maxAllowedPlayerCountDiff: 10 // very high
+      maxAllowedPlayerCountDiff: 10, // very high
     });
 
     const expected = ['player1', 'player2', 'player5'];
@@ -66,18 +61,17 @@ describe('unbalanceSwitch', () => {
     const reqTeam1: SwitchRequest[] = [
       { eosID: 'player1', date: new Date('2023-10-01') },
       { eosID: 'player2', date: new Date('2023-10-02') },
-      { eosID: 'player5', date: new Date('2023-10-03') }
+      { eosID: 'player5', date: new Date('2023-10-03') },
     ];
 
-    const reqTeam2: SwitchRequest[] = [
-    ];
+    const reqTeam2: SwitchRequest[] = [];
 
     const result = unbalanceSwitch({
       reqTeam1,
       reqTeam2,
       team1Count: 20,
       team2Count: 22,
-      maxAllowedPlayerCountDiff: 1
+      maxAllowedPlayerCountDiff: 1,
     });
 
     const expected = ['player1'];
@@ -88,22 +82,20 @@ describe('unbalanceSwitch', () => {
     const reqTeam1: SwitchRequest[] = [
       { eosID: 'player1', date: new Date('2023-10-01') },
       { eosID: 'player2', date: new Date('2023-10-02') },
-      { eosID: 'player5', date: new Date('2023-10-03') }
+      { eosID: 'player5', date: new Date('2023-10-03') },
     ];
 
-    const reqTeam2: SwitchRequest[] = [
-    ];
+    const reqTeam2: SwitchRequest[] = [];
 
     const result = unbalanceSwitch({
       reqTeam1,
       reqTeam2,
       team1Count: 20,
       team2Count: 22,
-      maxAllowedPlayerCountDiff: 2
+      maxAllowedPlayerCountDiff: 2,
     });
 
     const expected = ['player1', 'player2'];
     expect(result).toEqual(expected);
   });
-
 });

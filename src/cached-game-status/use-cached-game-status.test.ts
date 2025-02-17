@@ -1,6 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser } from '../log-parser/use-log-parser';
-import { CachedGameStatus, Player, useCachedGameStatus } from './use-cached-game-status';
+import {
+  CachedGameStatus,
+  Player,
+  useCachedGameStatus,
+} from './use-cached-game-status';
 import { from, Observable, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
@@ -13,69 +17,96 @@ type DeepPartial<T> = {
 type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 
 // We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
-type UnassignedPlayer = Required<Omit<Player, 'squad' | 'squadID'>> & {squad: any; squadID: any}; // squad should actually be undefined. (typing to be improved...)
+type UnassignedPlayer = Required<Omit<Player, 'squad' | 'squadID'>> & {
+  squad: any;
+  squadID: any;
+}; // squad should actually be undefined. (typing to be improved...)
 
 // ---- team 1 ----
 const playerYuca: UnassignedPlayer = {
-  controller: "controller0",
-  eosID: "eosYuca",
-  id: "0",
-  ip: "ipYuca",
+  controller: 'controller0',
+  eosID: 'eosYuca',
+  id: '0',
+  ip: 'ipYuca',
   isLeader: false,
-  name: "Yuca",
-  nameWithClanTag: "-TWS- Yuca",
+  name: 'Yuca',
+  nameWithClanTag: '-TWS- Yuca',
   squadID: undefined,
   squad: undefined,
-  steamID: "steamYuca",
-  teamID: "1",
-  role: "WPMC_Engineer_01" // invented
+  steamID: 'steamYuca',
+  teamID: '1',
+  role: 'WPMC_Engineer_01', // invented
 };
 
 // ---- team 2 ----
 const playerPika: UnassignedPlayer = {
-  controller: "controller0",
-  eosID: "eosPika",
-  id: "0", // if on another team, the id can be the same, it is called id by squad but work more like an index.
-  ip: "ipPika",
+  controller: 'controller0',
+  eosID: 'eosPika',
+  id: '0', // if on another team, the id can be the same, it is called id by squad but work more like an index.
+  ip: 'ipPika',
   isLeader: false,
-  name: "Pika",
-  nameWithClanTag: "-TWS- Pika",
+  name: 'Pika',
+  nameWithClanTag: '-TWS- Pika',
   squadID: undefined,
   squad: undefined,
-  steamID: "steamPika",
-  teamID: "2",
-  role: "WPMC_Engineer_01" // invented
+  steamID: 'steamPika',
+  teamID: '2',
+  role: 'WPMC_Engineer_01', // invented
 };
 
 /**
  * Helper to emulate player connecting observed by logs.
  */
-function createMockLogParser(override: DeepPartial<LogParser>, connectedLogPlayer: Required<Player>[]): LogParser {
+function createMockLogParser(
+  override: DeepPartial<LogParser>,
+  connectedLogPlayer: Required<Player>[]
+): LogParser {
   const mockLogParser: LogParser = {
     events: {
-      loginRequest: from<Pick<ObservableValue<LogParser['events']['loginRequest']>, 'name' | 'eosID'>[]>(
-        connectedLogPlayer.map(p => pick(p, ['name', 'eosID'] as const))
+      loginRequest: from<
+        Pick<
+          ObservableValue<LogParser['events']['loginRequest']>,
+          'name' | 'eosID'
+        >[]
+      >(connectedLogPlayer.map((p) => pick(p, ['name', 'eosID'] as const))),
+      playerConnected: from<
+        Pick<
+          ObservableValue<LogParser['events']['playerConnected']>,
+          'steamID' | 'eosID' | 'controller' | 'ip'
+        >[]
+      >(
+        connectedLogPlayer.map((p) =>
+          pick(p, ['steamID', 'eosID', 'controller', 'ip'] as const)
+        )
       ),
-      playerConnected: from<Pick<ObservableValue<LogParser['events']['playerConnected']>, 'steamID' | 'eosID' | 'controller' | 'ip'>[]>(
-        connectedLogPlayer.map(p => pick(p, ['steamID', 'eosID', 'controller', 'ip'] as const))
-      ),
-      playerAddedToTeam: from<Pick<ObservableValue<LogParser['events']['playerAddedToTeam']>, 'name' | 'teamID'>[]>(
-        connectedLogPlayer.map(p => pick(p, ['name', 'teamID'] as const))
-      ),
-      playerInitialized: from<Pick<ObservableValue<LogParser['events']['playerInitialized']>, 'name' | 'id'>[]>(
-        connectedLogPlayer.map(p => ({
+      playerAddedToTeam: from<
+        Pick<
+          ObservableValue<LogParser['events']['playerAddedToTeam']>,
+          'name' | 'teamID'
+        >[]
+      >(connectedLogPlayer.map((p) => pick(p, ['name', 'teamID'] as const))),
+      playerInitialized: from<
+        Pick<
+          ObservableValue<LogParser['events']['playerInitialized']>,
+          'name' | 'id'
+        >[]
+      >(
+        connectedLogPlayer.map((p) => ({
           name: p.name,
           // since our mock player already has a correct ID, we need to make it wrong by adding the +1 the log do.
           // So that the result will be matching our mockPlayer in the end.
-          id: (parseInt(p.id) + 1).toString()
+          id: (parseInt(p.id) + 1).toString(),
         }))
       ),
-      playerJoinSucceeded: from<Pick<ObservableValue<LogParser['events']['playerJoinSucceeded']>, 'name'>[]>(
-        connectedLogPlayer.map(p => pick(p, ['name'] as const))
-      ),
+      playerJoinSucceeded: from<
+        Pick<
+          ObservableValue<LogParser['events']['playerJoinSucceeded']>,
+          'name'
+        >[]
+      >(connectedLogPlayer.map((p) => pick(p, ['name'] as const))),
       playerDisconnected: of(),
-      playerWounded: of()
-    }
+      playerWounded: of(),
+    },
   } as any;
 
   return merge(mockLogParser, override);
@@ -94,7 +125,7 @@ function mockRconSquad(override: DeepPartial<RconSquad>): RconSquad {
       playerWarned: of(),
       playerKicked: of(),
       squadCreated: of(),
-      playerBanned: of()
+      playerBanned: of(),
     },
     // adminsInAdminCam: Promise.resolve(''),
     // ban: Promise.resolve(''),
@@ -109,13 +140,11 @@ function mockRconSquad(override: DeepPartial<RconSquad>): RconSquad {
     // setFogOfWar: Promise.resolve(''),
     // warn: Promise.resolve('')
   } as any;
-  
+
   return merge(base, override);
 }
 
-
 describe('use-cached-game-status', () => {
-
   // todo idea: faire un gameStatus et cachedGameStatus ? euh non ?
 
   let mockLogger: Logger;
@@ -152,39 +181,36 @@ describe('use-cached-game-status', () => {
   it('should save log connected player', () => {
     const cachedGameStatus: CachedGameStatus = useCachedGameStatus({
       rconSquad: mockRconSquad({}),
-      logParser: createMockLogParser(
-        {},
-        [playerYuca]
-      ),
+      logParser: createMockLogParser({}, [playerYuca]),
       config: {
         updateInterval: {
           playersAndSquads: 1000,
           layerInfo: 1000,
           serverInfo: 1000,
-        }
+        },
       },
       logParserConfig: logParserConfig,
       logger: mockLogger,
-      initialServerInfo: {} as any
+      initialServerInfo: {} as any,
     });
 
     cachedGameStatus.watch();
     cachedGameStatus.unWatch();
 
-    expect(
-      cachedGameStatus.getters.getPlayerByEOSID(playerYuca.eosID)
-    ).toEqual(
+    expect(cachedGameStatus.getters.getPlayerByEOSID(playerYuca.eosID)).toEqual(
       omit(playerYuca, 'nameWithClanTag', 'role') // only fields provided by logs
     );
   });
-  
-  
+
   it('playerWounded do not find victim with only logParser connect data', () => {
-    const playerWounded$ = new Subject<ObservableValue<LogParser['events']['playerWounded']>>();
-    const mockLogParser = createMockLogParser({
+    const playerWounded$ = new Subject<
+      ObservableValue<LogParser['events']['playerWounded']>
+    >();
+    const mockLogParser = createMockLogParser(
+      {
         events: {
-          playerWounded: playerWounded$
-        }
+          playerWounded: playerWounded$,
+        },
       },
       [playerYuca, playerPika]
     );
@@ -197,17 +223,17 @@ describe('use-cached-game-status', () => {
           playersAndSquads: 1000,
           layerInfo: 1000,
           serverInfo: 1000,
-        }
+        },
       },
       logParserConfig,
       logger: mockLogger,
-      initialServerInfo: {} as any
+      initialServerInfo: {} as any,
     });
 
     cachedGameStatus.watch();
 
     let result: any = undefined;
-    cachedGameStatus.events.playerWounded.subscribe(playerWounded =>  {
+    cachedGameStatus.events.playerWounded.subscribe((playerWounded) => {
       result = playerWounded;
     });
 
@@ -216,14 +242,14 @@ describe('use-cached-game-status', () => {
       attacker: {
         controller: playerYuca.controller,
         eosID: playerYuca.eosID,
-        steamID: playerYuca.steamID
+        steamID: playerYuca.steamID,
       },
       victim: {
         nameWithClanTag: playerPika.nameWithClanTag,
       },
       weapon: 'weapon0',
       chainID: 'chain0',
-      date: new Date(0)
+      date: new Date(0),
     });
 
     cachedGameStatus.unWatch();
@@ -233,24 +259,26 @@ describe('use-cached-game-status', () => {
       attacker: omit(playerYuca, 'nameWithClanTag', 'role'),
       damage: 30,
       victim: {
-        nameWithClanTag: "-TWS- Pika"
+        nameWithClanTag: '-TWS- Pika',
       },
-      weapon: "weapon0",
-      chainID: "chain0",
-      date: expect.any(Date)
+      weapon: 'weapon0',
+      chainID: 'chain0',
+      date: expect.any(Date),
     });
   });
 
   it('playerWounded find victim with only rcon data', async () => {
-    const playerWounded$ = new Subject<ObservableValue<LogParser['events']['playerWounded']>>();
-    const mockLogParser = createMockLogParser({
+    const playerWounded$ = new Subject<
+      ObservableValue<LogParser['events']['playerWounded']>
+    >();
+    const mockLogParser = createMockLogParser(
+      {
         events: {
-          playerWounded: playerWounded$
-        }
+          playerWounded: playerWounded$,
+        },
       },
       []
     );
-
 
     const rconPlayerList: Awaited<ReturnType<RconSquad['getListPlayers']>> = [
       {
@@ -261,7 +289,7 @@ describe('use-cached-game-status', () => {
         steamID: playerYuca.steamID,
         eosID: playerYuca.eosID,
         isLeader: playerYuca.isLeader,
-        id: playerYuca.id
+        id: playerYuca.id,
       },
       {
         nameWithClanTag: playerPika.nameWithClanTag,
@@ -271,24 +299,22 @@ describe('use-cached-game-status', () => {
         steamID: playerPika.steamID,
         eosID: playerPika.eosID,
         isLeader: playerPika.isLeader,
-        id: playerPika.id
-      }
+        id: playerPika.id,
+      },
     ];
 
     // Make sure it is coherent with empty squad list.
     console.assert(!playerPika.squadID, 'playerPika should not be in a squad');
     console.assert(!playerYuca.squadID, 'playerYuca should not be in a squad');
 
-    const rconSquads: Awaited<ReturnType<RconSquad['getSquads']>> = [
-
-    ];
+    const rconSquads: Awaited<ReturnType<RconSquad['getSquads']>> = [];
 
     const cachedGameStatus: CachedGameStatus = useCachedGameStatus({
       rconSquad: mockRconSquad({
         // Using Promise.resolve(...) seems to break RXJS, it may have something to do with
         // the lodash merge being using in mockRconSquad
         getSquads: vi.fn<any>().mockResolvedValue(rconSquads),
-        getListPlayers: vi.fn<any>().mockResolvedValue(rconPlayerList)
+        getListPlayers: vi.fn<any>().mockResolvedValue(rconPlayerList),
       }),
       logParser: mockLogParser,
       config: {
@@ -296,11 +322,11 @@ describe('use-cached-game-status', () => {
           playersAndSquads: 1000,
           layerInfo: 1000,
           serverInfo: 1000,
-        }
+        },
       },
       logParserConfig,
       logger: mockLogger,
-      initialServerInfo: {} as any
+      initialServerInfo: {} as any,
     });
 
     cachedGameStatus.watch();
@@ -309,7 +335,7 @@ describe('use-cached-game-status', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     let result: any = undefined;
-    cachedGameStatus.events.playerWounded.subscribe(playerWounded =>  {
+    cachedGameStatus.events.playerWounded.subscribe((playerWounded) => {
       result = playerWounded;
     });
 
@@ -318,14 +344,14 @@ describe('use-cached-game-status', () => {
       attacker: {
         controller: playerYuca.controller,
         eosID: playerYuca.eosID,
-        steamID: playerYuca.steamID
+        steamID: playerYuca.steamID,
       },
       victim: {
         nameWithClanTag: playerPika.nameWithClanTag,
       },
       weapon: 'weapon0',
       chainID: 'chain0',
-      date: new Date(0)
+      date: new Date(0),
     });
 
     cachedGameStatus.unWatch();
@@ -335,12 +361,11 @@ describe('use-cached-game-status', () => {
       attacker: omit(playerYuca, ['name', 'ip']), // only field provided by RCON and playerWounded
       damage: 30,
       victim: omit(playerPika, ['name', 'ip', 'controller']),
-      weapon: "weapon0",
+      weapon: 'weapon0',
       chainID: 'chain0',
-      date: expect.any(Date)
+      date: expect.any(Date),
     });
-  })
-
+  });
 
   // I mean... logs are always in the past, no ? (si peu de tail ou gros interval...)
   // Par contre, c une autre histoire de commencé playerWounded avant player connected.
@@ -359,5 +384,4 @@ describe('use-cached-game-status', () => {
   // log du passé player wounded ss login. et un playerList le contenant pas.
 
   // todo: test rcon avec actuel, et log du passé sur un player actuellement déco, devrait planté je pense.
-
 });

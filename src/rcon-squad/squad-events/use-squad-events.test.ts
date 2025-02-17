@@ -11,8 +11,8 @@ describe('rcon-squad-events', () => {
 
   beforeAll(() => {
     chatPacketEvent = new ReplaySubject<string>(1);
-    events = useSquadEvents({debug: vi.fn()} as any, chatPacketEvent);
-  })
+    events = useSquadEvents({ debug: vi.fn() } as any, chatPacketEvent);
+  });
 
   beforeAll(() => {
     vi.useFakeTimers(); // Mock timers
@@ -23,79 +23,91 @@ describe('rcon-squad-events', () => {
     vi.useRealTimers(); // Restore real timers
   });
 
-
   it('message', async () => {
-    chatPacketEvent.next("[ChatTeam] [Online IDs:EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca : r3");
+    chatPacketEvent.next(
+      '[ChatTeam] [Online IDs:EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca : r3'
+    );
     expect(await firstValueFrom(events.chatEvents.message)).toEqual({
-      chat: "ChatTeam",
+      chat: 'ChatTeam',
       player: {
-        eosID: "0002a10186d9414496bf20d22d3860ba",
-        steamID: "76561198016942077",
+        eosID: '0002a10186d9414496bf20d22d3860ba',
+        steamID: '76561198016942077',
       },
-      message: "r3",
-      name: "-TWS- Yuca",
-      date: expect.any(Date)
+      message: 'r3',
+      name: '-TWS- Yuca',
+      date: expect.any(Date),
     });
   });
-d
+  d;
   it('possessedAdminCamera', async () => {
-    chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
-    expect(await firstValueFrom(events.chatEvents.possessedAdminCamera)).toEqual({
-      eosID: "0002a10186d9424436bf50d22d3860ba",
-      steamID: "71531192016942077",
-      nameWithoutClanTag: "Yuca",
-      date: expect.any(Date)
+    chatPacketEvent.next(
+      '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.'
+    );
+    expect(
+      await firstValueFrom(events.chatEvents.possessedAdminCamera)
+    ).toEqual({
+      eosID: '0002a10186d9424436bf50d22d3860ba',
+      steamID: '71531192016942077',
+      nameWithoutClanTag: 'Yuca',
+      date: expect.any(Date),
     });
   });
 
   it('unPossessedAdminCamera', async () => {
-    chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has unpossessed admin camera.");
-    expect(await firstValueFrom(events.chatEvents.unPossessedAdminCamera)).toEqual({
+    chatPacketEvent.next(
+      '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has unpossessed admin camera.'
+    );
+    expect(
+      await firstValueFrom(events.chatEvents.unPossessedAdminCamera)
+    ).toEqual({
       duration: 0,
-      eosID: "0002a10186d9424436bf50d22d3860ba",
-      steamID: "71531192016942077",
-      nameWithoutClanTag: "Yuca",
-      date: expect.any(Date)
+      eosID: '0002a10186d9424436bf50d22d3860ba',
+      steamID: '71531192016942077',
+      nameWithoutClanTag: 'Yuca',
+      date: expect.any(Date),
     });
   });
 
   it('playerWarned', async () => {
-    chatPacketEvent.next("Remote admin has warned player -TWS- Pikado !!!. Message was \"Yuca est en cam admin!\"");
+    chatPacketEvent.next(
+      'Remote admin has warned player -TWS- Pikado !!!. Message was "Yuca est en cam admin!"'
+    );
     expect(await firstValueFrom(events.chatEvents.playerWarned)).toEqual({
-      nameWithClanTag: "-TWS- Pikado !!!",
-      reason: "Yuca est en cam admin!",
-      date: expect.any(Date)
+      nameWithClanTag: '-TWS- Pikado !!!',
+      reason: 'Yuca est en cam admin!',
+      date: expect.any(Date),
     });
   });
 
   it('squadCreated', async () => {
-    chatPacketEvent.next("lordmoi (Online IDs: EOS: 00027d9e31c04fda80ddac0443c3ce69 steam: 76561198006677354) has created Squad 1 (Squad Name: INF ) on Western Private Military Contractors");
+    chatPacketEvent.next(
+      'lordmoi (Online IDs: EOS: 00027d9e31c04fda80ddac0443c3ce69 steam: 76561198006677354) has created Squad 1 (Squad Name: INF ) on Western Private Military Contractors'
+    );
     expect(await firstValueFrom(events.chatEvents.squadCreated)).toEqual({
       creator: {
-        eosID: "00027d9e31c04fda80ddac0443c3ce69",
-        name: "lordmii",
-        squadName: "INF ",
-        steamID: "76561198006677354"
+        eosID: '00027d9e31c04fda80ddac0443c3ce69',
+        name: 'lordmii',
+        squadName: 'INF ',
+        steamID: '76561198006677354',
       },
-      squadID: "1",
-      squadName: "INF ",
-      teamName: "Western Private Military Contractors",
-      date: expect.any(Date)
+      squadID: '1',
+      squadName: 'INF ',
+      teamName: 'Western Private Military Contractors',
+      date: expect.any(Date),
     });
   });
 
   it('playerKicked', async () => {
-    chatPacketEvent.next("");
+    chatPacketEvent.next('');
     expect(await firstValueFrom(events.chatEvents.playerKicked)).toEqual({
       // todo need data
     });
   });
 
   it('playerBanned', async () => {
-    chatPacketEvent.next("");
+    chatPacketEvent.next('');
     expect(await firstValueFrom(events.chatEvents.squadCreated)).toEqual({
       // todo need data
     });
   });
-
 });

@@ -14,8 +14,7 @@ export const optionsSchema = z.object({
   cacheGameStatus: cachedGameStatusOptionsSchema,
   rconSquad: rconSquadOptionsSchema, // todo: choisir entre options et config ...
   connectors: connectorsOptionsSchema,
-  adminList: adminListOptionsSchema
-})
-
+  adminList: adminListOptionsSchema,
+});
 
 export type Options = z.infer<typeof optionsSchema>;
