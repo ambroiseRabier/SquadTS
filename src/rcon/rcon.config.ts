@@ -17,7 +17,11 @@ export const rconOptionsSchema = z.object({
     .number()
     .nonnegative("AutoReconnectDelay must be a non-negative number")
     .min(1000, "AutoReconnectDelay minimum is 1000ms") // don't DOS yourself
-    .default(5000)
+    .default(5000),
+  debugCondenseLogs: z
+    .boolean()
+    .default(true)
+    .describe("If true, will not show ListPlayers and ListSquads log if theses have not changed.")
 });
 
 export type RconOptions = z.infer<typeof rconOptionsSchema>;

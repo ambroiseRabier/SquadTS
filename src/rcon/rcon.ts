@@ -136,6 +136,7 @@ export class Rcon {
           case END_PACKET_ID:
             this.callbackIds = this.callbackIds.filter((p) => p.id !== decodedPacket.count);
 
+            // Maybe it is used to end every event listener in case of error, so that no one is pending in case of disconnect.
             // probably need to log that stuff
             // Todo responseCallbackQueue having string is probably something to refactor. What is the intention here?
             // We added callbacks to the queue when the request was sent. responseCallbackQueue will not be empty
@@ -163,6 +164,7 @@ export class Rcon {
         break;
 
       case DataType.CHAT_VALUE:
+        this.logger.debug(`Chat message: ${decodedPacket.body}`);
         this.chatPacketEvent.next(decodedPacket.body);
         break;
 
@@ -369,6 +371,11 @@ export class Rcon {
       });
   }
 
+  private logCache = {
+    [RCONCommand.ListPlayers]: '',
+    [RCONCommand.ListSquads]: '',
+    [RCONCommand.ShowServerInfo]: '',
+  }
 
   private write(type: Exclude<DataType, DataType.AUTH>, body: string) {
     return new Promise(
@@ -388,7 +395,7 @@ export class Rcon {
         return;
       }
 
-      this.logger.debug(`Writing packet with type "${getDataTypeKeyByValue(type)}" and body "${body}".`);
+      this.logger.trace(`Writing packet with type "${getDataTypeKeyByValue(type)}" and body "${body}".`);
 
       const encodedPacket = encodePacket(
         this.count,
@@ -419,7 +426,25 @@ export class Rcon {
           // Called from onClose()
           reject(response);
         } else {
-          this.logger.debug(`Returning response: "${(response as string)}"`);
+
+          if (this.options.debugCondenseLogs) {
+            const concernedLog = body in this.logCache;
+            if (concernedLog) {
+              const previousResponse = this.logCache[body as keyof typeof this.logCache]
+              const changeDetected = previousResponse !== response as string;
+              if (changeDetected) {
+                // Update cache
+                this.logCache[body as keyof typeof this.logCache] = response as string;
+
+                // Log response
+                this.logger.debug(`Returning response for "${body}" (logging only when changed): "${(response as string)}"`);
+              } // else do nothing to reduce verboseness
+            } else {
+              this.logger.debug(`Returning response for "${body}": "${(response as string)}"`);
+            }
+          } else {
+            this.logger.debug(`Returning response for "${body}": "${(response as string)}"`);
+          }
 
           // todo same here, I suppose this is a string at this point, some refactor to be done with responseCallbackQueue
           resolve(response as string);

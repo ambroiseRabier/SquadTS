@@ -5,6 +5,10 @@ import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
 import { RCONCommand } from '../../src/rcon-squad/rcon-commands';
 import { HeliCrashBroadCastOptions } from './heli-crash-broadcast.config';
 
+// Note: To get logs: rcon in debug to see response of rcon, and chatEvents
+// logParser et show matched, show unmatched may help in finding extra features :)
+//
+
 // Note that SquadList is fetched first, before PlayerList. Same a server info, fetched immediately at startup
 function setRconMock(rconExec: MockedFunction<Rcon['execute']>, resolvedValues: Partial<{
   ShowServerInfo: string;
