@@ -60,3 +60,6 @@ export const CONFIGS_ROOT = resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH)
  * <your-path>\SquadTS\config\plugins
  */
 export const PLUGINS_CONFIG_ROOT = path.join(CONFIGS_ROOT, 'plugins');
+
+
+export const LOG_FILE = path.join(PROJECT_ROOT, 'logs', 'SquadTS.log');

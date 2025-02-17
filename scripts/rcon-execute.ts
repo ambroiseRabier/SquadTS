@@ -1,8 +1,9 @@
 import { Rcon } from '../src/rcon/rcon';
 import { RconOptions, rconOptionsSchema } from '../src/rcon/rcon.config';
-import { useLogger } from '../src/logger/use-logger';
 import fs from 'fs';
 import JSON5 from 'json5';
+import pretty from 'pino-pretty';
+import { pino } from 'pino';
 
 /**
  * Example: npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
@@ -12,7 +13,14 @@ import JSON5 from 'json5';
 // have access to.
 // ListPermittedCommands will error "You need a connected player to know its permitted commands."
 
-const logger = useLogger();
+const prettyStream = pretty({
+  colorize: true
+});
+
+const logger = pino({
+  base: null,  // Remove processID and hostname
+}, prettyStream);
+
 logger.level = 'info';
 
 async function rconExecute(options: RconOptions, command: string) {

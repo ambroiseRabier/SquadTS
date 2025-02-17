@@ -74,16 +74,6 @@ Team ID: 2 (Manticore Security Task Force)
         }
       }
     });
-
-
-
-
-    // todo: ne pas load tout les plugins ?
-    // todo: config fixe, eventuellement personalisable ?
-    // renvoyer les plugins à partir de main(), pour pouvoir faire spyOn
-    // testBed.plugins['heli-crash-broadcast'] spyOn... To have been called
-    // ... on s'en fou non ? on fait du black box testing.
-    // let plugin = heliCrashBroadcast()
   });
 
   afterAll(async () => {
@@ -130,5 +120,5 @@ Team ID: 2 (Manticore Security Task Force)
     `);
 
     expect(rconExec).toHaveBeenCalledWith('AdminBroadcast -TWS- Yuca crash landed.');
-  })
+  });
 })

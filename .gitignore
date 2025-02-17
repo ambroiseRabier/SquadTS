@@ -24,3 +24,6 @@ yarn-error.log*
 
 # Github info cache
 /github-info-cache
+
+# Logs dir of SquadTS
+/logs

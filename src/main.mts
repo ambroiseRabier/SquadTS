@@ -1,4 +1,4 @@
-import { useLogger, useSubLogger } from './logger/use-logger';
+import { useLogger, useSubLogger } from './logger/use-logger.mjs';
 import { parseConfigs, useConfig } from './config/use-config';
 import { Rcon } from './rcon/rcon';
 import { RconSquad, useRconSquad } from './rcon-squad/use-rcon-squad';
