@@ -1,57 +1,62 @@
-import { beforeAll, describe, expect, it, jest } from 'vitest';
+import { beforeAll, describe, expect, it, vi, MockedFunction, beforeEach } from 'vitest';
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
-import { MockedFunction } from 'jest-mock';
 import { gameServerInfoKeys } from './server-info.type';
 
 describe('rcon-squad-execute', () => {
-  let execute: MockedFunction<Rcon['execute']>;
+  let execute: MockedFunction<Rcon['execute']> = vi.fn();
   let rc: ReturnType<typeof useRconSquadExecute>;
+  let mockLogger = {
+    trace: vi.fn().mockImplementation(console.log),
+    debug: vi.fn().mockImplementation(console.log),
+    info: vi.fn().mockImplementation(console.log),
+    warn: vi.fn().mockImplementation(console.warn),
+    error: vi.fn().mockImplementation(console.error),
+    fatal: vi.fn().mockImplementation(console.error),
+  };
 
   beforeAll(() => {
-    execute = jest.fn();
     rc = useRconSquadExecute(
       execute as any,
       false,
-      {
-        trace: console.log,
-        debug: console.log,
-        info: console.info,
-        warn: console.warn,
-        error: console.error,
-      } as any);
-  })
+      mockLogger as any
+    );
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('does not call execute on game modifying command when dry run is enabled', async () => {
-    const localExecute = jest.fn();
-    const loggerInfo = jest.fn();
-    const localRcon = useRconSquadExecute(localExecute as any, true, {
-      info: loggerInfo
-    } as any);
+    const dryRunRCON = useRconSquadExecute(
+      execute as any,
+      true,
+      mockLogger as any,
+    );
 
     // todo params check or error, will have to udpate the test here.
-    await localRcon.broadcast('hello');
-    await localRcon.kick('', '');
-    await localRcon.ban('','', '');
-    await localRcon.warn('', '');
-    await localRcon.forceTeamChange('');
-    await localRcon.disbandSquad('', '');
-    expect(localExecute).not.toHaveBeenCalled();
-    expect(loggerInfo).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
+    await dryRunRCON.broadcast('hello');
+    await dryRunRCON.kick('', '');
+    await dryRunRCON.ban('','', '');
+    await dryRunRCON.warn('', '');
+    await dryRunRCON.forceTeamChange('');
+    await dryRunRCON.disbandSquad('', '');
+    expect(execute).not.toHaveBeenCalled();
+    expect(mockLogger.warn).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
   });
 
   it('does call execute on non game modifying command when dry run is enabled', async () => {
-    const localExecute = jest.fn();
-    const loggerInfo = jest.fn();
-    const localRcon = useRconSquadExecute(localExecute as any, true, {
-      info: loggerInfo
-    } as any);
+    const dryRunRCON = useRconSquadExecute(
+      execute as any,
+      true,
+      mockLogger as any,
+    );
 
-    await localRcon.getListPlayers();
-    await localRcon.getSquads();
-    await localRcon.getCurrentMap();
-    await localRcon.getNextMap();
-    expect(localExecute).toHaveBeenCalledTimes(4);
+    await dryRunRCON.getListPlayers();
+    await dryRunRCON.getSquads();
+    await dryRunRCON.getCurrentMap();
+    await dryRunRCON.getNextMap();
+    expect(execute).toHaveBeenCalledTimes(4);
   });
 
   it('getCurrentMap', async () => {
@@ -78,7 +83,7 @@ ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277
         nameWithClanTag: "[FR] ComboAz",
         role: "INS_Sapper_01",
         isLeader: false,
-        playerID: "3",
+        id: "3",
         squadID: undefined,
         steamID: "76561198080109192",
         teamID: "1",
@@ -88,7 +93,7 @@ ID: 11 | Online IDs: EOS: 00029q3b0ae04be1880bcf2f1897d4e6 steam: 76561198016277
         nameWithClanTag: " JO Diabolo",
         role: "INS_Grenadier_01",
         isLeader: true,
-        playerID: "12",
+        id: "12",
         squadID: "1",
         steamID: "76561198012236668",
         teamID: "1",
@@ -164,8 +169,8 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
   });
 
   it('should detect changes in ShowServerInfo', async () => {
-    const localExecute = jest.fn<Rcon['execute']>();
-    const loggerWarn = jest.fn();
+    const localExecute = vi.fn<Rcon['execute']>();
+    const loggerWarn = vi.fn();
     const localRcon = useRconSquadExecute(localExecute as any, true, {
       info: console.log,
       warn: loggerWarn,
@@ -179,14 +184,14 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
     obj['new_key_that_should_be_detected'] = '';
     delete obj[gameServerInfoKeys[0]];
 
-    localExecute.mockResolvedValue(obj as any)
+    localExecute.mockResolvedValue(JSON.stringify(obj))
 
     await localRcon.showServerInfo();
     expect(loggerWarn).toHaveBeenCalledWith(
-      'Missing keys found in server info (this log is aimed at SquadTS developers): MaxPlayers',
+      'Missing keys found in server info (will only log once per start): MaxPlayers',
     );
     expect(loggerWarn).toHaveBeenCalledWith(
-      'Extra keys found in server info (this log is aimed at SquadTS developers): new_key_that_should_be_detected',
+      'Extra keys found in server info (will only log once per start): new_key_that_should_be_detected',
     );
   });
 

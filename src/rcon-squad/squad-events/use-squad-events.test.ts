@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, jest } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { useSquadEvents } from './use-squad-events';
 import { firstValueFrom, ReplaySubject, Subject } from 'rxjs';
 
@@ -11,16 +11,16 @@ describe('rcon-squad-events', () => {
 
   beforeAll(() => {
     chatPacketEvent = new ReplaySubject<string>(1);
-    events = useSquadEvents({debug: jest.fn()} as any, chatPacketEvent);
+    events = useSquadEvents({debug: vi.fn()} as any, chatPacketEvent);
   })
 
   beforeAll(() => {
-    jest.useFakeTimers(); // Mock timers
-    jest.setSystemTime(new Date('2023-01-01T00:00:00Z')); // Freeze time
+    vi.useFakeTimers(); // Mock timers
+    vi.setSystemTime(new Date('2023-01-01T00:00:00Z')); // Freeze time
   });
 
   afterAll(() => {
-    jest.useRealTimers(); // Restore real timers
+    vi.useRealTimers(); // Restore real timers
   });
 
 
@@ -28,21 +28,23 @@ describe('rcon-squad-events', () => {
     chatPacketEvent.next("[ChatTeam] [Online IDs:EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca : r3");
     expect(await firstValueFrom(events.chatEvents.message)).toEqual({
       chat: "ChatTeam",
-      eosID: "0002a10186d9414496bf20d22d3860ba",
+      player: {
+        eosID: "0002a10186d9414496bf20d22d3860ba",
+        steamID: "76561198016942077",
+      },
       message: "r3",
       name: "-TWS- Yuca",
-      steamID: "76561198016942077",
-      time: expect.any(Date)
+      date: expect.any(Date)
     });
   });
-
+d
   it('possessedAdminCamera', async () => {
     chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
     expect(await firstValueFrom(events.chatEvents.possessedAdminCamera)).toEqual({
       eosID: "0002a10186d9424436bf50d22d3860ba",
       steamID: "71531192016942077",
       nameWithoutClanTag: "Yuca",
-      time: expect.any(Date)
+      date: expect.any(Date)
     });
   });
 
@@ -53,7 +55,7 @@ describe('rcon-squad-events', () => {
       eosID: "0002a10186d9424436bf50d22d3860ba",
       steamID: "71531192016942077",
       nameWithoutClanTag: "Yuca",
-      time: expect.any(Date)
+      date: expect.any(Date)
     });
   });
 
@@ -62,7 +64,7 @@ describe('rcon-squad-events', () => {
     expect(await firstValueFrom(events.chatEvents.playerWarned)).toEqual({
       nameWithClanTag: "-TWS- Pikado !!!",
       reason: "Yuca est en cam admin!",
-      time: expect.any(Date)
+      date: expect.any(Date)
     });
   });
 
@@ -78,7 +80,7 @@ describe('rcon-squad-events', () => {
       squadID: "1",
       squadName: "INF ",
       teamName: "Western Private Military Contractors",
-      time: expect.any(Date)
+      date: expect.any(Date)
     });
   });
 

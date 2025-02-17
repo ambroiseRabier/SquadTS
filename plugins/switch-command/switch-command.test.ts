@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import switchCommand from './switch-command';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
@@ -48,8 +48,8 @@ const serverMock = () => {
   const players$ = new BehaviorSubject<SwitchCommandPlayer[]>([]);
   return {
     rcon: {
-      forceTeamChange: jest.fn<SquadServer['rcon']['forceTeamChange']>().mockResolvedValue(undefined),
-      warn: jest.fn<SquadServer['rcon']['warn']>().mockResolvedValue(undefined),
+      forceTeamChange: vi.fn<SquadServer['rcon']['forceTeamChange']>().mockResolvedValue(undefined),
+      warn: vi.fn<SquadServer['rcon']['warn']>().mockResolvedValue(undefined),
     },
     chatEvents: {
       // Based on what the plugin use
@@ -59,8 +59,8 @@ const serverMock = () => {
       playerDisconnected: new Subject<Pick<ObservableValue<SquadServer['events']['playerDisconnected']>, 'player'>>(),
     },
     helpers: {
-      playerHasPermissions: jest.fn<SquadServer['helpers']['playerHasPermissions']>(() => false),
-      getPlayerByEOSID: jest.fn((eosID: string) => players$.getValue().find(p => p.eosID === eosID)),
+      playerHasPermissions: vi.fn<SquadServer['helpers']['playerHasPermissions']>(() => false),
+      getPlayerByEOSID: vi.fn((eosID: string) => players$.getValue().find(p => p.eosID === eosID)),
     },
     get players() {
       return players$.getValue();

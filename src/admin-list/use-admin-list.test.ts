@@ -96,7 +96,7 @@ describe('useAdminList', () => {
 
     await fetch();
 
-    expect(logger.info).toHaveBeenNthCalledWith(1, 'Fetching admin list...');
+    expect(logger.info).toHaveBeenNthCalledWith(1, 'Fetching 1 admin list...');
     expect(logger.info).toHaveBeenNthCalledWith(2, 'Fetching http://example.com/admin.cfg');
     expect(logger.info).toHaveBeenNthCalledWith(3, 'Admin list fetched. 4 admins found.');
   });

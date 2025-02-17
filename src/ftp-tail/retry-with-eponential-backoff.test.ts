@@ -1,22 +1,22 @@
-import { describe, it, expect, jest } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 
 
 describe('retryWithExponentialBackoff', () => {
   let mockLogger = {
-    info: jest.fn().mockImplementation(console.log),
+    info: vi.fn().mockImplementation(console.log),
     // Hide it to avoid confusion in CI, enable it if you change this test to better understand what is happening.
-    error: jest.fn(),//.mockImplementation(console.error),
+    error: vi.fn(),//.mockImplementation(console.error),
   };
 
   it('should execute promise', async () => {
-    const mockFn = jest.fn<any>().mockResolvedValue(undefined);
+    const mockFn = vi.fn<any>().mockResolvedValue(undefined);
     await retryWithExponentialBackoff(mockFn, 3, mockLogger as any, () => false, () => true);
     expect(mockFn).toHaveBeenCalled();
   });
 
   it('should retry promise', async () => {
-    const mockFn = jest.fn<any>()
+    const mockFn = vi.fn<any>()
       .mockRejectedValueOnce(new Error('first error'))
       .mockRejectedValueOnce(new Error('second error'))
       .mockResolvedValue(undefined);

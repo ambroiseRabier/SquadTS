@@ -88,10 +88,6 @@ for ci, ts-node generateconfig.ts -f
 
 ---
 
-license, stay the same
-
----
-
 le double package.json se discute, mais possible ss type module ?
 
 ---

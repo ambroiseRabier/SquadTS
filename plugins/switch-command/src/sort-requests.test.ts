@@ -1,14 +1,14 @@
 import { AdminPerms } from '../../../src/admin-list/permissions';
 import { SwitchRequest } from './switch-helpers';
-import { beforeEach, describe, it, jest, expect } from 'vitest';
+import { beforeEach, describe, it, vi, expect } from 'vitest';
 import { sortRequests } from './sort-requests';
 import { SquadServer } from '../../../src/squad-server';
 
 describe('sortRequests', () => {
-  const mockPlayerHasPermissions = jest.fn<SquadServer['helpers']['playerHasPermissions']>();
+  const mockPlayerHasPermissions = vi.fn<SquadServer['helpers']['playerHasPermissions']>();
 
   beforeEach(() => {
-    jest.clearAllMocks(); // Reset mock between tests
+    vi.clearAllMocks(); // Reset mock between tests
   });
 
   it('prioritizes players with Reserve permission, then by date', () => {

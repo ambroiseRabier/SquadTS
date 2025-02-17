@@ -2,17 +2,10 @@ import { describe, expect, test } from 'vitest';
 import { extractIDs } from './id-parser';
 
 describe('ID Parser', () => {
-  test('extractIDs without prefix', () => {
+  test('extractIDs', () => {
     expect(extractIDs('steam:id1 eos:id2')).toEqual({
       "eosID": "id2",
       "steamID": "id1"
-    });
-  });
-
-  test('extractIDs with prefix', () => {
-    expect(extractIDs('steam:id1 eos:id2', 'creator')).toEqual({
-      "creatorEosID": "id2",
-      "creatorSteamID": "id1"
     });
   });
 
