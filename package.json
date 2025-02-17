@@ -21,6 +21,7 @@
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
     "pino": "^9.6.0",
+    "pino-roll": "^3.0.0",
     "rxjs": "^7.8.1",
     "ssh2-sftp-client": "^11.0.0",
     "strip-ansi": "^7.1.0",

@@ -81,12 +81,30 @@ export function useLogger() {
           {
             target: fileURLToPath(import.meta.url).replace('use-logger.mts', 'strip-ansi.pipeline.mjs')
           },
+          // {
+          //   target: 'pino/file',
+          //   options: {
+          //     mkdir: true,
+          //     append: false,
+          //     destination: LOG_FILE,
+          //   },
+          // }
+          // https://github.com/mcollina/pino-roll
           {
-            target: 'pino/file',
+            target: 'pino-roll',
             options: {
               mkdir: true,
-              append: false,
-              destination: LOG_FILE,
+              file: LOG_FILE,
+              frequency: 1000 * 60 * 60 * 2, // 2h
+              // I've got no idea how much logs a full server give
+              // Trying to keep it small to make it easier to read
+              size: '20m',
+              // 25*20m is 500Mo max space used, or 25*2h is around 2 days
+              // How many log file max to keep without counting the one we are writing to.
+              // Note that it is not a complete fix as it won't handle file created from a previous execution.
+              limit: { count: 25 },
+              // Would prefer the date being placed before .log not after...
+              dateFormat: 'yyyy-MM-dd-hh'
             },
           }
         ],

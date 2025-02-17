@@ -6,4 +6,6 @@
   // The RCON password of the server.
   password: '',
   autoReconnectDelay: 5000,
+  // If true, will not show ListPlayers and ListSquads log if theses have not changed.
+  debugCondenseLogs: true,
 }

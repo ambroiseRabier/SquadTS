@@ -11,7 +11,10 @@ export const loggerOptionsSchema = z.object({
   verboseness: z.object({
     SquadServer: pinoLevelSchema.default('info'),
     LogParser: pinoLevelSchema.default('info'),
-    RCON: pinoLevelSchema.default('info'),
+    RCON: pinoLevelSchema.default('info').describe(
+      "Set to debug to view every response made, trace to view every RCON call made.\n" +
+      "You may use debugCondenseLogs in rcon config to reduce verboseness of some responses."
+    ),
     RCONSquad: pinoLevelSchema.default('info'),
     CachedGameStatus: pinoLevelSchema.default('info'),
     PluginLoader: pinoLevelSchema.default('info'),

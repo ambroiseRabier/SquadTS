@@ -9,6 +9,7 @@ import { IncludesRCONCommand, RCONCommand } from './rcon-commands';
 
 
 export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
+  let missingAndExtraCalledOnce = false;
 
   function dryRunExecute<T extends string>(command: IncludesRCONCommand<T>): Promise<string> {
     if (dryRun) {
@@ -164,12 +165,19 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       const missingKeys = gameServerInfoKeys.filter(key => !infoKeys.includes(key));
       const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
 
-      if (missingKeys.length > 0) {
-        logger.warn(`Missing keys found in server info (this log is aimed at SquadTS developers): ${missingKeys.join(',')}`);
+      // Mostly aimed at SquadTS developers
+      if (!missingAndExtraCalledOnce) {
+        missingAndExtraCalledOnce = true;
+        if (missingKeys.length > 0) {
+          // Right now we get: LicenseId_s,LicenseSig1_s,LicenseSig2_s,LicenseSig3_s,TagLanguage_s,TagGameMode-0_s,TagGameMode-1_s,TagGameMode-2_s,TagGameMode_s,TagPlaystyle_s,TagMapRotation_s,TagExperience_s,TagRules_s
+          // For an unlicensed server with almost no config on it.
+          logger.warn(`Missing keys found in server info (will only log once per start): ${missingKeys.join(',')}`);
+        }
+        if (extraKeys.length > 0) {
+          logger.warn(`Extra keys found in server info (will only log once per start): ${extraKeys.join(',')}`);
+        }
       }
-      if (extraKeys.length > 0) {
-        logger.warn(`Extra keys found in server info (this log is aimed at SquadTS developers): ${extraKeys.join(',')}`);
-      }
+
 
       function getMatchStartTimeByPlaytime(playtime: number) {
         return new Date(Date.now() - playtime * 1000);

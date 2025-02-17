@@ -21,7 +21,7 @@ export const rconOptionsSchema = z.object({
   debugCondenseLogs: z
     .boolean()
     .default(true)
-    .describe("If true, will not show ListPlayers and ListSquads log if theses have not changed.")
+    .describe("If true, will not show ListPlayers / ListSquads / ShowServerInfo RCON response log (debug level) if theses have not changed.")
 });
 
 export type RconOptions = z.infer<typeof rconOptionsSchema>;
