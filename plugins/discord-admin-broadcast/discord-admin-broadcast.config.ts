@@ -8,9 +8,7 @@ const enabledSchema = pluginBaseOptionsSchema
     enabled: z.literal(true),
     channelID: z.string().nonempty(),
   })
-  .describe(
-    'Send a copy of admin broadcasts made in game to a Discord channel.'
-  );
+  .describe('Send a copy of admin broadcasts made in game to a Discord channel.');
 
 const schema = z.discriminatedUnion('enabled', [
   enabledSchema,

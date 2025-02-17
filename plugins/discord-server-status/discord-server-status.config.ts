@@ -8,10 +8,7 @@ const enabledSchema = pluginBaseOptionsSchema
     enabled: z.literal(true),
     channelID: z.string().nonempty(),
     updateFrequency: z.number().min(5).default(60),
-    command: z
-      .string()
-      .default('!status')
-      .describe('The command that calls the status.'),
+    command: z.string().default('!status').describe('The command that calls the status.'),
     setBotStatus: z
       .boolean()
       .default(true)

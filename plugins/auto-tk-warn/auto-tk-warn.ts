@@ -9,7 +9,7 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
   logger: Logger,
   options
 ) => {
-  server.events.teamKill.subscribe(async (info) => {
+  server.events.teamKill.subscribe(async info => {
     logger.info(
       `TK Warn: ${info.attacker.nameWithClanTag ?? info.attacker.name} (eosID: ${info.attacker.eosID})`
     );

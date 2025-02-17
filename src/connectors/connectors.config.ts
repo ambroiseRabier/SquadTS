@@ -13,12 +13,8 @@ export const connectorsOptionsSchema = z
         enabled: z.literal(true),
         token: z
           .string()
-          .nonempty(
-            'Token is required. To disable discord connector, set enabled to false.'
-          ),
+          .nonempty('Token is required. To disable discord connector, set enabled to false.'),
       }),
     ]),
   })
-  .describe(
-    'Connectors configuration.\nSome plugins require some connector to be enabled.'
-  );
+  .describe('Connectors configuration.\nSome plugins require some connector to be enabled.');

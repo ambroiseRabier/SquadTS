@@ -1,16 +1,5 @@
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  MockedFunction,
-  vi,
-} from 'vitest';
-import {
-  TestServer,
-  useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
+import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
+import { TestServer, useTestServer } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
 import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
 import { RCONCommand } from '../../src/rcon-squad/rcon-commands';
@@ -195,8 +184,6 @@ Team ID: 2 (Manticore Security Task Force)
       [2025.02.13-19.13.17:868][363]LogSquad: Warning: Suicide -TWS- Yuca
     `);
 
-    expect(rconExec).toHaveBeenCalledWith(
-      'AdminBroadcast -TWS- Yuca crash landed.'
-    );
+    expect(rconExec).toHaveBeenCalledWith('AdminBroadcast -TWS- Yuca crash landed.');
   });
 });

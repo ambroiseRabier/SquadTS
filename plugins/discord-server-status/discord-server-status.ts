@@ -15,7 +15,7 @@ const DiscordServerStatus: SquadTSPlugin<DiscordServerStatusOptions> = async (
 
   interval(options.updateFrequency * 1000)
     .pipe(
-      exhaustMap(async (data) => {
+      exhaustMap(async data => {
         const players = [
           `${server.info.a2sPlayerCount}`,
           server.info.publicQueue + server.info.reserveQueue > 0 &&

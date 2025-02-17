@@ -6,37 +6,32 @@ import { AdminPerms } from '../../src/admin-list/permissions';
 import { APIEmbed } from 'discord.js';
 import { debounce } from 'lodash-es';
 
-const DiscordAdminRequest: SquadTSPlugin<
-  DiscordAdminRequestEnabledOptions
-> = async (server, connectors, logger, options) => {
+const DiscordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = async (
+  server,
+  connectors,
+  logger,
+  options
+) => {
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
-  const debouncedAddDiscordPing = debounce(
-    () => true,
-    options.debounceDiscordPing * 1000
-  );
+  const debouncedAddDiscordPing = debounce(() => true, options.debounceDiscordPing * 1000);
 
   server.chatEvents.command
     .pipe(
-      filter((data) => data.command === options.command),
-      tap(async (data) => {
+      filter(data => data.command === options.command),
+      tap(async data => {
         if (data.message.length === 0) {
           await server.rcon.warn(data.player.eosID, options.messages.noMessage);
         }
       }),
-      filter((data) => data.message.length > 0)
+      filter(data => data.message.length > 0)
     )
-    .subscribe(async (data) => {
-      const admins = server.helpers.getOnlineAdminsWithPermissions([
-        AdminPerms.CanSeeAdminChat,
-      ]);
+    .subscribe(async data => {
+      const admins = server.helpers.getOnlineAdminsWithPermissions([AdminPerms.CanSeeAdminChat]);
 
       let adminNotified = 0;
       for (let admin of admins) {
-        await server.rcon.warn(
-          admin.player.eosID,
-          `[${data.player.name}] - ${data.message}`
-        );
+        await server.rcon.warn(admin.player.eosID, `[${data.player.name}] - ${data.message}`);
         adminNotified++;
       }
 
@@ -79,15 +74,12 @@ const DiscordAdminRequest: SquadTSPlugin<
         embeds: [embed],
       };
 
-      const pingStr =
-        options.pingHere && !!debouncedAddDiscordPing() ? '@here - ' : '';
+      const pingStr = options.pingHere && !!debouncedAddDiscordPing() ? '@here - ' : '';
       const groupPingStr =
         options.pingGroups.length > 0
-          ? ' - ' +
-            options.pingGroups.map((groupID) => `<@&${groupID}>`).join(' ')
+          ? ' - ' + options.pingGroups.map(groupID => `<@&${groupID}>`).join(' ')
           : '';
-      req.content =
-        pingStr + `Admin Requested in ${server.info.serverName}` + groupPingStr;
+      req.content = pingStr + `Admin Requested in ${server.info.serverName}` + groupPingStr;
 
       await channel.send(req);
 
@@ -95,10 +87,7 @@ const DiscordAdminRequest: SquadTSPlugin<
       // wants to disclose absence of in-game admin.
       if (options.showInGameAdmins) {
         if (adminNotified === 0) {
-          await server.rcon.warn(
-            data.player.eosID,
-            options.messages.noInGameAdminNotification
-          );
+          await server.rcon.warn(data.player.eosID, options.messages.noInGameAdminNotification);
         } else {
           await server.rcon.warn(
             data.player.eosID,
@@ -108,10 +97,7 @@ const DiscordAdminRequest: SquadTSPlugin<
           );
         }
       } else {
-        await server.rcon.warn(
-          data.player.eosID,
-          options.messages.neutralAdminNotification
-        );
+        await server.rcon.warn(data.player.eosID, options.messages.neutralAdminNotification);
       }
     });
 };

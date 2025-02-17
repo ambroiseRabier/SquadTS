@@ -16,9 +16,7 @@ const schema = pluginBaseOptionsSchema
       .string()
       .nullable()
       .optional()
-      .describe(
-        'The message that will be sent to the victim. null value means no message sent.'
-      )
+      .describe('The message that will be sent to the victim. null value means no message sent.')
       .default(null),
   })
   .describe('Warn attacker/victim when they team kill.');

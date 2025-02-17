@@ -29,9 +29,7 @@ const initialTailSizeSchema = z
   .number()
   .int()
   .default(5 * 1000 * 1024)
-  .describe(
-    'Initial tail size in bytes. Default is 5MB. This is only used when SquadTS start.'
-  );
+  .describe('Initial tail size in bytes. Default is 5MB. This is only used when SquadTS start.');
 
 const logFileSchema = z
   .string()
@@ -43,11 +41,7 @@ const logFileSchema = z
 const ftpSchema = z
   .object({
     host: ipv4Schema,
-    port: z
-      .number()
-      .int()
-      .default(21)
-      .describe('FTP server port usually is 21. SFTP is 22.'),
+    port: z.number().int().default(21).describe('FTP server port usually is 21. SFTP is 22.'),
     username: z.string().nonempty(),
     password: z.string(),
     fetchInterval: fetchIntervalSchema,

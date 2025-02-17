@@ -10,13 +10,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api';
 
 // You may skip asking user for pre-commit or CI/CD stuff.
-const FORCE_OVERRIDE =
-  process.argv.includes('--force') || process.argv.includes('-f');
-const configFolder = path.join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  'config'
-);
+const FORCE_OVERRIDE = process.argv.includes('--force') || process.argv.includes('-f');
+const configFolder = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'config');
 
 // Best to ask user confirmation, we don't want someone unfamiliar with NPM to override his config !
 const askUser = (question: string): Promise<boolean> => {
@@ -25,8 +20,8 @@ const askUser = (question: string): Promise<boolean> => {
     output: process.stdout,
   });
 
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
+  return new Promise(resolve => {
+    rl.question(question, answer => {
       rl.close();
       resolve(answer.toLowerCase() === 'yes');
     });
@@ -40,10 +35,7 @@ async function saveFiles() {
     const field = (optionsSchema as z.ZodObject<any>).shape[key];
 
     // Note: compared to plugins, we are not using dynamic import here, so Zod instance is the same.
-    if (
-      field instanceof z.ZodObject ||
-      field instanceof z.ZodDiscriminatedUnion
-    ) {
+    if (field instanceof z.ZodObject || field instanceof z.ZodDiscriminatedUnion) {
       // Define the file path
       const filePath = path.join(configFolder, `${key}.json5`);
 
@@ -81,11 +73,7 @@ async function saveFiles() {
 async function savePluginFiles() {
   console.info(`Generating plugin files...`);
 
-  const pluginsDir = path.join(
-    dirname(fileURLToPath(import.meta.url)),
-    '..',
-    'plugins'
-  ); // Assume 'plugins' is the root directory for plugins
+  const pluginsDir = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins'); // Assume 'plugins' is the root directory for plugins
 
   // Ensure the 'config/plugins' folder exists
   const configPluginsFolder = path.join(configFolder, 'plugins');
@@ -100,7 +88,7 @@ async function savePluginFiles() {
   }
 
   // Get all folders in the plugins directory
-  const pluginFolders = fs.readdirSync(pluginsDir).filter((item) => {
+  const pluginFolders = fs.readdirSync(pluginsDir).filter(item => {
     const itemPath = path.join(pluginsDir, item);
     return fs.statSync(itemPath).isDirectory();
   });
@@ -118,11 +106,7 @@ async function savePluginFiles() {
     try {
       // Dynamically import the <folderName>/<folderName>.config.ts file
       const configFileName = folderName + '.config.ts';
-      const pluginConfigPath = path.join(
-        pluginsDir,
-        folderName,
-        configFileName
-      );
+      const pluginConfigPath = path.join(pluginsDir, folderName, configFileName);
       if (!fs.existsSync(pluginConfigPath)) {
         console.warn(`Config file not found: ${configFileName}`);
         continue;
@@ -137,20 +121,13 @@ async function savePluginFiles() {
       // Note: for unknown reason, instanceof z.ZodType give false since esm, maybe the imported Zod in plugin is considered
       //       different rom the one used to generate config ?
       // Ensure it's a Zod schema
-      if (
-        !['ZodObject', 'ZodDiscriminatedUnion'].includes(
-          zodSchema.constructor.name
-        )
-      ) {
+      if (!['ZodObject', 'ZodDiscriminatedUnion'].includes(zodSchema.constructor.name)) {
         console.error(`Invalid Zod schema in ${pluginConfigPath}`);
         continue;
       }
 
       // Generate a json5 file using the generated schema
-      const json5FilePath = path.join(
-        configPluginsFolder,
-        `${folderName}.json5`
-      );
+      const json5FilePath = path.join(configPluginsFolder, `${folderName}.json5`);
       const json5Commented = generateJson5Commented(zodSchema, {
         enabled: false,
       });

@@ -32,10 +32,7 @@ export function resolveConfigsPath(envConfigPath: string | undefined): string {
  * <your-path>\SquadTS
  * Will be the same from anywhere, be it you run the server or run tests.
  */
-export const PROJECT_ROOT = path.resolve(
-  fileURLToPath(import.meta.url),
-  '../../..'
-);
+export const PROJECT_ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 
 /**
  * <your-path>\SquadTS\plugins
@@ -55,9 +52,7 @@ export const DEFAULT_CONFIGS_ROOT = path.join(PROJECT_ROOT, 'config');
  * - <your-path>\SquadTS\dev-config
  * - ...
  */
-export const CONFIGS_ROOT = resolveConfigsPath(
-  process.env.SQUAD_TS_CONFIG_PATH
-);
+export const CONFIGS_ROOT = resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH);
 
 /**
  * <your-path>\SquadTS\config\plugins

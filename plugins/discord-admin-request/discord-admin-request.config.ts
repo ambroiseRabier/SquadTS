@@ -7,16 +7,11 @@ const enabledSchema = pluginBaseOptionsSchema
   .extend({
     enabled: z.literal(true),
     channelID: z.string().nonempty(),
-    command: z
-      .string()
-      .default('admin')
-      .describe('The command that calls an admin.'),
+    command: z.string().default('admin').describe('The command that calls an admin.'),
     messages: z.object({
       noMessage: z
         .string()
-        .default(
-          'Please specify what you would like help with when requesting an admin.'
-        ),
+        .default('Please specify what you would like help with when requesting an admin.'),
       noInGameAdminNotification: z
         .string()
         .default(
@@ -27,12 +22,8 @@ const enabledSchema = pluginBaseOptionsSchema
         .default('todo - default to english for now to handle plural...'),
       neutralAdminNotification: z
         .string()
-        .default(
-          'An admin has been notified. Please wait for us to get back to you.'
-        )
-        .describe(
-          'Neutral message that will be shown if showInGameAdmins is false.'
-        ),
+        .default('An admin has been notified. Please wait for us to get back to you.')
+        .describe('Neutral message that will be shown if showInGameAdmins is false.'),
     }),
     showInGameAdmins: z
       .boolean()
@@ -53,9 +44,7 @@ const enabledSchema = pluginBaseOptionsSchema
     pingGroups: z
       .array(z.string().nonempty())
       .default([])
-      .describe(
-        'A list of Discord role IDs to ping. Independent from pingHere.'
-      ),
+      .describe('A list of Discord role IDs to ping. Independent from pingHere.'),
   })
   .describe(
     'Ping admins in a Discord channel when a player requests an admin via the !admin command in in-game chat.'

@@ -17,9 +17,7 @@ export async function loadConfigFiles(dir: string): Promise<Configs> {
     files = await fs.readdir(dir);
   } catch (err) {
     throw new Error(
-      chalk.red(
-        `Failed to read directory: ${dir}. Error: ${(err as Error).message}`
-      )
+      chalk.red(`Failed to read directory: ${dir}. Error: ${(err as Error).message}`)
     );
   }
 

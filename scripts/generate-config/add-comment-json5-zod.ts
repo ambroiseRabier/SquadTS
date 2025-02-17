@@ -32,8 +32,7 @@ function getDescriptionsFromSchema(
   // instanceof does not work here, see generate-config.mts comment (dynamic imports...). It does remove type assertion :(
   if (schema.constructor.name === 'ZodDiscriminatedUnion') {
     // Handle discriminated unions by iterating through all its options
-    for (const option of (schema as z.ZodDiscriminatedUnion<any, any>)
-      .options) {
+    for (const option of (schema as z.ZodDiscriminatedUnion<any, any>).options) {
       const nestedDescriptions = getDescriptionsFromSchema(option, prefix); // Recursively collect descriptions for each option
       Object.assign(descriptions, nestedDescriptions);
     }
@@ -49,13 +48,8 @@ function getDescriptionsFromSchema(
       }
 
       // If the field is a nested Zod object or a discriminated union, handle it
-      if (
-        ['ZodObject', 'ZodDiscriminatedUnion'].includes(field.constructor.name)
-      ) {
-        const nestedDescriptions = getDescriptionsFromSchema(
-          field,
-          `${prefix}${key}.`
-        );
+      if (['ZodObject', 'ZodDiscriminatedUnion'].includes(field.constructor.name)) {
+        const nestedDescriptions = getDescriptionsFromSchema(field, `${prefix}${key}.`);
         Object.assign(descriptions, nestedDescriptions);
       }
     }
@@ -100,16 +94,14 @@ export function addCommentJson5Zod(
     if (keyMatch) {
       const { key } = keyMatch.groups!;
       const description =
-        descriptions[
-          `${scopedKeys.join('.')}${scopedKeys.length > 0 ? '.' : ''}${key}`
-        ];
+        descriptions[`${scopedKeys.join('.')}${scopedKeys.length > 0 ? '.' : ''}${key}`];
 
       // If a description is available, add it as a comment
       if (description) {
         const indent = getIndent(line); // Match the current line's indentation
         const multiLineDescription = description
           .split('\n')
-          .map((line) => `${indent}// ${line}`)
+          .map(line => `${indent}// ${line}`)
           .join('\n');
         commentedLines.push(multiLineDescription); // Add comment(s)
       }

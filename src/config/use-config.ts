@@ -29,7 +29,7 @@ export async function parseConfigs(configs: any, logger: Logger) {
     };
   } else {
     const errorMessages = parsed.error.issues
-      .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+      .map(issue => `- ${issue.path.join('.')}: ${issue.message}`)
       .join('\n');
 
     logger.error(errorMessages);

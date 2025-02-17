@@ -30,15 +30,9 @@ export async function retrieveGithubInfo(savingFolder: string, logger: Logger) {
     }
   }
 
-  async function loadURL({
-    url,
-    savedFilename,
-  }: {
-    url: string;
-    savedFilename: string;
-  }) {
+  async function loadURL({ url, savedFilename }: { url: string; savedFilename: string }) {
     // Create if it doesn't exist
-    await fs.promises.mkdir(savingFolder, { recursive: true }).catch((e) => {
+    await fs.promises.mkdir(savingFolder, { recursive: true }).catch(e => {
       if (e.code !== 'EEXIST') {
         throw e;
       }
@@ -54,12 +48,10 @@ export async function retrieveGithubInfo(savingFolder: string, logger: Logger) {
     });
 
     if (res.status === 304) {
-      logger.info(
-        `File ${savedFilename} has not changed. Using cached version.`
-      );
+      logger.info(`File ${savedFilename} has not changed. Using cached version.`);
       return await fs.promises
         .readFile(path.join(savingFolder, savedFilename), 'utf-8')
-        .then((file) => JSON.parse(file));
+        .then(file => JSON.parse(file));
     }
 
     if (res.status === 200) {
@@ -67,10 +59,7 @@ export async function retrieveGithubInfo(savingFolder: string, logger: Logger) {
       if (etag.length === 0) {
         logger.error(`No etag returned for ${url}, file won't be cached.`);
       }
-      await fs.promises.writeFile(
-        path.join(savingFolder, savedFilename + '.etag'),
-        etag
-      );
+      await fs.promises.writeFile(path.join(savingFolder, savedFilename + '.etag'), etag);
       const text = await res.text();
       await fs.promises.writeFile(path.join(savingFolder, savedFilename), text);
       return JSON.parse(text);

@@ -3,13 +3,16 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordFOBExplosionEnabledOptions } from './discord-fob-hab-explosion-damage.config';
 
-const DiscordFOBHABExplosionDamage: SquadTSPlugin<
-  DiscordFOBExplosionEnabledOptions
-> = async (server, connectors, logger, options) => {
+const DiscordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOptions> = async (
+  server,
+  connectors,
+  logger,
+  options
+) => {
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
-  server.events.deployableDamaged.subscribe(async (data) => {
+  server.events.deployableDamaged.subscribe(async data => {
     if (!data.deployable.match(/(?:FOBRadio|Hab)_/i)) return;
     if (!data.weapon.match(/_Deployable_/i)) return;
     if (!data.attacker) return;

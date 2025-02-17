@@ -312,9 +312,7 @@ export namespace GithubWikiWeapon {
       cast(parsedJson, m(r('WeaponInfo')));
     }
 
-    public static weaponInfoToJson(value: {
-      [key: string]: WeaponInfo;
-    }): string {
+    public static weaponInfoToJson(value: { [key: string]: WeaponInfo }): string {
       return JSON.stringify(uncast(value, m(r('WeaponInfo'))), null, 2);
     }
   }
@@ -334,7 +332,7 @@ export namespace GithubWikiWeapon {
         return `an optional ${prettyTypeName(typ[1])}`;
       } else {
         return `one of [${typ
-          .map((a) => {
+          .map(a => {
             return prettyTypeName(a);
           })
           .join(', ')}]`;
@@ -364,13 +362,7 @@ export namespace GithubWikiWeapon {
     return typ.jsToJSON;
   }
 
-  function transform(
-    val: any,
-    typ: any,
-    getProps: any,
-    key: any = '',
-    parent: any = ''
-  ): any {
+  function transform(val: any, typ: any, getProps: any, key: any = '', parent: any = ''): any {
     function transformPrimitive(typ: string, val: any): any {
       if (typeof typ === typeof val) return val;
       return invalidValue(typ, val, key, parent);
@@ -391,7 +383,7 @@ export namespace GithubWikiWeapon {
     function transformEnum(cases: string[], val: any): any {
       if (cases.indexOf(val) !== -1) return val;
       return invalidValue(
-        cases.map((a) => {
+        cases.map(a => {
           return l(a);
         }),
         val,
@@ -402,9 +394,8 @@ export namespace GithubWikiWeapon {
 
     function transformArray(typ: any, val: any): any {
       // val must be an array with no invalid elements
-      if (!Array.isArray(val))
-        return invalidValue(l('array'), val, key, parent);
-      return val.map((el) => transform(el, typ, getProps));
+      if (!Array.isArray(val)) return invalidValue(l('array'), val, key, parent);
+      return val.map(el => transform(el, typ, getProps));
     }
 
     function transformDate(val: any): any {
@@ -418,23 +409,17 @@ export namespace GithubWikiWeapon {
       return d;
     }
 
-    function transformObject(
-      props: { [k: string]: any },
-      additional: any,
-      val: any
-    ): any {
+    function transformObject(props: { [k: string]: any }, additional: any, val: any): any {
       if (val === null || typeof val !== 'object' || Array.isArray(val)) {
         return invalidValue(l(ref || 'object'), val, key, parent);
       }
       const result: any = {};
-      Object.getOwnPropertyNames(props).forEach((key) => {
+      Object.getOwnPropertyNames(props).forEach(key => {
         const prop = props[key];
-        const v = Object.prototype.hasOwnProperty.call(val, key)
-          ? val[key]
-          : undefined;
+        const v = Object.prototype.hasOwnProperty.call(val, key) ? val[key] : undefined;
         result[prop.key] = transform(v, prop.typ, getProps, key, ref);
       });
-      Object.getOwnPropertyNames(val).forEach((key) => {
+      Object.getOwnPropertyNames(val).forEach(key => {
         if (!Object.prototype.hasOwnProperty.call(props, key)) {
           result[key] = transform(val[key], additional, getProps, key, ref);
         }

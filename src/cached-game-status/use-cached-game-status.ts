@@ -146,7 +146,7 @@ export function useCachedGameStatus({
     rconSquad,
     config.updateInterval,
     initialServerInfo,
-    logParser.events.newGame.pipe(map((data) => undefined))
+    logParser.events.newGame.pipe(map(data => undefined))
   );
 
   // todo idea, behaviorSubject per player ? following actions per ID and name ?
@@ -173,7 +173,7 @@ export function useCachedGameStatus({
 
     return squads$.getValue().find(
       // We need to check both id, because each team can have a squad one for example.
-      (squad) => squad.teamID === teamID && squad.squadID === squadID
+      squad => squad.teamID === teamID && squad.squadID === squadID
     );
   }
 
@@ -189,9 +189,7 @@ export function useCachedGameStatus({
 
     return players$
       .getValue()
-      .filter(
-        (player) => player.squadID === squadID && player.teamID === teamID
-      );
+      .filter(player => player.squadID === squadID && player.teamID === teamID);
   }
 
   // todo, suad created event du tchat depuis rcon, existe aussi en logs ? le tchat c juste rcon ou logs aussi ?
@@ -237,12 +235,10 @@ export function useCachedGameStatus({
       // todo, saving up-to-date player controller from playerWounded ? (getPlayerByEOSID return stale controller)
       //     may not be expected !
       playerWounded: logParser.events.playerWounded.pipe(
-        map((data) => {
+        map(data => {
           // Both RCON and logParser give eosID, 100% chance we get the player.
           const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          const victim = tryGetPlayerByNameWithClanTag(
-            data.victim.nameWithClanTag
-          );
+          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag);
 
           // Send back augmented data, but playerWounded log event data has priority as it is the most up-to-date.
           // This concerns attacker.controller and victim.nameWithClanTag
@@ -250,12 +246,10 @@ export function useCachedGameStatus({
         })
       ),
       playerDied: logParser.events.playerDied.pipe(
-        map((data) => {
+        map(data => {
           // Both RCON and logParser give eosID, 100% chance we get the player.
           const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          const victim = tryGetPlayerByNameWithClanTag(
-            data.victim.nameWithClanTag
-          );
+          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag);
 
           // Send back augmented data, but playerDied log event data has priority as it is the most up-to-date.
           // This concerns attacker.controller and victim.nameWithClanTag
@@ -263,7 +257,7 @@ export function useCachedGameStatus({
         })
       ),
       deployableDamaged: logParser.events.deployableDamaged.pipe(
-        map((data) => {
+        map(data => {
           const attacker = tryGetPlayerByName(data.attackerName);
 
           return {
@@ -275,7 +269,7 @@ export function useCachedGameStatus({
       // Prevent accidentally using next by passing Subject as Observable.
       playersSquadChange: rconUpdates.playersSquadChange$.asObservable(),
       playerDisconnected: logParser.events.playerDisconnected.pipe(
-        map((data) => ({
+        map(data => ({
           ...omit(data, ['controller', 'ip', 'eosID']),
           player: {
             ...getPlayerByEOSID(data.eosID)!,
@@ -289,7 +283,7 @@ export function useCachedGameStatus({
     chatEvents: {
       ...rconSquad.chatEvents,
       message: rconSquad.chatEvents.message.pipe(
-        map((data) => ({
+        map(data => ({
           ...data,
           player: {
             // Prefer merging getPlayerByEOSID first as it can be out of date.
@@ -299,7 +293,7 @@ export function useCachedGameStatus({
         }))
       ),
       command: rconSquad.chatEvents.command.pipe(
-        map((data) => ({
+        map(data => ({
           ...data,
           player: {
             ...getPlayerByEOSID(data.player.eosID)!,
@@ -308,37 +302,37 @@ export function useCachedGameStatus({
         }))
       ),
       possessedAdminCamera: rconSquad.chatEvents.possessedAdminCamera.pipe(
-        map((data) => ({
+        map(data => ({
           ...getPlayerByEOSID(data.eosID)!,
           ...data,
         }))
       ),
       unPossessedAdminCamera: rconSquad.chatEvents.unPossessedAdminCamera.pipe(
-        map((data) => ({
+        map(data => ({
           ...getPlayerByEOSID(data.eosID)!,
           ...data,
         }))
       ),
       playerWarned: rconSquad.chatEvents.playerWarned.pipe(
-        map((data) => ({
+        map(data => ({
           ...tryGetPlayerByNameWithClanTag(data.nameWithClanTag),
           ...data,
         }))
       ),
       playerKicked: rconSquad.chatEvents.playerKicked.pipe(
-        map((data) => ({
+        map(data => ({
           ...getPlayerByEOSID(data.eosID)!,
           ...data,
         }))
       ),
       playerBanned: rconSquad.chatEvents.playerBanned.pipe(
-        map((data) => ({
+        map(data => ({
           ...getPlayerByEOSID(data.eosID)!,
           ...data,
         }))
       ),
       squadCreated: rconSquad.chatEvents.squadCreated.pipe(
-        map((data) => ({
+        map(data => ({
           ...data,
           creator: {
             ...getPlayerByEOSID(data.creator.eosID)!,

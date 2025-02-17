@@ -12,7 +12,7 @@ const DiscordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
-  server.events.playerWounded.subscribe(async (data) => {
+  server.events.playerWounded.subscribe(async data => {
     const embed: APIEmbed = {
       title: `KillFeed: ${data.attacker.name}`,
       color: 16761867,

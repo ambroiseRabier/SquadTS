@@ -1,12 +1,4 @@
-import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-  MockedFunction,
-  beforeEach,
-} from 'vitest';
+import { beforeAll, describe, expect, it, vi, MockedFunction, beforeEach } from 'vitest';
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { gameServerInfoKeys } from './server-info.type';
@@ -32,11 +24,7 @@ describe('rcon-squad-execute', () => {
   });
 
   it('does not call execute on game modifying command when dry run is enabled', async () => {
-    const dryRunRCON = useRconSquadExecute(
-      execute as any,
-      true,
-      mockLogger as any
-    );
+    const dryRunRCON = useRconSquadExecute(execute as any, true, mockLogger as any);
 
     // todo params check or error, will have to udpate the test here.
     await dryRunRCON.broadcast('hello');
@@ -46,17 +34,11 @@ describe('rcon-squad-execute', () => {
     await dryRunRCON.forceTeamChange('');
     await dryRunRCON.disbandSquad('', '');
     expect(execute).not.toHaveBeenCalled();
-    expect(mockLogger.warn).toHaveBeenCalledWith(
-      'Dry run: AdminBroadcast hello'
-    );
+    expect(mockLogger.warn).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
   });
 
   it('does call execute on non game modifying command when dry run is enabled', async () => {
-    const dryRunRCON = useRconSquadExecute(
-      execute as any,
-      true,
-      mockLogger as any
-    );
+    const dryRunRCON = useRconSquadExecute(execute as any, true, mockLogger as any);
 
     await dryRunRCON.getListPlayers();
     await dryRunRCON.getSquads();
@@ -188,9 +170,7 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
       fatal: console.error,
     } as any);
 
-    const obj = Object.fromEntries(
-      gameServerInfoKeys.map((key) => [key, ''] as const)
-    );
+    const obj = Object.fromEntries(gameServerInfoKeys.map(key => [key, ''] as const));
     obj['new_key_that_should_be_detected'] = '';
     delete obj[gameServerInfoKeys[0]];
 

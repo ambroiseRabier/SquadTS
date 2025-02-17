@@ -8,9 +8,7 @@ const enabledSchema = pluginBaseOptionsSchema
     enabled: z.literal(true),
     channelID: z.string().nonempty(),
   })
-  .describe(
-    'Logs all wounds and related information to a Discord channel for admins to review.'
-  );
+  .describe('Logs all wounds and related information to a Discord channel for admins to review.');
 
 const schema = z.discriminatedUnion('enabled', [
   enabledSchema,

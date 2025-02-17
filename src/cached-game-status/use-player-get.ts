@@ -36,7 +36,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
 
     // Still haven't found the player ? Maybe we can search clan tags with partial match
     const partialMatch = getPlayers().filter(
-      (player) =>
+      player =>
         // If for whatever reason nameWithClanTag is undefined, filter out player.
         !!player.nameWithClanTag?.match(new RegExp(`${name}$`))
     );
@@ -67,8 +67,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
       throw new Error('Provided nameWithClanTag is nullish');
     }
 
-    const playersByNameWithClanTag =
-      getPlayersByNameWithClanTag(nameWithClanTag);
+    const playersByNameWithClanTag = getPlayersByNameWithClanTag(nameWithClanTag);
 
     // Easy case where we only have one match
     if (playersByNameWithClanTag.length === 1) {
@@ -96,7 +95,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
       throw new Error('Provided name is nullish');
     }
 
-    return getPlayers().filter((player) => player.name === name);
+    return getPlayers().filter(player => player.name === name);
   }
 
   function getPlayersByNameWithClanTag(nameWithClanTag: string) {
@@ -104,9 +103,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     if (!nameWithClanTag) {
       throw new Error('Provided nameWithClanTag is nullish');
     }
-    return getPlayers().filter(
-      (player) => player.nameWithClanTag === nameWithClanTag
-    );
+    return getPlayers().filter(player => player.nameWithClanTag === nameWithClanTag);
   }
 
   /**
@@ -118,7 +115,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     if (!eosID) {
       throw new Error('Provided eosID is nullish');
     }
-    return getPlayers().find((player) => player.eosID === eosID);
+    return getPlayers().find(player => player.eosID === eosID);
   }
 
   /**
@@ -130,7 +127,7 @@ export function usePlayerGet(getPlayers: () => Player[]) {
     if (!steamID) {
       throw new Error('Provided steamID is nullish');
     }
-    return getPlayers().find((player) => player.steamID === steamID);
+    return getPlayers().find(player => player.steamID === steamID);
   }
 
   return {

@@ -43,9 +43,7 @@ describe('rcon-squad-events', () => {
     chatPacketEvent.next(
       '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.'
     );
-    expect(
-      await firstValueFrom(events.chatEvents.possessedAdminCamera)
-    ).toEqual({
+    expect(await firstValueFrom(events.chatEvents.possessedAdminCamera)).toEqual({
       eosID: '0002a10186d9424436bf50d22d3860ba',
       steamID: '71531192016942077',
       nameWithoutClanTag: 'Yuca',
@@ -57,9 +55,7 @@ describe('rcon-squad-events', () => {
     chatPacketEvent.next(
       '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has unpossessed admin camera.'
     );
-    expect(
-      await firstValueFrom(events.chatEvents.unPossessedAdminCamera)
-    ).toEqual({
+    expect(await firstValueFrom(events.chatEvents.unPossessedAdminCamera)).toEqual({
       duration: 0,
       eosID: '0002a10186d9424436bf50d22d3860ba',
       steamID: '71531192016942077',

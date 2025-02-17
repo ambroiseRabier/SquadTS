@@ -13,9 +13,7 @@ const schema = pluginBaseOptionsSchema
     message: z
       .string()
       .nonempty()
-      .default(
-        'You have been reassigned to the team you were on before disconnecting.'
-      )
+      .default('You have been reassigned to the team you were on before disconnecting.')
       .describe(
         'The message to send to the player when he get switched back to his original team.'
       ),

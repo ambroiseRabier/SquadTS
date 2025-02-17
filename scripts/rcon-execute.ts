@@ -62,7 +62,7 @@ async function getRconOptions() {
 }
 
 getRconOptions()
-  .then((options) => {
+  .then(options => {
     const command = process.argv.slice(3).join(' ');
 
     if (!command) {
@@ -71,7 +71,7 @@ getRconOptions()
 
     return rconExecute(options, command);
   })
-  .then((response) => {
+  .then(response => {
     logger.info(response);
   })
   .then(() => {

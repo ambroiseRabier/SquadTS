@@ -53,7 +53,7 @@ export default async function (options) {
       source, // The log source from Pino
       stripAnsiStream(), // Removes ANSI codes
       process.stdout, // Pipe to standard output or any other destination
-      (err) => {
+      err => {
         if (err) {
           console.error('Pipeline error:', err);
         }

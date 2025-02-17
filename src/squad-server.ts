@@ -2,10 +2,7 @@ import { Logger } from 'pino';
 import { RconSquad } from './rcon-squad/use-rcon-squad';
 import { LogParser } from './log-parser/use-log-parser';
 import { filter } from 'rxjs';
-import {
-  CachedGameStatus,
-  Player,
-} from './cached-game-status/use-cached-game-status';
+import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-status';
 import { omit } from 'lodash-es';
 import { AdminList } from './admin-list/use-admin-list';
 import { AdminPerms } from './admin-list/permissions';
@@ -34,8 +31,7 @@ export function useSquadServer({
    */
   const teamKill = cachedGameStatus.events.playerWounded.pipe(
     filter(
-      ({ attacker, victim }) =>
-        attacker.teamID === victim.teamID && attacker.eosID !== victim.eosID
+      ({ attacker, victim }) => attacker.teamID === victim.teamID && attacker.eosID !== victim.eosID
     )
   );
 
@@ -56,9 +52,7 @@ export function useSquadServer({
         player: cachedGameStatus.getters.getPlayerBySteamID(steamId64),
         perms,
       }))
-      .filter(
-        (obj): obj is { player: Player; perms: AdminPerms[] } => !!obj.player
-      );
+      .filter((obj): obj is { player: Player; perms: AdminPerms[] } => !!obj.player);
   };
 
   return {
@@ -88,7 +82,7 @@ export function useSquadServer({
       getOnlineAdminsWithPermissions,
       playerHasPermissions: (eosID: string, permissions: AdminPerms[]) => {
         return getOnlineAdminsWithPermissions(permissions).some(
-          (admin) => admin.player.eosID === eosID
+          admin => admin.player.eosID === eosID
         );
       },
     },
@@ -107,26 +101,21 @@ export function useSquadServer({
     },
     watch: async () => {
       // ;)
-      logParser.events.playerConnected.subscribe((player) => {
+      logParser.events.playerConnected.subscribe(player => {
         const ME = '76561198016942077';
         if (player.steamID === ME) {
           // Get admins and show them to me, so I may contact them to know if everything is working fine with SquadTS in-game.
-          const admins = getOnlineAdminsWithPermissions([
-            AdminPerms.CanSeeAdminChat,
-          ])
+          const admins = getOnlineAdminsWithPermissions([AdminPerms.CanSeeAdminChat])
             // Place admin that also include Cameraman first (since they are more likely to be admin not just moderators)
             .sort(
               (a, b) =>
                 Number(b.perms.includes(AdminPerms.Cameraman)) -
                 Number(a.perms.includes(AdminPerms.Cameraman))
             )
-            .map((p) => p.player.nameWithClanTag ?? p.player.name ?? 'Unknown')
+            .map(p => p.player.nameWithClanTag ?? p.player.name ?? 'Unknown')
             .sort()
             .join(', ');
-          rconSquad.warn(
-            player.steamID,
-            `This server is using SquadTS ! Online admins: ${admins}`
-          );
+          rconSquad.warn(player.steamID, `This server is using SquadTS ! Online admins: ${admins}`);
         }
       });
 

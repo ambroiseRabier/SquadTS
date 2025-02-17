@@ -49,15 +49,11 @@ const schema = pluginBaseOptionsSchema
       .int()
       .min(1)
       .default(5)
-      .describe(
-        'How many times the squad leader can be warned before disbanding'
-      ),
+      .describe('How many times the squad leader can be warned before disbanding'),
     enabledInSeed: z
       .boolean()
       .default(false)
-      .describe(
-        "You most likely don't want this enabled in seed, unless for testing purposes."
-      ),
+      .describe("You most likely don't want this enabled in seed, unless for testing purposes."),
   })
   .describe(
     'Warn (then disband) squad leader, when player count is too high in his squad, based on squad name.\n' +

@@ -30,9 +30,7 @@ export function useRconUpdates({
   manualUpdateForTest,
 }: Props) {
   // Note: we cannot place behaviorSubject here, data from logs will be merged into player and maybe also squad infos.
-  const squads$ = new Subject<
-    Awaited<ReturnType<typeof rconSquad.getSquads>>
-  >();
+  const squads$ = new Subject<Awaited<ReturnType<typeof rconSquad.getSquads>>>();
   const players$ = new Subject<Player[]>();
   const playersSquadChange$ = new Subject<Player[]>();
 
@@ -61,19 +59,18 @@ export function useRconUpdates({
 
   // Player update interval (that depends on squads$)
   const playerUpdate$ = squadUpdate$.pipe(
-    concatMap((updatedSquads) => {
+    concatMap(updatedSquads => {
       squads$.next(updatedSquads); // Ensure `squads$` is updated first
       return rconSquad.getListPlayers(); // Then fetch players
     }),
-    map((players) => {
+    map(players => {
       //   // todo also get last controller from logParser ?
       // Map players to include squad info from latest squads$
-      return players.map((player) => ({
+      return players.map(player => ({
         ...player,
         squad: getSquads().find(
           // We need to check both id, because each team can have a squad one for example.
-          (squad) =>
-            squad.teamID === player.teamID && squad.squadID === player.squadID
+          squad => squad.teamID === player.teamID && squad.squadID === player.squadID
         ),
       }));
     }),
@@ -92,17 +89,9 @@ export function useRconUpdates({
       // playerChangedSquad.next(playersWithDifferentSquadID);
 
       const playerStillConnected = currentPlayers
-        .map(
-          (playerNow) =>
-            [
-              playerNow,
-              getPlayers().find((p) => p.eosID === playerNow.eosID),
-            ] as const
-        )
+        .map(playerNow => [playerNow, getPlayers().find(p => p.eosID === playerNow.eosID)] as const)
         .filter(
-          (
-            playerNow
-          ): playerNow is readonly [playerNow: Player, playerBefore: Player] =>
+          (playerNow): playerNow is readonly [playerNow: Player, playerBefore: Player] =>
             !!playerNow[1]
         );
 
@@ -110,8 +99,7 @@ export function useRconUpdates({
       const playersWithDifferentSquadID = playerStillConnected.filter(
         ([playerNow, playerBefore]) =>
           playerBefore.squadID !== playerNow.squadID ||
-          (playerBefore.squadID === playerNow.squadID &&
-            playerBefore.teamID !== playerNow.teamID)
+          (playerBefore.squadID === playerNow.squadID && playerBefore.teamID !== playerNow.teamID)
       );
 
       playersSquadChange$.next(
@@ -121,17 +109,14 @@ export function useRconUpdates({
       );
 
       // We update players already in cache.
-      const updatedPrevious = getPlayers().map((player) =>
+      const updatedPrevious = getPlayers().map(player =>
         // Find the corresponding player in updatedPlayers, and deep merge it.
         // If no player is found, ignore, probably a disconnect, log parser will handle this
-        merge(
-          player,
-          currentPlayers.find((p) => p.eosID === player.eosID) || {}
-        )
+        merge(player, currentPlayers.find(p => p.eosID === player.eosID) || {})
       );
 
       const newPlayers: Player[] = currentPlayers.filter(
-        (player) => !getPlayers().find((p) => p.eosID === player.eosID)
+        player => !getPlayers().find(p => p.eosID === player.eosID)
       );
 
       // todo: Let logs handle disconnected players for now ?
@@ -151,7 +136,7 @@ export function useRconUpdates({
       sub.push(playerUpdate$.subscribe());
     },
     unwatch() {
-      sub.forEach((sub) => sub.unsubscribe());
+      sub.forEach(sub => sub.unsubscribe());
     },
   };
 }

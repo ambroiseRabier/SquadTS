@@ -68,8 +68,7 @@ export async function main(props?: Props) {
   } = useSubLogger(logger, config.logger.verboseness);
   const rcon = props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
-  const logReader =
-    props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
+  const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
   const logParser = useLogParser(
     logParserLogger,
     logReader,
@@ -86,11 +85,7 @@ export async function main(props?: Props) {
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
   const githubInfo = await retrieveGithubInfo(
-    path.join(
-      dirname(fileURLToPath(import.meta.url)),
-      '..',
-      'github-info-cache'
-    ),
+    path.join(dirname(fileURLToPath(import.meta.url)), '..', 'github-info-cache'),
     githubInfoLogger
   );
   const cachedGameStatus = useCachedGameStatus({
@@ -110,12 +105,10 @@ export async function main(props?: Props) {
     adminList,
   });
   const discordConnector = config.connectors.discord.enabled
-    ? await useDiscordConnector(config.connectors.discord.token, logger).catch(
-        (error) => {
-          logger.error(`Discord connector failed to start: ${error?.message}`);
-          return undefined;
-        }
-      )
+    ? await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
+        logger.error(`Discord connector failed to start: ${error?.message}`);
+        return undefined;
+      })
     : undefined;
   const pluginLoader = usePluginLoader(
     server,

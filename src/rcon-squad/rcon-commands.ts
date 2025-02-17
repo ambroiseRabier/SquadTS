@@ -1,5 +1,6 @@
-export type IncludesRCONCommand<T extends string> =
-  T extends `${string}${RCONCommand}${string}` ? T : never;
+export type IncludesRCONCommand<T extends string> = T extends `${string}${RCONCommand}${string}`
+  ? T
+  : never;
 
 // To generate:
 // 1. npx tsx scripts/rcon-execute.ts ListCommands 1 > tmp/commands.txt

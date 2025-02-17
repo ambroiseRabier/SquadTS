@@ -1,6 +1,5 @@
 import { type Config } from 'prettier';
 
-
 const config: Config = {
   // Notes: trailing comma is preferred because:
   // - Cleaner diff in version control
@@ -18,6 +17,9 @@ const config: Config = {
   // Looks better, easier to write.
   // `.map((line) => line.trimStart())` ===> `.map(line => line.trimStart())`
   arrowParens: 'avoid',
+
+  // 80 is a bit small, even on a 1080p split screen you can have more...
+  printWidth: 100,
 };
 
 export default config;

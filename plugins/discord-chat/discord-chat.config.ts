@@ -23,9 +23,7 @@ const discordChatSchema = z.discriminatedUnion('enabled', [
   }),
 ]);
 
-export type DiscordChatEnabledOptions = z.infer<
-  typeof discordChatEnabledSchema
->;
+export type DiscordChatEnabledOptions = z.infer<typeof discordChatEnabledSchema>;
 
 // Use a different schema for validation and for typing of the plugin, as only enabled plugin will have their main
 // function called.

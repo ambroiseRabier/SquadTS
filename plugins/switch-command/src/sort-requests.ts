@@ -7,13 +7,11 @@ export const sortRequests = (
   requests: SwitchRequest[],
   playerHasPermissions: SquadServer['helpers']['playerHasPermissions']
 ) => {
-  const hasReservePermission = (eosID: string) =>
-    playerHasPermissions(eosID, [AdminPerms.Reserve]);
+  const hasReservePermission = (eosID: string) => playerHasPermissions(eosID, [AdminPerms.Reserve]);
 
   return requests.sort(
     (a, b) =>
-      Number(hasReservePermission(b.eosID)) -
-        Number(hasReservePermission(a.eosID)) ||
+      Number(hasReservePermission(b.eosID)) - Number(hasReservePermission(a.eosID)) ||
       a.date.getTime() - b.date.getTime()
   );
 };

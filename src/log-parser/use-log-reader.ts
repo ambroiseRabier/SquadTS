@@ -16,7 +16,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
         useWatchFile: true,
       });
       const subject = new Subject<string>();
-      tail.on('line', (line) => {
+      tail.on('line', line => {
         subject.next(line);
       });
 
@@ -24,14 +24,14 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
       return {
         // Same as unwatch
         watch: () =>
-          new Promise<void>((resolve) => {
+          new Promise<void>(resolve => {
             tail.watch();
             resolve();
           }),
         // SFTP use promise for unwatch, somehow Typescript just think all of them have no promise, maybe it should error at least ?
         // So the fix is to make it a promise, so all of them behaves the same.
         unwatch: () =>
-          new Promise<void>((resolve) => {
+          new Promise<void>(resolve => {
             tail.unwatch();
             resolve();
           }),

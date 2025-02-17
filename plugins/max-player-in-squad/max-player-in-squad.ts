@@ -2,10 +2,7 @@ import { SquadServer } from '../../src/squad-server';
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import {
-  Player,
-  PlayerSL,
-} from '../../src/cached-game-status/use-cached-game-status';
+import { Player, PlayerSL } from '../../src/cached-game-status/use-cached-game-status';
 import { exhaustMap, filter, interval, map } from 'rxjs';
 
 interface TransgressorDetails {
@@ -37,24 +34,20 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
   server.events.playersSquadChange
     .pipe(
       // Do nothing when in seed
-      filter((players) => options.enabledInSeed || !server.info.isSeed),
+      filter(players => options.enabledInSeed || !server.info.isSeed),
       // Only for players joining a squad, not when they leave.
-      map((players) =>
+      map(players =>
         players.filter(
-          (
-            player
-          ): player is Player & Required<Pick<Player, 'squad' | 'squadID'>> =>
-            !!player.squad
+          (player): player is Player & Required<Pick<Player, 'squad' | 'squadID'>> => !!player.squad
         )
       )
     )
-    .subscribe(async (playerWithSquad) => {
+    .subscribe(async playerWithSquad => {
       for (let player of playerWithSquad) {
         // Selon la squad name, récupérer le bon maximum
         // On fait une recherche case insensitive
         const configForThisSquad = options.squadTypes.find(
-          (squad) =>
-            player.squad.name.search(new RegExp(squad.containWord, 'i')) !== -1
+          squad => player.squad.name.search(new RegExp(squad.containWord, 'i')) !== -1
         );
 
         // No limit found, do nothing.
@@ -66,12 +59,10 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
         // Récup l'ensemble des joueurs dans la squad ID.
         const playersInSquad = server.players.filter(
-          (p) => p.squadID === player.squadID && p.teamID === player.teamID
+          p => p.squadID === player.squadID && p.teamID === player.teamID
         );
         // There is always a lead in a squad
-        const playerSquadLead = playersInSquad.find(
-          (p) => p.isLeader
-        ) as Player;
+        const playerSquadLead = playersInSquad.find(p => p.isLeader) as Player;
 
         // Trop de joueur
         if (playersInSquad.length > maxPlayerInSquad) {
@@ -110,9 +101,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
   async function updateTrackingList() {
     for (const [squadLead_eosID, transgressorDetails] of transgressors) {
       const sl = server.helpers.getPlayerByEOSID(squadLead_eosID);
-      logger.info(
-        `Checking tracked SL: ${squadLead_eosID} ${JSON.stringify(transgressorDetails)}`
-      );
+      logger.info(`Checking tracked SL: ${squadLead_eosID} ${JSON.stringify(transgressorDetails)}`);
 
       // Not connected or not SL anymore
       if (!sl || !server.helpers.isSL(sl)) {
@@ -121,10 +110,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
       }
 
       // Has changed squad or team
-      if (
-        sl.squadID !== transgressorDetails.squadID ||
-        sl.teamID !== transgressorDetails.teamID
-      ) {
+      if (sl.squadID !== transgressorDetails.squadID || sl.teamID !== transgressorDetails.teamID) {
         transgressors.delete(squadLead_eosID);
         continue;
       }
@@ -140,8 +126,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
       // If warn rate is 60sec, it give +/- 30sec to second warn.
       // This is to avoid unfair double warn in short time.
-      const timeSinceFirstWarn =
-        (Date.now() - transgressorDetails.firstWarn) / 1000;
+      const timeSinceFirstWarn = (Date.now() - transgressorDetails.firstWarn) / 1000;
       if (timeSinceFirstWarn < options.warnRate / 2) {
         continue;
       }
@@ -150,8 +135,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
         transgressorDetails.teamID,
         transgressorDetails.squadID
       );
-      const tooManyPlayers =
-        playersInSquad.length > transgressorDetails.maxPlayerInSquad;
+      const tooManyPlayers = playersInSquad.length > transgressorDetails.maxPlayerInSquad;
 
       if (tooManyPlayers) {
         if (transgressorDetails.warnCount > options.maxWarnBeforeDisband) {
@@ -159,7 +143,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
             sl,
             transgressorDetails,
             playersInSquad.length,
-            playersInSquad.filter((p) => p.eosID != sl.eosID)
+            playersInSquad.filter(p => p.eosID != sl.eosID)
           );
           transgressors.delete(squadLead_eosID);
         } else {
@@ -184,10 +168,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     const message = options.message
       .replace(SQUAD_TYPE_KEY, transgressorDetails.squadName)
       .replace(MAX_KEY, transgressorDetails.maxPlayerInSquad.toString())
-      .replace(
-        WARN_COUNT_KEY,
-        `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`
-      );
+      .replace(WARN_COUNT_KEY, `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`);
 
     // Resend the warning to the squad leader
     await server.rcon.warn(squadLeader.eosID, message);
@@ -210,9 +191,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
     // Notify members about the disbanding
     await Promise.all(
-      otherPlayersInSquad.map((player) =>
-        server.rcon.warn(player.eosID, disbandMessage)
-      )
+      otherPlayersInSquad.map(player => server.rcon.warn(player.eosID, disbandMessage))
     );
 
     // Disband the squad

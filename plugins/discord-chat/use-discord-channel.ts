@@ -10,13 +10,10 @@ const COPYRIGHT_MESSAGE = `Powered by SquadTS, Copyright © ${new Date().getFull
  * @param discordClient
  * @param channelID
  */
-export async function useDiscordChannel(
-  discordClient: Client,
-  channelID: string
-) {
+export async function useDiscordChannel(discordClient: Client, channelID: string) {
   const channel = await discordClient.channels
     .fetch(channelID)
-    .then((channel) => {
+    .then(channel => {
       if (!channel) {
         throw new Error(
           `Could not fetch Discord channel with channelID "${channelID}". Are you sure the channelID is correct?`
@@ -24,7 +21,7 @@ export async function useDiscordChannel(
       }
       return channel;
     })
-    .catch((error) => {
+    .catch(error => {
       throw new Error(
         `Could not fetch Discord channel with channelID "${channelID}". Error: ${error?.message}`
       );

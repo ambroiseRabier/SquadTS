@@ -13,9 +13,7 @@ type DeepPartial<T> = {
 };
 
 interface Props {
-  executeFn: <T extends string>(
-    command: IncludesRCONCommand<T>
-  ) => Promise<string>;
+  executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
   optionsOverride?: DeepPartial<Options>;
   pluginOptionOverride?: Record<string, any>;
 }
@@ -28,11 +26,7 @@ interface Props {
  * Player squad list has to be updated manually.
  * Date mismatch between logs and RCON... (may or may not impact anything)
  */
-export async function useTestServer({
-  executeFn,
-  optionsOverride,
-  pluginOptionOverride,
-}: Props) {
+export async function useTestServer({ executeFn, optionsOverride, pluginOptionOverride }: Props) {
   console.info('Starting test server... (this may take a while)');
 
   const mockLogReader: LogReader = {
@@ -162,11 +156,11 @@ export async function useTestServer({
     emitLogs: (logs: string) => {
       logs
         .split('\n')
-        .map((line) => line.trimStart()) // trimStart allow indentation in test file
-        .filter((line) => line.length > 0) // Remove possible empty line due to code formatting
-        .forEach((line) => (mockLogReader.line$ as Subject<string>).next(line));
+        .map(line => line.trimStart()) // trimStart allow indentation in test file
+        .filter(line => line.length > 0) // Remove possible empty line due to code formatting
+        .forEach(line => (mockLogReader.line$ as Subject<string>).next(line));
     },
   };
 }
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

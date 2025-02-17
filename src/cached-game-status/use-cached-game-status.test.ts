@@ -1,10 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser } from '../log-parser/use-log-parser';
-import {
-  CachedGameStatus,
-  Player,
-  useCachedGameStatus,
-} from './use-cached-game-status';
+import { CachedGameStatus, Player, useCachedGameStatus } from './use-cached-game-status';
 import { from, Observable, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
@@ -64,34 +60,21 @@ function createMockLogParser(
   const mockLogParser: LogParser = {
     events: {
       loginRequest: from<
-        Pick<
-          ObservableValue<LogParser['events']['loginRequest']>,
-          'name' | 'eosID'
-        >[]
-      >(connectedLogPlayer.map((p) => pick(p, ['name', 'eosID'] as const))),
+        Pick<ObservableValue<LogParser['events']['loginRequest']>, 'name' | 'eosID'>[]
+      >(connectedLogPlayer.map(p => pick(p, ['name', 'eosID'] as const))),
       playerConnected: from<
         Pick<
           ObservableValue<LogParser['events']['playerConnected']>,
           'steamID' | 'eosID' | 'controller' | 'ip'
         >[]
-      >(
-        connectedLogPlayer.map((p) =>
-          pick(p, ['steamID', 'eosID', 'controller', 'ip'] as const)
-        )
-      ),
+      >(connectedLogPlayer.map(p => pick(p, ['steamID', 'eosID', 'controller', 'ip'] as const))),
       playerAddedToTeam: from<
-        Pick<
-          ObservableValue<LogParser['events']['playerAddedToTeam']>,
-          'name' | 'teamID'
-        >[]
-      >(connectedLogPlayer.map((p) => pick(p, ['name', 'teamID'] as const))),
+        Pick<ObservableValue<LogParser['events']['playerAddedToTeam']>, 'name' | 'teamID'>[]
+      >(connectedLogPlayer.map(p => pick(p, ['name', 'teamID'] as const))),
       playerInitialized: from<
-        Pick<
-          ObservableValue<LogParser['events']['playerInitialized']>,
-          'name' | 'id'
-        >[]
+        Pick<ObservableValue<LogParser['events']['playerInitialized']>, 'name' | 'id'>[]
       >(
-        connectedLogPlayer.map((p) => ({
+        connectedLogPlayer.map(p => ({
           name: p.name,
           // since our mock player already has a correct ID, we need to make it wrong by adding the +1 the log do.
           // So that the result will be matching our mockPlayer in the end.
@@ -99,11 +82,8 @@ function createMockLogParser(
         }))
       ),
       playerJoinSucceeded: from<
-        Pick<
-          ObservableValue<LogParser['events']['playerJoinSucceeded']>,
-          'name'
-        >[]
-      >(connectedLogPlayer.map((p) => pick(p, ['name'] as const))),
+        Pick<ObservableValue<LogParser['events']['playerJoinSucceeded']>, 'name'>[]
+      >(connectedLogPlayer.map(p => pick(p, ['name'] as const))),
       playerDisconnected: of(),
       playerWounded: of(),
     },
@@ -203,9 +183,7 @@ describe('use-cached-game-status', () => {
   });
 
   it('playerWounded do not find victim with only logParser connect data', () => {
-    const playerWounded$ = new Subject<
-      ObservableValue<LogParser['events']['playerWounded']>
-    >();
+    const playerWounded$ = new Subject<ObservableValue<LogParser['events']['playerWounded']>>();
     const mockLogParser = createMockLogParser(
       {
         events: {
@@ -233,7 +211,7 @@ describe('use-cached-game-status', () => {
     cachedGameStatus.watch();
 
     let result: any = undefined;
-    cachedGameStatus.events.playerWounded.subscribe((playerWounded) => {
+    cachedGameStatus.events.playerWounded.subscribe(playerWounded => {
       result = playerWounded;
     });
 
@@ -268,9 +246,7 @@ describe('use-cached-game-status', () => {
   });
 
   it('playerWounded find victim with only rcon data', async () => {
-    const playerWounded$ = new Subject<
-      ObservableValue<LogParser['events']['playerWounded']>
-    >();
+    const playerWounded$ = new Subject<ObservableValue<LogParser['events']['playerWounded']>>();
     const mockLogParser = createMockLogParser(
       {
         events: {
@@ -332,10 +308,10 @@ describe('use-cached-game-status', () => {
     cachedGameStatus.watch();
 
     // starWith(0) used on RCON update loop, needs one frame to take effect
-    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
 
     let result: any = undefined;
-    cachedGameStatus.events.playerWounded.subscribe((playerWounded) => {
+    cachedGameStatus.events.playerWounded.subscribe(playerWounded => {
       result = playerWounded;
     });
 

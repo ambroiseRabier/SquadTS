@@ -1,19 +1,11 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser, useLogParser } from './use-log-parser';
 import EventEmitter from 'events';
 import { LogParserConfig } from './log-parser.config';
 import { Subject } from 'rxjs';
 import { LogReader } from './use-log-reader';
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('Log Parser events', () => {
   let logParser: LogParser;
@@ -59,21 +51,16 @@ describe('Log Parser events', () => {
       line$: new Subject<string>(),
     } as any;
 
-    logParser = useLogParser(
-      fakeLogger,
-      mockedLogReader as any,
-      logParserConfig,
-      {
-        showMatching: true,
-        showNonMatching: true,
-        ignoreRegexMatch: [],
-      }
-    );
+    logParser = useLogParser(fakeLogger, mockedLogReader as any, logParserConfig, {
+      showMatching: true,
+      showNonMatching: true,
+      ignoreRegexMatch: [],
+    });
   });
 
   it('should ignore first incomplete line', () => {
     // any event subscription
-    logParser.events.adminBroadcast.subscribe((data) => {});
+    logParser.events.adminBroadcast.subscribe(data => {});
     // Note if there is any other error, this test will also fail.
     expect(() => {
       // incomplete date, happen at start when we start reading file.
@@ -281,9 +268,7 @@ describe('Log Parser events', () => {
   it('playerJoinSucceeded', () => {
     const mockEvent = vi.fn();
     logParser.events.playerJoinSucceeded.subscribe(mockEvent);
-    mockedLogReader.line$.next(
-      `[2025.01.27-22.09.43:029][469]LogNet: Join succeeded: ShyGuy`
-    );
+    mockedLogReader.line$.next(`[2025.01.27-22.09.43:029][469]LogNet: Join succeeded: ShyGuy`);
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '469',
       date: expect.any(Date),

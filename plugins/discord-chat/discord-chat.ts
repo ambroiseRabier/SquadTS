@@ -14,8 +14,8 @@ const discordChat: SquadTSPlugin<DiscordChatEnabledOptions> = async (
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
   server.chatEvents.message
-    .pipe(filter((data) => !options.excludeChat.includes(data.chat)))
-    .subscribe(async (data) => {
+    .pipe(filter(data => !options.excludeChat.includes(data.chat)))
+    .subscribe(async data => {
       const embed: APIEmbed = {
         title: data.chat,
         color: 16761867, // Color in decimal

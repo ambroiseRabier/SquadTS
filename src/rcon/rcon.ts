@@ -15,9 +15,7 @@ enum DataType {
 
 // Ex: 1 => "CHAT_VALUE"
 function getDataTypeKeyByValue(value: number): string | undefined {
-  return Object.keys(DataType).find(
-    (key) => DataType[key as keyof typeof DataType] === value
-  );
+  return Object.keys(DataType).find(key => DataType[key as keyof typeof DataType] === value);
 }
 
 const MID_PACKET_ID = 0x01;
@@ -35,9 +33,7 @@ export class Rcon {
   private incomingResponse: Packet[] = [];
   private connected: boolean = false;
   private loggedin: boolean = false;
-  private responseCallbackQueue: ((
-    response: Packet | Error | string
-  ) => void)[] = [];
+  private responseCallbackQueue: ((response: Packet | Error | string) => void)[] = [];
   private count: number = 1;
 
   constructor(
@@ -104,9 +100,7 @@ export class Rcon {
     }
 
     if (this.autoReconnect) {
-      this.logger.info(
-        `Sleeping ${this.options.autoReconnectDelay}ms before reconnecting.`
-      );
+      this.logger.info(`Sleeping ${this.options.autoReconnectDelay}ms before reconnecting.`);
       setTimeout(this.connect.bind(this), this.options.autoReconnectDelay);
     }
   }
@@ -133,9 +127,7 @@ export class Rcon {
 
             break;
           case END_PACKET_ID:
-            this.callbackIds = this.callbackIds.filter(
-              (p) => p.id !== decodedPacket.count
-            );
+            this.callbackIds = this.callbackIds.filter(p => p.id !== decodedPacket.count);
 
             // Maybe it is used to end every event listener in case of error, so that no one is pending in case of disconnect.
             // probably need to log that stuff
@@ -146,7 +138,7 @@ export class Rcon {
             // we should refactor that after confirming I havent broken anything else in between.
             this.responseCallbackQueue.shift()!(
               this.incomingResponse
-                .map((packet) => {
+                .map(packet => {
                   if (packet instanceof Error) {
                     // todo
                     // Logger.error
@@ -201,15 +193,11 @@ export class Rcon {
       this.logger.trace(`Got packet: ${bufToHexString(packet)}`);
       const decodedPacket = decodePacket(packet);
 
-      const matchCount = this.callbackIds.filter(
-        (d) => d.id === decodedPacket.count
-      ).length;
+      const matchCount = this.callbackIds.filter(d => d.id === decodedPacket.count).length;
 
       if (
         matchCount > 0 ||
-        [DataType.AUTH_RESPONSE, DataType.CHAT_VALUE].includes(
-          decodedPacket.type
-        )
+        [DataType.AUTH_RESPONSE, DataType.CHAT_VALUE].includes(decodedPacket.type)
       ) {
         this.onPacket(decodedPacket);
         this.incomingData = this.incomingData.subarray(packetSize);
@@ -230,9 +218,7 @@ export class Rcon {
           // it does so it's the broken packet
           // remove the broken packet from the incoming data
           this.incomingData = this.incomingData.subarray(probePacketSize);
-          this.logger.trace(
-            `Removing broken packet: ${bufToHexString(probeBuf)}`
-          );
+          this.logger.trace(`Removing broken packet: ${bufToHexString(probeBuf)}`);
           continue;
         }
       }
@@ -244,17 +230,13 @@ export class Rcon {
 
   public connect() {
     return new Promise<void>((resolve, reject) => {
-      this.logger.info(
-        `Connecting to ${this.options.host}:${this.options.port}`
-      );
+      this.logger.info(`Connecting to ${this.options.host}:${this.options.port}`);
 
       const onConnect = async () => {
         this.client.removeListener('error', onError);
         this.connected = true;
 
-        this.logger.info(
-          `Connected to ${this.options.host}:${this.options.port}`
-        );
+        this.logger.info(`Connected to ${this.options.host}:${this.options.port}`);
 
         try {
           // connected successfully, now try auth...
@@ -271,10 +253,7 @@ export class Rcon {
       const onError = (err: any) => {
         this.client.removeListener('connect', onConnect);
 
-        this.logger.error(
-          `Failed to connect to ${this.options.host}:${this.options.port}`,
-          err
-        );
+        this.logger.error(`Failed to connect to ${this.options.host}:${this.options.port}`, err);
 
         reject(err);
       };
@@ -292,16 +271,12 @@ export class Rcon {
 
   public disconnect() {
     return new Promise<void>((resolve, reject) => {
-      this.logger.info(
-        `Disconnecting from ${this.options.host}:${this.options.port}`
-      );
+      this.logger.info(`Disconnecting from ${this.options.host}:${this.options.port}`);
 
       const onClose = () => {
         this.client.removeListener('error', onError);
 
-        this.logger.info(
-          `Disconnected from ${this.options.host}:${this.options.port}`
-        );
+        this.logger.info(`Disconnected from ${this.options.host}:${this.options.port}`);
 
         resolve();
       };
@@ -343,12 +318,7 @@ export class Rcon {
       // todo: not sure displaying password is a good idea.
       // Logger.verbose('RCON', 2, `Writing packet with type "${getDataTypeKeyByValue(type)}" and body "${body}".`);
 
-      const encodedPacket = encodePacket(
-        this.count,
-        type,
-        END_PACKET_ID,
-        password
-      );
+      const encodedPacket = encodePacket(this.count, type, END_PACKET_ID, password);
 
       if (MAXIMUM_PACKET_SIZE < encodedPacket.length) {
         reject(new Error('Packet too long.'));
@@ -364,16 +334,13 @@ export class Rcon {
       // the auth packet also sends a normal response, so we add an extra empty action to ignore it
       this.callbackIds.push({ id: this.count, cmd: password });
       this.responseCallbackQueue.push(() => {}); // todo ? why no-op
-      this.responseCallbackQueue.push((decodedPacket) => {
+      this.responseCallbackQueue.push(decodedPacket => {
         this.client.removeListener('error', onError);
 
         // todo: probably something to refactor here
         // This probably should not happen, there probably some more refactor to be done thx to TS
         if (decodedPacket instanceof Error) {
-          this.logger.error(
-            'decodePacket is an ERROR, unknown how to handle',
-            decodedPacket
-          );
+          this.logger.error('decodePacket is an ERROR, unknown how to handle', decodedPacket);
         }
         // force for TS, we'll ignore for now as this code currently work
         decodedPacket = decodedPacket as any as Packet;
@@ -411,11 +378,7 @@ export class Rcon {
   private write(type: Exclude<DataType, DataType.AUTH>, body: string) {
     return new Promise((resolve, reject) => {
       if (!this.connected) {
-        reject(
-          new Error(
-            'Not connected. (Are you making RCON request before connecting?)'
-          )
-        );
+        reject(new Error('Not connected. (Are you making RCON request before connecting?)'));
         return;
       }
 
@@ -435,12 +398,7 @@ export class Rcon {
 
       const encodedPacket = encodePacket(this.count, type, MID_PACKET_ID, body);
 
-      const encodedEmptyPacket = encodePacket(
-        this.count,
-        type,
-        END_PACKET_ID,
-        ''
-      );
+      const encodedEmptyPacket = encodePacket(this.count, type, END_PACKET_ID, '');
 
       if (MAXIMUM_PACKET_SIZE < encodedPacket.length) {
         reject(new Error('Packet too long.'));
@@ -454,7 +412,7 @@ export class Rcon {
       };
 
       this.callbackIds.push({ id: this.count, cmd: body });
-      this.responseCallbackQueue.push((response) => {
+      this.responseCallbackQueue.push(response => {
         this.client.removeListener('error', onError);
 
         if (response instanceof Error) {
@@ -465,13 +423,11 @@ export class Rcon {
           if (this.options.debugCondenseLogs) {
             const concernedLog = body in this.logCache;
             if (concernedLog) {
-              const previousResponse =
-                this.logCache[body as keyof typeof this.logCache];
+              const previousResponse = this.logCache[body as keyof typeof this.logCache];
               const changeDetected = previousResponse !== (response as string);
               if (changeDetected) {
                 // Update cache
-                this.logCache[body as keyof typeof this.logCache] =
-                  response as string;
+                this.logCache[body as keyof typeof this.logCache] = response as string;
 
                 // Log response
                 this.logger.debug(
@@ -479,14 +435,10 @@ export class Rcon {
                 );
               } // else do nothing to reduce verboseness
             } else {
-              this.logger.debug(
-                `Returning response for "${body}": "${response as string}"`
-              );
+              this.logger.debug(`Returning response for "${body}": "${response as string}"`);
             }
           } else {
-            this.logger.debug(
-              `Returning response for "${body}": "${response as string}"`
-            );
+            this.logger.debug(`Returning response for "${body}": "${response as string}"`);
           }
 
           // todo same here, I suppose this is a string at this point, some refactor to be done with responseCallbackQueue
@@ -503,9 +455,7 @@ export class Rcon {
       this.logger.trace(`Sending packet: ${bufToHexString(encodedPacket)}`);
       this.client.write(encodedPacket);
 
-      this.logger.trace(
-        `Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`
-      );
+      this.logger.trace(`Sending empty packet: ${bufToHexString(encodedEmptyPacket)}`);
       this.client.write(encodedEmptyPacket);
       this.count++;
     }) as Promise<string>; // todo: temp fix

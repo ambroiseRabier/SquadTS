@@ -9,11 +9,9 @@ const ID_MATCHER = /\s*(?<platform>[^\s:]+)\s*:\s*(?<id>[^\s]+)/g;
 /**
  * Returns {steamID: string, eosID: string}
  */
-export function extractIDs(
-  idsStr: string
-): Record<(typeof playerIdNames)[number], string> {
+export function extractIDs(idsStr: string): Record<(typeof playerIdNames)[number], string> {
   return Object.fromEntries(
-    Array.from(idsStr.matchAll(ID_MATCHER)).map((match) => {
+    Array.from(idsStr.matchAll(ID_MATCHER)).map(match => {
       const { platform, id } = match.groups ?? {};
       const formattedPlatform = lowerPlatform(platform); // Lowercase without prefix
       return [formattedPlatform, id];

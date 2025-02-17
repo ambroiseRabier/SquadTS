@@ -13,9 +13,7 @@ describe('balanceIncreaseSwitch', () => {
       { eosID: 'player2', date: new Date('2023-10-02') },
     ];
 
-    const reqTeam2: SwitchRequest[] = [
-      { eosID: 'player3', date: new Date('2023-10-01') },
-    ];
+    const reqTeam2: SwitchRequest[] = [{ eosID: 'player3', date: new Date('2023-10-01') }];
 
     const result = balanceIncreaseSwitch(reqTeam1, reqTeam2);
 

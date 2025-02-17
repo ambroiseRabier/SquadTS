@@ -3,13 +3,16 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordAdminCamLogsEnabledOptions } from './discord-cam-logs.config';
 
-const DiscordAdminCamLogs: SquadTSPlugin<
-  DiscordAdminCamLogsEnabledOptions
-> = async (server, connectors, logger, options) => {
+const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = async (
+  server,
+  connectors,
+  logger,
+  options
+) => {
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
-  server.chatEvents.possessedAdminCamera.subscribe(async (data) => {
+  server.chatEvents.possessedAdminCamera.subscribe(async data => {
     const embed: APIEmbed = {
       title: `Admin Entered Admin Camera`,
       color: 16761867,
@@ -36,7 +39,7 @@ const DiscordAdminCamLogs: SquadTSPlugin<
     await channel.send({ embeds: [embed] });
   });
 
-  server.chatEvents.unPossessedAdminCamera.subscribe(async (data) => {
+  server.chatEvents.unPossessedAdminCamera.subscribe(async data => {
     const embed: APIEmbed = {
       title: `Admin Left Admin Camera`,
       color: 16761867,

@@ -36,7 +36,7 @@ type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 //   }
 // });
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // nameWithClanTag also for logs (typing like this is better than doing DeepPartial<Player>)
 type SwitchCommandPlayer = Pick<Player, 'eosID' | 'teamID' | 'nameWithClanTag'>;
@@ -47,35 +47,25 @@ const serverMock = () => {
   const players$ = new BehaviorSubject<SwitchCommandPlayer[]>([]);
   return {
     rcon: {
-      forceTeamChange: vi
-        .fn<SquadServer['rcon']['forceTeamChange']>()
-        .mockResolvedValue(undefined),
+      forceTeamChange: vi.fn<SquadServer['rcon']['forceTeamChange']>().mockResolvedValue(undefined),
       warn: vi.fn<SquadServer['rcon']['warn']>().mockResolvedValue(undefined),
     },
     chatEvents: {
       // Based on what the plugin use
       command: new Subject<
-        Pick<
-          ObservableValue<SquadServer['chatEvents']['command']>,
-          'command' | 'date'
-        > & { player: SwitchCommandPlayer }
+        Pick<ObservableValue<SquadServer['chatEvents']['command']>, 'command' | 'date'> & {
+          player: SwitchCommandPlayer;
+        }
       >(),
     },
     events: {
       playerDisconnected: new Subject<
-        Pick<
-          ObservableValue<SquadServer['events']['playerDisconnected']>,
-          'player'
-        >
+        Pick<ObservableValue<SquadServer['events']['playerDisconnected']>, 'player'>
       >(),
     },
     helpers: {
-      playerHasPermissions: vi.fn<
-        SquadServer['helpers']['playerHasPermissions']
-      >(() => false),
-      getPlayerByEOSID: vi.fn((eosID: string) =>
-        players$.getValue().find((p) => p.eosID === eosID)
-      ),
+      playerHasPermissions: vi.fn<SquadServer['helpers']['playerHasPermissions']>(() => false),
+      getPlayerByEOSID: vi.fn((eosID: string) => players$.getValue().find(p => p.eosID === eosID)),
     },
     get players() {
       return players$.getValue();
@@ -115,11 +105,8 @@ const mockOptions: SwitchCommandConfig = {
 const mockConnectors = {};
 
 // helper to keep things DRY and easier to read
-const emitSwitchCommand = async (
-  server: ReturnType<typeof serverMock>,
-  eosID: string
-) => {
-  const player = server.players.find((p) => p.eosID === eosID);
+const emitSwitchCommand = async (server: ReturnType<typeof serverMock>, eosID: string) => {
+  const player = server.players.find(p => p.eosID === eosID);
 
   if (!player) {
     throw new Error(
@@ -146,10 +133,7 @@ const emitSwitchCommand = async (
   await wait(0);
 };
 
-const emitDisconnect = async (
-  server: ReturnType<typeof serverMock>,
-  eosID: string
-) => {
+const emitDisconnect = async (server: ReturnType<typeof serverMock>, eosID: string) => {
   server.events.playerDisconnected.next({ player: { eosID } as any });
   await wait(0); // Not sure if it is necessary here
 };
@@ -191,10 +175,7 @@ describe('switchCommand', () => {
     await emitSwitchCommand(server, 'eos1');
 
     expect(server.rcon.forceTeamChange).toHaveBeenCalledWith('eos1');
-    expect(server.rcon.warn).toHaveBeenCalledWith(
-      'eos1',
-      mockOptions.messages.switch
-    );
+    expect(server.rcon.warn).toHaveBeenCalledWith('eos1', mockOptions.messages.switch);
   });
 
   it('switch player when balance does not worsen on team 2', async () => {
@@ -209,10 +190,7 @@ describe('switchCommand', () => {
     await emitSwitchCommand(server, 'eos1');
 
     expect(server.rcon.forceTeamChange).toHaveBeenCalledWith('eos1');
-    expect(server.rcon.warn).toHaveBeenCalledWith(
-      'eos1',
-      mockOptions.messages.switch
-    );
+    expect(server.rcon.warn).toHaveBeenCalledWith('eos1', mockOptions.messages.switch);
   });
 
   it('do not switch player when balance worsen', async () => {
@@ -230,10 +208,7 @@ describe('switchCommand', () => {
     await emitSwitchCommand(server, 'eos1');
 
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalledWith('eos1');
-    expect(server.rcon.warn).toHaveBeenCalledWith(
-      'eos1',
-      mockOptions.messages.balanceWait
-    );
+    expect(server.rcon.warn).toHaveBeenCalledWith('eos1', mockOptions.messages.balanceWait);
   });
 
   it('switch player when balance worsen if player has Balance permission', async () => {
@@ -247,12 +222,10 @@ describe('switchCommand', () => {
         teamID: '2',
       },
     ]);
-    server.helpers.playerHasPermissions.mockImplementationOnce(
-      (eosID, permissions) => {
-        // Asking for balance permission and for eos1 player, then we say yes he has this permission.
-        return eosID === 'eos1' && permissions[0] === AdminPerms.Balance;
-      }
-    );
+    server.helpers.playerHasPermissions.mockImplementationOnce((eosID, permissions) => {
+      // Asking for balance permission and for eos1 player, then we say yes he has this permission.
+      return eosID === 'eos1' && permissions[0] === AdminPerms.Balance;
+    });
 
     await emitSwitchCommand(server, 'eos1');
 
@@ -313,15 +286,10 @@ describe('switchCommand', () => {
       },
     ]);
 
-    server.helpers.playerHasPermissions.mockImplementation(
-      (eosID, permissions) => {
-        // Asking for balance permission and for eos1 player, then we say yes he has this permission.
-        return (
-          eosID === 'eosReserveButLastSwitch' &&
-          permissions[0] === AdminPerms.Reserve
-        );
-      }
-    );
+    server.helpers.playerHasPermissions.mockImplementation((eosID, permissions) => {
+      // Asking for balance permission and for eos1 player, then we say yes he has this permission.
+      return eosID === 'eosReserveButLastSwitch' && permissions[0] === AdminPerms.Reserve;
+    });
 
     await emitSwitchCommand(server, 'eosFirstToSwitch');
     await wait(10); // just wanna make sure date will be different
@@ -339,10 +307,7 @@ describe('switchCommand', () => {
 
     // Reserve get switched first, even if he used !switch last, seeder advantage :)
     // We also make sure it is the first ever call to forceTeamChange
-    expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(
-      1,
-      'eosReserveButLastSwitch'
-    );
+    expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(1, 'eosReserveButLastSwitch');
 
     // Update player list manually. 3v4 now
     server.players$.next([
@@ -388,10 +353,7 @@ describe('switchCommand', () => {
       teamID: '1',
     });
 
-    expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(
-      2,
-      'eosFirstToSwitch'
-    );
+    expect(server.rcon.forceTeamChange).toHaveBeenNthCalledWith(2, 'eosFirstToSwitch');
   });
 
   it('respect cooldown', async () => {
@@ -417,10 +379,7 @@ describe('switchCommand', () => {
     // Don't get called twice !
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalledTimes(2);
     // But player get informed
-    expect(server.rcon.warn).toHaveBeenCalledWith(
-      'eos1',
-      mockOptions.messages.onCooldown
-    );
+    expect(server.rcon.warn).toHaveBeenCalledWith('eos1', mockOptions.messages.onCooldown);
 
     // Wait cooldown
     // 100ms margin
@@ -476,8 +435,7 @@ describe('switchCommand', () => {
     ]);
 
     server.helpers.playerHasPermissions.mockImplementation(
-      (eosID, permissions) =>
-        eosID === 'eos1' && permissions[0] === AdminPerms.TeamChange
+      (eosID, permissions) => eosID === 'eos1' && permissions[0] === AdminPerms.TeamChange
     );
 
     await emitSwitchCommand(server, 'eos1');
@@ -498,15 +456,10 @@ describe('switchCommand', () => {
   it('Does not switch a player after watch duration', async () => {
     const customWait = 1;
     server = serverMock();
-    plugin = await switchCommand(
-      server as any,
-      mockConnectors as any,
-      mockLogger as any,
-      {
-        ...mockOptions,
-        watchDuration: customWait,
-      }
-    );
+    plugin = await switchCommand(server as any, mockConnectors as any, mockLogger as any, {
+      ...mockOptions,
+      watchDuration: customWait,
+    });
 
     server.players$.next([
       {

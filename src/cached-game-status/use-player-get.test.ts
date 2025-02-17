@@ -73,9 +73,7 @@ describe('use-player-get', () => {
 
     // Cannot find a unique player, send nothing back.
     expect(pg.getPlayersByName('Yuca')).toEqual(mockData.slice(0, 2));
-    expect(pg.getPlayersByNameWithClanTag('-TWS- Yuca')).toEqual(
-      mockData.slice(0, 2)
-    );
+    expect(pg.getPlayersByNameWithClanTag('-TWS- Yuca')).toEqual(mockData.slice(0, 2));
     expect(pg.tryGetPlayerByName('Yuca')).toEqual(undefined);
     expect(pg.tryGetPlayerByNameWithClanTag('-TWS- Yuca')).toEqual(undefined);
   });

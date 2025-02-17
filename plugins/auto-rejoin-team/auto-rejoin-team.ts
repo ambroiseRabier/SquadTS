@@ -9,12 +9,9 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (
   logger: Logger,
   options
 ) => {
-  const trackedPlayers = new Map<
-    string,
-    { disconnectDate: Date; teamID: '1' | '2' }
-  >();
+  const trackedPlayers = new Map<string, { disconnectDate: Date; teamID: '1' | '2' }>();
 
-  server.events.playerDisconnected.subscribe(async (data) => {
+  server.events.playerDisconnected.subscribe(async data => {
     trackedPlayers.set(data.player.eosID, {
       disconnectDate: data.date,
       teamID: data.player.teamID,
@@ -27,17 +24,14 @@ const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (
     const now = new Date();
 
     trackedPlayers.forEach((data, eosID) => {
-      if (
-        now.getTime() - data.disconnectDate.getTime() >
-        disconnectionThreshold
-      ) {
+      if (now.getTime() - data.disconnectDate.getTime() > disconnectionThreshold) {
         trackedPlayers.delete(eosID);
       }
     });
   }
 
   // Preferred over events.playerConnected, as it gives us teamID
-  server.addPlayer$.subscribe(async (newPlayer) => {
+  server.addPlayer$.subscribe(async newPlayer => {
     filterOldDisconnectOut();
 
     const trackedPlayer = trackedPlayers.get(newPlayer.eosID);

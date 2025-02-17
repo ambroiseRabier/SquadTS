@@ -12,10 +12,7 @@ import { generateJson5Commented } from '../../scripts/generate-config/generate-j
 import { DiscordConnector } from '../connectors/use-discord.connector';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tsImport } from 'tsx/esm/api';
-import {
-  PLUGINS_CONFIG_ROOT,
-  PLUGINS_ROOT,
-} from '../config/path-constants.mjs';
+import { PLUGINS_CONFIG_ROOT, PLUGINS_ROOT } from '../config/path-constants.mjs';
 
 export function usePluginLoader(
   server: SquadServer,
@@ -30,9 +27,7 @@ export function usePluginLoader(
      */
     load: async (pluginOptionOverride?: Record<string, any>) => {
       if (pluginOptionOverride) {
-        logger.warn(
-          `pluginOptionOverride enabled, use this only for testing purposes.`
-        );
+        logger.warn(`pluginOptionOverride enabled, use this only for testing purposes.`);
       }
 
       logger.info('Loading plugins...');
@@ -42,20 +37,14 @@ export function usePluginLoader(
       logger.info(`${pluginsPair.length} plugins discovered and imported.`);
 
       // ---------- Check missing json5 file ----------
-      const missingConfigPairs = pluginsPair.filter(
-        (pair) => !existsSync(pair.configJSON5FilePath)
-      );
-      const validConfigPairs = pluginsPair.filter((pair) =>
-        existsSync(pair.configJSON5FilePath)
-      );
+      const missingConfigPairs = pluginsPair.filter(pair => !existsSync(pair.configJSON5FilePath));
+      const validConfigPairs = pluginsPair.filter(pair => existsSync(pair.configJSON5FilePath));
       for (let pair of missingConfigPairs) {
         logger.warn(
           `Missing json5 config file for ${pair.name}. It will be created from the schema.`
         );
         try {
-          const json5Commented = generateJson5Commented(
-            pair.configSchema.default
-          );
+          const json5Commented = generateJson5Commented(pair.configSchema.default);
           writeFileSync(pair.configJSON5FilePath, json5Commented, 'utf8');
           logger.info(`Creating config file: ${pair.configJSON5FilePath}`);
         } catch (e: any) {
@@ -74,13 +63,9 @@ export function usePluginLoader(
 
       const iterateOn = !!pluginOptionOverride
         ? Object.keys(pluginOptionOverride)
-            .map((pluginName) =>
-              validConfigPairs.find((c) => c.name === pluginName)
-            )
+            .map(pluginName => validConfigPairs.find(c => c.name === pluginName))
             .filter(
-              (
-                validConfigPair
-              ): validConfigPair is NonNullable<typeof validConfigPair> =>
+              (validConfigPair): validConfigPair is NonNullable<typeof validConfigPair> =>
                 !!validConfigPair
             )
         : validConfigPairs;
@@ -101,10 +86,7 @@ export function usePluginLoader(
           try {
             json5 = await loadJSON5(pair.configJSON5FilePath);
           } catch (e: any) {
-            logger.error(
-              `Invalid JSON5 file, unabled to parse. ${e.message}`,
-              e
-            );
+            logger.error(`Invalid JSON5 file, unabled to parse. ${e.message}`, e);
             logger.warn(
               `Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`
             );
@@ -124,7 +106,7 @@ export function usePluginLoader(
 
         if (!parsed.success) {
           const errorMessages = parsed.error.issues
-            .map((issue) => `- ${issue.path.join('.')}: ${issue.message}`)
+            .map(issue => `- ${issue.path.join('.')}: ${issue.message}`)
             .join('\n');
 
           logger.error(errorMessages);
@@ -161,15 +143,13 @@ export function usePluginLoader(
             mainLogger.child(
               {},
               {
-                msgPrefix:
-                  chalk.magenta('[Plugin]') +
-                  chalk.magentaBright(`[${pair.name}] `),
+                msgPrefix: chalk.magenta('[Plugin]') + chalk.magentaBright(`[${pair.name}] `),
                 level: parsedConfig.loggerVerbosity,
               }
             ),
             parsedConfig
           )
-          .catch((error) => {
+          .catch(error => {
             // A failing plugin should not stop SquadTS completely.
             logger.error(
               `Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`,
@@ -191,9 +171,7 @@ async function loadJSON5(filePath: string) {
     // Parse the JSON5 content
     return JSON5.parse(rawContent);
   } catch (err) {
-    throw new Error(
-      `Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`
-    );
+    throw new Error(`Failed to load or parse file: ${filePath}. Error: ${(err as Error).message}`);
   }
 }
 
@@ -204,17 +182,17 @@ async function loadJSON5(filePath: string) {
  * @returns Array of file paths matching the extension.
  */
 function findFilesInSubfolders(directory: string, extension: string): string[] {
-  const subfolders = readdirSync(directory).filter((subfolder) => {
+  const subfolders = readdirSync(directory).filter(subfolder => {
     const subfolderPath = path.join(directory, subfolder);
     return statSync(subfolderPath).isDirectory(); // Only include directories
   });
 
   const files: string[] = [];
-  subfolders.forEach((subfolder) => {
+  subfolders.forEach(subfolder => {
     const subfolderPath = path.join(directory, subfolder);
     const filteredFiles = readdirSync(subfolderPath)
-      .filter((file) => file.endsWith(extension)) // Only include files with the desired extension
-      .map((file) => path.join(subfolder, file)); // Maintain relative paths
+      .filter(file => file.endsWith(extension)) // Only include files with the desired extension
+      .map(file => path.join(subfolder, file)); // Maintain relative paths
     files.push(...filteredFiles);
   });
 
@@ -228,7 +206,7 @@ function findFilesInSubfolders(directory: string, extension: string): string[] {
  * @returns Array of matching file paths.
  */
 function findFilesMatchingParentDirectory(fileList: string[]): string[] {
-  return fileList.filter((filePath) => {
+  return fileList.filter(filePath => {
     const fileName = path.basename(filePath, path.extname(filePath)); // File name without extension
     const parentDir = path.basename(path.dirname(filePath)); // Name of the parent directory
     return fileName === parentDir; // Check if file name matches parent directory name
@@ -289,15 +267,9 @@ async function loadPlugins(logger: Logger) {
       // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
       // plugin = require(pluginPath); // .replace(/\\/g, '/')
       // plugin = await import(pluginPath);
-      plugin = await tsImport(
-        pathToFileURL(pluginPath).href,
-        fileURLToPath(import.meta.url)
-      );
+      plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
     } catch (e: any) {
-      logger.error(
-        `Failed to import plugin files: ${file}. Error: ${e.message}`,
-        e
-      );
+      logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
       continue;
     }
 
@@ -330,9 +302,7 @@ async function loadPlugins(logger: Logger) {
 
     if (
       typeof configSchema.default !== 'object' ||
-      !['ZodObject', 'ZodDiscriminatedUnion'].includes(
-        configSchema.default.constructor.name
-      )
+      !['ZodObject', 'ZodDiscriminatedUnion'].includes(configSchema.default.constructor.name)
     ) {
       logger.error(
         `Config schema ${configSchemaFileName} should have a ZodObject (\`z.object({})\`) as default export. Got ${typeof configSchema.default} and ${configSchema.default.constructor.name}.`

@@ -30,10 +30,7 @@ export const logParserRules = [
 
   // Called right before join succeeded and player initialize it seems
   // Yes, there is two spaces after Player, probably a mistake from Squad devs.
-  [
-    'playerAddedToTeam',
-    '^LogSquad: Player  (?<name>.+) has been added to Team (?<teamID>[0-9]+)',
-  ],
+  ['playerAddedToTeam', '^LogSquad: Player  (?<name>.+) has been added to Team (?<teamID>[0-9]+)'],
 
   // Called between loginRequest and playerJoinSucceeded
   [
@@ -59,10 +56,7 @@ export const logParserRules = [
   ],
 
   // Called at start of each game it seems, and right before playerAddedToTeam
-  [
-    'playerInitialized',
-    '^LogGameMode: Initialized player (?<name>.+) with (?<id>[0-9]+)',
-  ],
+  ['playerInitialized', '^LogGameMode: Initialized player (?<name>.+) with (?<id>[0-9]+)'],
 
   // todo: Ok so this one is strange, in SquadJS, it get transform into playerConnected
   // seems like it want to track player that try to join but fail ?
@@ -90,10 +84,7 @@ export const logParserRules = [
     '^LogSquadTrace: \\[DedicatedServer](?:ASQSoldier::)?Wound\\(\\): Player:(?<victimNameWithClanTag>.+) KillingDamage=(?:-)*(?<damage>[0-9.]+) from (?<attackerController>[A-z_0-9]+) \\(Online IDs:(?<attackerIDs>[^)|]+)\\| Controller ID: ([\\w\\d]+)\\) caused by (?<weapon>[A-z_0-9-]+)_C',
   ],
 
-  [
-    'roundEnded',
-    '^LogGameState: Match State Changed from InProgress to WaitingPostMatch',
-  ],
+  ['roundEnded', '^LogGameState: Match State Changed from InProgress to WaitingPostMatch'],
 
   // todo: rename from subfaction to subFaction
   [
@@ -106,10 +97,7 @@ export const logParserRules = [
   // [2025.01.27-22.27.36:080][206]LogSquadTrace: [DedicatedServer]ASQGameMode::DetermineMatchWinner(): 1st Cavalry Regiment won on Kamdesh Highlands
   // [2025.01.27-22.27.36:080][206]LogSquadTrace: [DedicatedServer]ASQGameMode::DetermineMatchWinner(): 78th Detached Logistics Brigade won on Kamdesh Highlands
   // ["roundWinner", "^LogSquadTrace: \\[DedicatedServer](?:ASQGameMode::)?DetermineMatchWinner\\(\\): (?<winner>.+) won on (?<layer>.+)"],
-  [
-    'serverTickRate',
-    '^LogSquad: USQGameState: Server Tick Rate: (?<tickRate>[0-9.]+)',
-  ],
+  ['serverTickRate', '^LogSquad: USQGameState: Server Tick Rate: (?<tickRate>[0-9.]+)'],
 ] as const;
 
 export type LogParserRules = typeof logParserRules;

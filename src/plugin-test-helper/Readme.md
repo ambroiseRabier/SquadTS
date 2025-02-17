@@ -153,9 +153,7 @@ it('Broadcast on heli crash (option 1)', () => {
       steamID: '76561198016942077',
     },
   ];
-  jest
-    .spyOn(testBed.server.rcon, 'getListPlayers')
-    .mockResolvedValue(playerList);
+  jest.spyOn(testBed.server.rcon, 'getListPlayers').mockResolvedValue(playerList);
 
   // ...
   setRconMock(rconExec, {
@@ -227,9 +225,7 @@ Team ID: 2 (Manticore Security Task Force)
     `);
 
   // Equivalent, first one needs spyOn
-  expect(testBed.server.rcon.broadcast).toHaveBeenCalledWith(
-    'Yuca crash landed.'
-  );
+  expect(testBed.server.rcon.broadcast).toHaveBeenCalledWith('Yuca crash landed.');
 });
 
 it('Broadcast on heli crash (option 2)', () => {
@@ -302,10 +298,7 @@ Team ID: 2 (Manticore Security Task Force)
       [20:15:08.978] WARN: [LogParser] No match on line: [2025.02.13-19.13.17:868][363]LogSquad: Warning: Suicide -TWS- Yuca
     `);
 
-  expect(rconExec).toHaveBeenCalledWith(
-    GameCommands.AdminBroadcast,
-    'Yuca crash landed.'
-  );
+  expect(rconExec).toHaveBeenCalledWith(GameCommands.AdminBroadcast, 'Yuca crash landed.');
 });
 ```
 

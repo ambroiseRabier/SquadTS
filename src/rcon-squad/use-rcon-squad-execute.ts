@@ -6,16 +6,10 @@ import { Logger } from 'pino';
 import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
 import { IncludesRCONCommand, RCONCommand } from './rcon-commands';
 
-export function useRconSquadExecute(
-  execute: Rcon['execute'],
-  dryRun: boolean,
-  logger: Logger
-) {
+export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
   let missingAndExtraCalledOnce = false;
 
-  function dryRunExecute<T extends string>(
-    command: IncludesRCONCommand<T>
-  ): Promise<string> {
+  function dryRunExecute<T extends string>(command: IncludesRCONCommand<T>): Promise<string> {
     if (dryRun) {
       logger.warn(`Dry run: ${command}`);
       return Promise.resolve('This is a dry run, no command was executed.');
@@ -34,9 +28,7 @@ export function useRconSquadExecute(
     execute,
     getCurrentMap: async () => {
       const response: string = await execute('ShowCurrentMap');
-      const match = response.match(
-        /^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/
-      );
+      const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
       return match!.groups! as { level: string; layer: string };
     },
 
@@ -62,9 +54,9 @@ export function useRconSquadExecute(
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
       return (response ?? '')
         .split('\n')
-        .map((line) => regex.exec(line))
+        .map(line => regex.exec(line))
         .filter((match): match is NonNullable<typeof match> => match !== null)
-        .map((match) => {
+        .map(match => {
           const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
           const { isLeader, teamID, squadID, ids } = groups;
           return {
@@ -94,11 +86,9 @@ export function useRconSquadExecute(
         (response ?? '')
           .split('\n')
           // Assume map run in order.
-          .map((line) => {
+          .map(line => {
             const match = regex.exec(line);
-            const matchSide = line.match(
-              /Team ID: (?<teamID>\d) \((?<teamName>.+)\)/
-            );
+            const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
 
             if (matchSide) {
               // check for yourself, this is ok. Let's keep it simple here
@@ -171,12 +161,8 @@ export function useRconSquadExecute(
 
       // We check for change in returned data, and inform user/dev that something changed.
       const infoKeys = Object.keys(info);
-      const missingKeys = gameServerInfoKeys.filter(
-        (key) => !infoKeys.includes(key)
-      );
-      const extraKeys = infoKeys.filter(
-        (key) => !gameServerInfoKeys.includes(key as any)
-      );
+      const missingKeys = gameServerInfoKeys.filter(key => !infoKeys.includes(key));
+      const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
 
       // Mostly aimed at SquadTS developers
       if (!missingAndExtraCalledOnce) {
@@ -216,10 +202,8 @@ export function useRconSquadExecute(
         nextLayer: info.NextLayer_s,
         isSeed: info.MapName_s.search(/seed/i) !== -1,
 
-        teamOne:
-          info.TeamOne_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
-        teamTwo:
-          info.TeamTwo_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+        teamOne: info.TeamOne_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
+        teamTwo: info.TeamTwo_s?.replace(new RegExp(info.MapName_s, 'i'), '') || '',
 
         matchTimeout: info.MatchTimeout_d,
         matchStartTime: getMatchStartTimeByPlaytime(parseInt(info.PLAYTIME_I)),

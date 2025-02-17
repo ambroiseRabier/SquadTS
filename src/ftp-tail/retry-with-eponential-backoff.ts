@@ -43,13 +43,9 @@ export async function retryWithExponentialBackoff(
         throw err;
       }
 
-      logger.error(
-        `Error in retryWithExponentialBackoff: ${(err as Error)?.message}`
-      );
+      logger.error(`Error in retryWithExponentialBackoff: ${(err as Error)?.message}`);
       if (attempt === maxRetries) {
-        throw new Error(
-          `Max retries reached: ${attempt} ${(err as Error)?.message}`
-        );
+        throw new Error(`Max retries reached: ${attempt} ${(err as Error)?.message}`);
       }
 
       // Calculate exponential backoff delay
@@ -62,10 +58,8 @@ export async function retryWithExponentialBackoff(
       const jitter = Math.random(); // A random value between 0 and 1
       const jitteredDelay = delay * (0.5 + jitter); // Random delay within 50-150% of the calculated delay
 
-      logger.info(
-        `Retrying (attempt ${attempt + 1}) in ${(jitteredDelay / 1000).toFixed(2)}s...`
-      );
-      await new Promise((resolve) => setTimeout(resolve, jitteredDelay));
+      logger.info(`Retrying (attempt ${attempt + 1}) in ${(jitteredDelay / 1000).toFixed(2)}s...`);
+      await new Promise(resolve => setTimeout(resolve, jitteredDelay));
 
       attempt++;
     }

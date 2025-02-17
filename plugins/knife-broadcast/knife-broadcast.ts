@@ -42,10 +42,7 @@ const KNIFE_IDS = [
 ];
 
 // avoid the same index twice in a row
-function controlledRandom<T>(
-  array: T[],
-  lastIndex: number | null = null
-): [T, number] {
+function controlledRandom<T>(array: T[], lastIndex: number | null = null): [T, number] {
   // if (array.length < 2) {
   //   throw new Error("Array must contain at least two elements to avoid consecutive repetition.");
   // }
@@ -68,24 +65,18 @@ const knifeBroadCast: SquadTSPlugin<KnifeBroadCastOptions> = async (
   let lastIndex: number | null = null;
   server.events.playerWounded
     .pipe(
-      filter((data) => KNIFE_IDS.includes(data.weapon)),
+      filter(data => KNIFE_IDS.includes(data.weapon)),
       delay(options.delay * 1000)
     )
-    .subscribe(async (data) => {
+    .subscribe(async data => {
       const [message, newIndex] = controlledRandom(options.messages, lastIndex);
       // Update the lastIndex for the next iteration
       lastIndex = newIndex;
 
       await server.rcon.broadcast(
         message
-          .replace(
-            '%attacker%',
-            data.attacker.nameWithClanTag ?? data.attacker.name ?? 'Unknown'
-          )
-          .replace(
-            '%victim%',
-            data.victim.nameWithClanTag ?? data.victim.name ?? 'Unknown'
-          )
+          .replace('%attacker%', data.attacker.nameWithClanTag ?? data.attacker.name ?? 'Unknown')
+          .replace('%victim%', data.victim.nameWithClanTag ?? data.victim.name ?? 'Unknown')
       );
     });
 };

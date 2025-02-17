@@ -53,11 +53,7 @@ function useClient(options: Props) {
         ? client.size(filepath)
         : sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
     },
-    async downloadFile(
-      filepath: string,
-      toLocalPath: string,
-      lastByteReceived: number
-    ) {
+    async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
       if (options.protocol === 'ftp') {
         await client.downloadTo(
           fs.createWriteStream(toLocalPath, { flags: 'w' }),
@@ -105,8 +101,7 @@ export function useFtpTail(logger: Logger, options: Props) {
 
     // FTP and SFTP have a slight difference in field:
     user: options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
-    username:
-      options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
+    username: options.protocol === 'ftp' ? options.ftp.user : options.sftp.username,
   };
 
   const tmpFilePath = path.join(
@@ -143,7 +138,7 @@ export function useFtpTail(logger: Logger, options: Props) {
       const rl = readline.createInterface({ input: fileStream });
       const randomChar = Math.random().toString(36).substring(2, 15);
 
-      rl.on('line', (line) => {
+      rl.on('line', line => {
         // All logs, with a random id to identify the fileStream/rl.
         // If you get duplicated logs, this helps identify the issue.
         logger.trace(randomChar + ' -- ' + line);
@@ -154,7 +149,7 @@ export function useFtpTail(logger: Logger, options: Props) {
         resolve();
       });
 
-      rl.on('error', (error) => {
+      rl.on('error', error => {
         reject(error);
       });
 
@@ -252,13 +247,10 @@ export function useFtpTail(logger: Logger, options: Props) {
       // If fetchLoop took less time than the interval, wait the remaining time
       const delay = Math.max(0, options.fetchIntervalMs - executionTime);
       if (delay > 0) {
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     } catch (e) {
-      logger.fatal(
-        `Error in fetch loop: ${(e as Error)?.message}`,
-        (e as Error)?.stack
-      );
+      logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
       hasError = true;
       throw e; // stop looping at unhandled error. However, this will not stop the program if not awaited.
     } finally {

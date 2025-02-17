@@ -40,11 +40,11 @@ describe('useAdminList', () => {
   beforeEach(() => {
     // Mock the logger
     logger = {
-      info: vi.fn().mockImplementation((message) => console.log(message)),
+      info: vi.fn().mockImplementation(message => console.log(message)),
       // We don't want to resort to debugging everytime something fail, if possible.
-      error: vi.fn().mockImplementation((message) => console.error(message)),
-      warn: vi.fn().mockImplementation((message) => console.warn(message)),
-      debug: vi.fn().mockImplementation((message) => console.log(message)),
+      error: vi.fn().mockImplementation(message => console.error(message)),
+      warn: vi.fn().mockImplementation(message => console.warn(message)),
+      debug: vi.fn().mockImplementation(message => console.log(message)),
       // Add other methods if necessary
     } as unknown as Mocked<Logger>;
 
@@ -92,14 +92,8 @@ describe('useAdminList', () => {
     await fetch();
 
     expect(logger.info).toHaveBeenNthCalledWith(1, 'Fetching 1 admin list...');
-    expect(logger.info).toHaveBeenNthCalledWith(
-      2,
-      'Fetching http://example.com/admin.cfg'
-    );
-    expect(logger.info).toHaveBeenNthCalledWith(
-      3,
-      'Admin list fetched. 4 admins found.'
-    );
+    expect(logger.info).toHaveBeenNthCalledWith(2, 'Fetching http://example.com/admin.cfg');
+    expect(logger.info).toHaveBeenNthCalledWith(3, 'Admin list fetched. 4 admins found.');
   });
 
   it('should handle HTTP errors correctly', async () => {
@@ -118,9 +112,7 @@ describe('useAdminList', () => {
 
     await fetch();
 
-    expect(logger.error).toHaveBeenCalledWith(
-      'HTTP error! Status: 404 Not Found'
-    );
+    expect(logger.error).toHaveBeenCalledWith('HTTP error! Status: 404 Not Found');
   });
 
   it('should handle fetch failure errors', async () => {
@@ -131,9 +123,7 @@ describe('useAdminList', () => {
     const { fetch } = useAdminList(logger, mockOptions);
 
     // Simulate fetch failing
-    (global.fetch as MockedFunction<any>).mockRejectedValueOnce(
-      new Error('Network Error')
-    );
+    (global.fetch as MockedFunction<any>).mockRejectedValueOnce(new Error('Network Error'));
 
     await fetch();
 
@@ -208,15 +198,11 @@ Admin=76561198814495531:Moderator
     // Simulate fetch returning invalid content
     (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
       ok: true,
-      text: vi
-        .fn<() => Promise<string>>()
-        .mockResolvedValueOnce('Invalid admin config'),
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce('Invalid admin config'),
     });
 
     await fetch();
 
-    expect(logger.error).toHaveBeenCalledWith(
-      'Failed to parse admin.cfg! No groups found.'
-    );
+    expect(logger.error).toHaveBeenCalledWith('Failed to parse admin.cfg! No groups found.');
   });
 });

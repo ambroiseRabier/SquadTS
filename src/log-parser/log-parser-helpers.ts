@@ -53,22 +53,14 @@ export function matchWithRegex<T extends string>(
  *
  */
 type LogEventUnion<ExtraData> = {
-  [K in LogParserRules[number] as K[0]]: readonly [
-    K[0],
-    ObjectFromRegexStr<K[1]>,
-    ExtraData,
-  ];
+  [K in LogParserRules[number] as K[0]]: readonly [K[0], ObjectFromRegexStr<K[1]>, ExtraData];
 }[LogParserRules[number][0]];
 
 // Having extra data make it harder to type, but that's how it is.
 type ExtraData = { date: Date; chainID: string };
 type LogEventUnionWithExtraData = LogEventUnion<ExtraData>;
 
-export function parseLogLine(
-  rules: LogParserRules,
-  line: string,
-  extraData: ExtraData
-) {
+export function parseLogLine(rules: LogParserRules, line: string, extraData: ExtraData) {
   for (const [eventName, regex] of rules) {
     const match = new RegExp(regex).exec(line);
     if (match) {

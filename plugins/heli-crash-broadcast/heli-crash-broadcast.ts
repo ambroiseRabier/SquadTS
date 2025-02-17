@@ -31,10 +31,7 @@ const HELI_IDS = [
 ];
 
 // avoid the same index twice in a row
-function controlledRandom<T>(
-  array: T[],
-  lastIndex: number | null = null
-): [T, number] {
+function controlledRandom<T>(array: T[], lastIndex: number | null = null): [T, number] {
   // if (array.length < 2) {
   //   throw new Error("Array must contain at least two elements to avoid consecutive repetition.");
   // }
@@ -58,19 +55,16 @@ const heliCrashBroadcast: SquadTSPlugin<HeliCrashBroadCastOptions> = async (
   server.events.playerDied
     .pipe(
       // Actual killer weapon will be BP_MI8_C_2147214443 not BP_MI8_C or BP_MI8, so we do a partial match
-      filter((data) => HELI_IDS.some((heliID) => data.weapon.includes(heliID)))
+      filter(data => HELI_IDS.some(heliID => data.weapon.includes(heliID)))
     )
-    .subscribe(async (data) => {
+    .subscribe(async data => {
       const [message, newIndex] = controlledRandom(options.messages, lastIndex);
       // Update the lastIndex for the next iteration
       lastIndex = newIndex;
 
       // on suicide, victim and attacker are the same.
       await server.rcon.broadcast(
-        message.replace(
-          '%pilot%',
-          data.attacker.nameWithClanTag ?? data.attacker.name ?? 'Unknown'
-        )
+        message.replace('%pilot%', data.attacker.nameWithClanTag ?? data.attacker.name ?? 'Unknown')
       );
     });
 };
