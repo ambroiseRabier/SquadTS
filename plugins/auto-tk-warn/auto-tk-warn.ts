@@ -10,15 +10,10 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
   options
 ) => {
   server.events.teamKill.subscribe(async info => {
-    logger.info(
-      `TK Warn: ${info.attacker.nameWithClanTag ?? info.attacker.name} (eosID: ${info.attacker.eosID})`
-    );
-    if (info.attacker && options.attackerMessage) {
-      await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
-    }
-    if (info.victim && options.victimMessage) {
-      await server.rcon.warn(info.victim.eosID, options.victimMessage);
-    }
+    const attackerName = info.attacker.nameWithClanTag ?? info.attacker.name ?? 'Unknown';
+    logger.info(`TK Warn: ${attackerName} (eosID: ${info.attacker.eosID})`);
+    await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
+    await server.rcon.warn(info.victim.eosID, options.victimMessage.replace('%attacker%', attackerName));
   });
 };
 

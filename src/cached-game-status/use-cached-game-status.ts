@@ -1,5 +1,5 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { BehaviorSubject, map, Subject } from 'rxjs';
+import { BehaviorSubject, filter, map, Subject } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
 import { merge, omit } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
@@ -227,30 +227,45 @@ export function useCachedGameStatus({
       // todo, saving up-to-date player controller from playerWounded ? (getPlayerByEOSID return stale controller)
       //     may not be expected !
       playerWounded: logParser.events.playerWounded.pipe(
+        // Since playerWounded log only give nameWithClanTag, there is a slight change we
+        // are not able to identify the victim to a player.
+        // May happen if there is multiple person with the same nameWithClanTag or when
+        // RCON has not yet returned the player (only RCON provide nameWithClanTag).
+        //
+        // May give access to logParser if some plugin really need
+        // playerWounded even when victim player is not fully identified.
+        // We'll see if player with same nameWithClanTag happen often enough...
+        filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
         map(data => {
           // Both RCON and logParser give eosID, 100% chance we get the player.
           const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag);
-
-          // Send back augmented data, but playerWounded log event data has priority as it is the most up-to-date.
-          // This concerns attacker.controller and victim.nameWithClanTag
-          return merge({ attacker, victim }, data);
-        })
+          // We just filtered above, so it safe to assert not null.
+          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)!;
+          // Send back augmented data with the latest update, concerns:
+          // - attacker.controller
+          // - victim.nameWithClanTag
+          return merge({attacker, victim}, data);
+        }),
       ),
       playerDied: logParser.events.playerDied.pipe(
+        filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
         map(data => {
           // Both RCON and logParser give eosID, 100% chance we get the player.
           const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag);
+          // We just filtered above, so it safe to assert not null.
+          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)!;
 
-          // Send back augmented data, but playerDied log event data has priority as it is the most up-to-date.
-          // This concerns attacker.controller and victim.nameWithClanTag
+          // Send back augmented data with the latest update, concerns:
+          // - attacker.controller
+          // - victim.nameWithClanTag
           return merge({ attacker, victim }, data);
         })
       ),
       deployableDamaged: logParser.events.deployableDamaged.pipe(
+        filter(data => !!tryGetPlayerByName(data.attackerName)),
         map(data => {
-          const attacker = tryGetPlayerByName(data.attackerName);
+          // We just filtered above, so it safe to assert not null.
+          const attacker = tryGetPlayerByName(data.attackerName)!;
 
           return {
             ...data,
@@ -306,8 +321,9 @@ export function useCachedGameStatus({
         }))
       ),
       playerWarned: rconSquad.chatEvents.playerWarned.pipe(
+        filter(data => !!tryGetPlayerByNameWithClanTag(data.nameWithClanTag)),
         map(data => ({
-          ...tryGetPlayerByNameWithClanTag(data.nameWithClanTag),
+          ...tryGetPlayerByNameWithClanTag(data.nameWithClanTag)!,
           ...data,
         }))
       ),

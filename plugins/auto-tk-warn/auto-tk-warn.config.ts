@@ -8,16 +8,13 @@ const schema = pluginBaseOptionsSchema
     // todo optional delay
     attackerMessage: z
       .string()
-      .optional()
-      .describe('The message to warn attacking players with.')
-      .default('Please apologise for ALL TKs in ALL chat!'),
+      .default('Please apologise for ALL TKs in ALL chat!')
+      .describe('The message to warn attacking players with.'),
 
     victimMessage: z
       .string()
-      .nullable()
-      .optional()
-      .describe('The message that will be sent to the victim. null value means no message sent.')
-      .default(null),
+      .default('%attackerName% team killed you.')
+      .describe('The message that will be sent to the victim. null value means no message sent.'),
   })
   .describe('Warn attacker/victim when they team kill.');
 
