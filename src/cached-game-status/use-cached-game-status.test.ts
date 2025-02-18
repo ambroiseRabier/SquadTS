@@ -6,6 +6,7 @@ import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit, pick } from 'lodash-es';
 import { DeepPartial, ObservableValue } from '../utils';
+import { createMockLogger } from '../test-utils';
 
 
 // ---- team 1 ----
@@ -130,14 +131,7 @@ describe('use-cached-game-status', () => {
   } as const;
 
   beforeAll(() => {
-    // note: Any missing function will just make the test fail without any information.
-    mockLogger = {
-      trace: console.log,
-      debug: console.log,
-      info: console.info,
-      warn: console.warn,
-      error: console.error,
-    } as any;
+    mockLogger = createMockLogger() as any;
   });
 
   beforeEach(async () => {

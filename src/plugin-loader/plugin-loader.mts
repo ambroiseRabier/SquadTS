@@ -25,7 +25,7 @@ export function usePluginLoader(
      *
      * @param pluginOptionOverride Reserved for test server, allow to choose which plugin to enable and also the config.
      */
-    load: async (pluginOptionOverride?: Record<string, any>) => {
+    load: async (pluginOptionOverride?: Record<string, unknown>) => {
       if (pluginOptionOverride) {
         logger.warn('pluginOptionOverride enabled, use this only for testing purposes.');
       }

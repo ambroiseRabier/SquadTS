@@ -11,7 +11,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
   const fixedFilePath = options.logFile.replace(/\\/g, '/');
 
   switch (options.mode) {
-    case 'tail':
+    case 'tail': {
       const tail = new TailModule.Tail(fixedFilePath, {
         useWatchFile: true,
       });
@@ -37,6 +37,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
           }),
         line$: subject.asObservable(),
       };
+    }
     case 'sftp':
       return useFtpTail(logger, {
         protocol: 'sftp',

@@ -4,7 +4,7 @@ import { omit } from 'lodash-es';
 import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
 import { Logger } from 'pino';
 import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
-import { IncludesRCONCommand, RCONCommand } from './rcon-commands';
+import { IncludesRCONCommand } from './rcon-commands';
 
 export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
   let missingAndExtraCalledOnce = false;

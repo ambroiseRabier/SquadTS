@@ -2,6 +2,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { LogParser, useLogParser } from './use-log-parser';
 import { LogParserConfig } from './log-parser.config';
 import { Subject } from 'rxjs';
+import { createMockLogger } from '../test-utils';
+import { Logger } from 'pino';
+import { LogReader } from './use-log-reader';
 
 
 describe('Log Parser events', () => {
@@ -10,14 +13,7 @@ describe('Log Parser events', () => {
     line$: Subject<string>;
   };
   // note: Any missing function will just make the test fail without any information.
-  const fakeLogger = {
-    trace: vi.fn(console.log),
-    debug: vi.fn(console.log),
-    info: vi.fn(console.log),
-    warn: vi.fn(console.warn),
-    error: vi.fn(console.error),
-    fatal: vi.fn(console.error),
-  } as any;
+  const fakeLogger = createMockLogger();
   const logParserConfig: LogParserConfig = {
     logFile: 'mock.log',
     ftp: {
@@ -46,13 +42,18 @@ describe('Log Parser events', () => {
 
     mockedLogReader = {
       line$: new Subject<string>(),
-    } as any;
+    };
 
-    logParser = useLogParser(fakeLogger, mockedLogReader as any, logParserConfig, {
-      showMatching: true,
-      showNonMatching: true,
-      ignoreRegexMatch: [],
-    });
+    logParser = useLogParser(
+      fakeLogger as unknown as Logger,
+      mockedLogReader as unknown as LogReader,
+      logParserConfig,
+      {
+        showMatching: true,
+        showNonMatching: true,
+        ignoreRegexMatch: [],
+      }
+    );
   });
 
   it('should ignore first incomplete line', () => {

@@ -7,6 +7,7 @@ import { SquadServer } from '../../src/squad-server';
 import { Player } from '../../src/cached-game-status/use-cached-game-status';
 import { AdminPerms } from '../../src/admin-list/permissions';
 import { ObservableValue } from '../../src/utils';
+import { createMockLogger } from '../../src/test-utils';
 
 
 
@@ -69,16 +70,7 @@ const serverMock = () => {
   };
 };
 
-// Will silently fail if any is missing.
-const mockLogger = {
-  trace: console.log,
-  debug: console.log,
-  info: console.log,
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-  fatal: console.error,
-};
+const mockLogger = createMockLogger();
 
 const mockOptions: SwitchCommandConfig = {
   enabled: true,

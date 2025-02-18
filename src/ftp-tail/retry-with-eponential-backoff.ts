@@ -20,11 +20,11 @@ import { Logger } from 'pino';
  * 12 attempts will be about 1h.
  */
 export async function retryWithExponentialBackoff(
-  task: () => Promise<any>,
+  task: () => Promise<unknown>,
   maxRetries: number,
   logger: Logger,
   stopRequested: () => boolean,
-  condition: (error: any) => boolean
+  condition: (error: unknown) => boolean
 ) {
   const baseDelay = 1000; // Start with a 1-second delay in milliseconds
   let attempt = 0;

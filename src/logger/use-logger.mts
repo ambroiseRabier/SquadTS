@@ -1,11 +1,10 @@
-import pretty from 'pino-pretty';
 import { Logger, pino } from 'pino';
 import { Options } from '../config/config.schema';
 import chalk from 'chalk';
 import { LOG_FILE } from '../config/path-constants.mjs';
 import { fileURLToPath } from 'node:url';
 
-const isDev = process.env.NODE_ENV !== 'production';
+// const isDev = process.env.NODE_ENV !== 'production';
 
 // todo save logs on file, also keep the file at a certain max size.
 // Also allow saving log at 2 different location for tests and prod/dev ...

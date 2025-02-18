@@ -16,6 +16,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'node:url';
 import { Subject } from 'rxjs';
 
+
 interface Props {
   /**
    * You may replace log reader and rcon by your own for testing.
@@ -24,7 +25,7 @@ interface Props {
     logReader: LogReader;
     rcon: Rcon;
     config: Options; // todo: again mixing config and options, choose :/
-    pluginOptionOverride?: Record<string, any>;
+    pluginOptionOverride?: Record<string, unknown>;
     manualRCONUpdateForTest?: Subject<void>;
   };
 }

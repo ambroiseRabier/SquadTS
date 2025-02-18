@@ -45,19 +45,14 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     chatPacketEvent: new Subject<string>(),
   };
 
-  // Update interval in ms, you should set it very low, because you will have to wait for it in the tests.
-  // For server info and players and squads to be updated.
-  // Note that players can also be added to internal cache through logs (but this is somewhat verbose at a set of 5 logs
-  // is used to cache a player).
-  const updateInterval = 50;
-
-  const baseOptions = {
+  const baseOptions: Options = {
     // rcon is not used because of the mock
     rcon: {
       autoReconnectDelay: 5000,
       host: '127.0.0.1',
       port: 25575,
       password: 'examplePassword',
+      debugCondenseLogs: false, // Keep it false as this may be confusing in tests.
     },
     logger: {
       verboseness: {
@@ -98,7 +93,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     cacheGameStatus: {
       updateInterval: {
         // 1 is min value in config...
-        serverInfo: 1, // Remember: expected value is in second in config. (probably should make a manual update trigger too)
+        serverInfo: 60, // Remember: expected value is in second in config. (todo: probably should make a manual update trigger too)
         layerInfo: 60, // unused for now, not implemented.
         playersAndSquads: 60, // manually trigger update yourself.
       },
@@ -127,6 +122,9 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
       // Default config for mocking, you may customize it for your tests.
       config: merge(baseOptions, optionsOverride),
       pluginOptionOverride: pluginOptionOverride,
+
+      // Note that player can also be added to internal cache with logs, but it needs a set of five logs and is
+      // more verbose. If you need some logs exclusive properties like ip, you do need that though.
       manualRCONUpdateForTest,
     },
   });

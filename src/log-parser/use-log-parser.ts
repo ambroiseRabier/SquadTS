@@ -118,6 +118,8 @@ export function useLogParser(
   );
 
   return {
+    // I don't see the readability gain by changing `[eventName, lineObj, metadata]` to `[, lineObj, metadata]`.
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     // Please keep the same order as the rules.
     events: {
       adminBroadcast: events.pipe(
@@ -307,6 +309,7 @@ export function useLogParser(
         }))
       ),
     },
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     setEmitLogs(_emitLogs: boolean) {
       emitLogs = _emitLogs;
     },

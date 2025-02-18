@@ -2,18 +2,12 @@ import { beforeAll, describe, expect, it, vi, MockedFunction, beforeEach } from 
 import { Rcon } from '../rcon/rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { gameServerInfoKeys } from './server-info.type';
+import { createMockLogger } from '../test-utils';
 
 describe('rcon-squad-execute', () => {
   const execute: MockedFunction<Rcon['execute']> = vi.fn();
   let rc: ReturnType<typeof useRconSquadExecute>;
-  const mockLogger = {
-    trace: vi.fn().mockImplementation(console.log),
-    debug: vi.fn().mockImplementation(console.log),
-    info: vi.fn().mockImplementation(console.log),
-    warn: vi.fn().mockImplementation(console.warn),
-    error: vi.fn().mockImplementation(console.error),
-    fatal: vi.fn().mockImplementation(console.error),
-  };
+  const mockLogger = createMockLogger();
 
   beforeAll(() => {
     rc = useRconSquadExecute(execute as any, false, mockLogger as any);
