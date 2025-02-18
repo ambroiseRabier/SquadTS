@@ -29,7 +29,7 @@ describe('useAdminList', () => {
 
   beforeAll(() => {
     // Save the original fetch before mocking to restore it later
-    global.fetch = vi.fn() as any;
+    global.fetch = vi.fn<typeof global.fetch>();
   });
 
   afterAll(() => {
@@ -60,10 +60,10 @@ describe('useAdminList', () => {
     const { fetch, admins } = useAdminList(logger, mockOptions);
 
     // Simulate fetch returning a valid response
-    (global.fetch as MockedFunction<any>).mockResolvedValueOnce({
+    (global.fetch as MockedFunction<typeof global.fetch>).mockResolvedValueOnce({
       ok: true,
       text: vi.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
-    });
+    } as Partial<Response> as any);
 
     const r = await fetch();
 
@@ -156,7 +156,7 @@ describe('useAdminList', () => {
       remote: ['http://example.com/admin.cfg', 'http://example2.com/admin.cfg'],
     };
 
-    const { fetch, admins } = useAdminList(logger, mockOptions);
+    const { fetch } = useAdminList(logger, mockOptions);
 
     // Somewhat hacky way to send two different requests
     let index = 0;

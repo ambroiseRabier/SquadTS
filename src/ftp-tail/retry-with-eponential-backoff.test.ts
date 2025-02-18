@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 
 describe('retryWithExponentialBackoff', () => {
-  let mockLogger = {
+  const mockLogger = {
     info: vi.fn().mockImplementation(console.log),
     // Hide it to avoid confusion in CI, enable it if you change this test to better understand what is happening.
     error: vi.fn(), //.mockImplementation(console.error),

@@ -300,6 +300,9 @@ export namespace GithubWikiWeapon {
     BPProjectileRedC = 'BP_Projectile_Red_C',
   }
 
+  // Disable eslint for code generated that we did not made, and that we won't modify.
+  /* eslint-disable */
+
   // Converts JSON strings to/from your types
   // and asserts the results of JSON.parse at runtime
   export class Convert {
@@ -865,4 +868,5 @@ export namespace GithubWikiWeapon {
       'BP_Projectile_Red_C',
     ],
   };
+  /* eslint-enable */
 }

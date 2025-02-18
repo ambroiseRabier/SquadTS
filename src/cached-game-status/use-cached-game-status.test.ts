@@ -1,25 +1,16 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser } from '../log-parser/use-log-parser';
-import { CachedGameStatus, Player, useCachedGameStatus } from './use-cached-game-status';
-import { from, Observable, of, Subject } from 'rxjs';
+import { CachedGameStatus, Player, UnassignedPlayer, useCachedGameStatus } from './use-cached-game-status';
+import { from, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit, pick } from 'lodash-es';
+import { DeepPartial, ObservableValue } from '../utils';
 
-type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
-
-type ObservableValue<T> = T extends Observable<infer V> ? V : never;
-
-// We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
-type UnassignedPlayer = Required<Omit<Player, 'squad' | 'squadID'>> & {
-  squad: any;
-  squadID: any;
-}; // squad should actually be undefined. (typing to be improved...)
 
 // ---- team 1 ----
-const playerYuca: UnassignedPlayer = {
+// We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
+const playerYuca: Required<UnassignedPlayer> = {
   controller: 'controller0',
   eosID: 'eosYuca',
   id: '0',
@@ -27,15 +18,13 @@ const playerYuca: UnassignedPlayer = {
   isLeader: false,
   name: 'Yuca',
   nameWithClanTag: '-TWS- Yuca',
-  squadID: undefined,
-  squad: undefined,
   steamID: 'steamYuca',
   teamID: '1',
   role: 'WPMC_Engineer_01', // invented
 };
 
 // ---- team 2 ----
-const playerPika: UnassignedPlayer = {
+const playerPika: Required<UnassignedPlayer> = {
   controller: 'controller0',
   eosID: 'eosPika',
   id: '0', // if on another team, the id can be the same, it is called id by squad but work more like an index.
@@ -43,8 +32,6 @@ const playerPika: UnassignedPlayer = {
   isLeader: false,
   name: 'Pika',
   nameWithClanTag: '-TWS- Pika',
-  squadID: undefined,
-  squad: undefined,
   steamID: 'steamPika',
   teamID: '2',
   role: 'WPMC_Engineer_01', // invented

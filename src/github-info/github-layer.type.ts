@@ -1108,6 +1108,9 @@ export namespace GithubWiki {
     TMapWheeledrecon = 'T_map_wheeledrecon',
   }
 
+  // Disable eslint for code generated that we did not made, and that we won't modify.
+  /* eslint-disable */
+
   // Converts JSON strings to/from your types
   // and asserts the results of JSON.parse at runtime
   export class Convert {
@@ -1983,4 +1986,5 @@ export namespace GithubWiki {
       'T_map_wheeledrecon',
     ],
   };
+  /* eslint-enable */
 }

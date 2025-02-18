@@ -7,9 +7,11 @@ import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 
 enum DataType {
   EXEC_COMMAND = 0x02,
+  // This is by design, not a mistake.
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+  AUTH_RESPONSE = 0x02,
   RESPONSE_VALUE = 0x00,
   AUTH = 0x03,
-  AUTH_RESPONSE = 0x02,
   CHAT_VALUE = 0x01, // todo: maybe rename that LOG_VALUE, as this is not (only) player chat !
 }
 

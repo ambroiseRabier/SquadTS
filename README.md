@@ -361,3 +361,15 @@ load que certain plugins ?
 zod parse mais en refusant les props en trop ? (c possible me semble, idée c de
 indiquer si des trucs on changé et doivent être enlever si obsolète)
 ( de même, ce serait bien si les defaults... était pas défault dans la validation :/ )
+
+---
+
+eslint config in webstorm, it may not automatically be correctly set because using eslint.config.mjs instead of eslintrc.
+![img.png](img.png)
+
+---
+
+recommend unchecking from file
+because it is too easy to confuse with TS errors (that actually needs immediate fixing)
+
+![img_1.png](img_1.png)

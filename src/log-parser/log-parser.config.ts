@@ -35,7 +35,7 @@ const logFileSchema = z
   .string()
   .nonempty()
   .describe(
-    `The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"`
+    'The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"'
   );
 
 const ftpSchema = z

@@ -1,11 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser, useLogParser } from './use-log-parser';
-import EventEmitter from 'events';
 import { LogParserConfig } from './log-parser.config';
 import { Subject } from 'rxjs';
-import { LogReader } from './use-log-reader';
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('Log Parser events', () => {
   let logParser: LogParser;
@@ -89,7 +86,7 @@ describe('Log Parser events', () => {
     logParser.events.adminBroadcast.subscribe(mockEvent);
     logParser.events.adminBroadcast.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-21.39.52:306][461]LogSquad: ADMIN COMMAND: Message broadcasted <coucou> from RCON`
+      '[2025.01.27-21.39.52:306][461]LogSquad: ADMIN COMMAND: Message broadcasted <coucou> from RCON'
     ); // log in the past
 
     // If we receive two time the same logs, we have a bug, most likely .share() not being used with RXJS.
@@ -170,7 +167,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerAddedToTeam.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.31-17.18.07:493][805]LogSquad: Player  Yuca has been added to Team 1`
+      '[2025.01.31-17.18.07:493][805]LogSquad: Player  Yuca has been added to Team 1'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '805',
@@ -184,7 +181,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerConnected.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-22.27.36:082][206]LogSquad: PostLogin: NewPlayer: BP_PlayerController_C /Game/Maps/Kamdesh_Highlands/Gameplay_Layers/Kamdesh_Invasion_v1.Kamdesh_Invasion_v1:PersistentLevel.BP_PlayerController_C_2130426410 (IP: 92.106.127.65 | Online IDs: EOS: 000215531fcb4a1f935b477b9da213ff steam: 76561129553531043)`
+      '[2025.01.27-22.27.36:082][206]LogSquad: PostLogin: NewPlayer: BP_PlayerController_C /Game/Maps/Kamdesh_Highlands/Gameplay_Layers/Kamdesh_Invasion_v1.Kamdesh_Invasion_v1:PersistentLevel.BP_PlayerController_C_2130426410 (IP: 92.106.127.65 | Online IDs: EOS: 000215531fcb4a1f935b477b9da213ff steam: 76561129553531043)'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '206',
@@ -200,7 +197,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerDamaged.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-22.04.23:734][749]LogSquad: Player:-TWS- Ramzer ActualDamage=47.000000 from  NiceLP (Online IDs: EOS: 0002e45ac2af4c1c38fc08691a3f591e steam: 76161198185177949 | Player Controller ID: BP_PlayerController_C_2130489498)caused by BP_SVDM_Optic_C_2130416661`
+      '[2025.01.27-22.04.23:734][749]LogSquad: Player:-TWS- Ramzer ActualDamage=47.000000 from  NiceLP (Online IDs: EOS: 0002e45ac2af4c1c38fc08691a3f591e steam: 76161198185177949 | Player Controller ID: BP_PlayerController_C_2130489498)caused by BP_SVDM_Optic_C_2130416661'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '749',
@@ -232,7 +229,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerDied.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-22.05.10:229][600]LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:  UFFD KillingDamage=-300.000000 from BP_PlayerController_C_2131535015 (Online IDs: EOS: 0002eca389864a629f1a11e2722df6be steam: 76561199394112551 | Contoller ID: BP_PlayerController_C_2131535015) caused by BP_Soldier_RU_Medic_C_2130417755`
+      '[2025.01.27-22.05.10:229][600]LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:  UFFD KillingDamage=-300.000000 from BP_PlayerController_C_2131535015 (Online IDs: EOS: 0002eca389864a629f1a11e2722df6be steam: 76561199394112551 | Contoller ID: BP_PlayerController_C_2131535015) caused by BP_Soldier_RU_Medic_C_2130417755'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '600',
@@ -254,7 +251,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerDisconnected.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-22.05.26:087][233]LogNet: UChannel::Close: Sending CloseBunch. ChIndex == 0. Name: [UChannel] ChIndex: 0, Closing: 0 [UNetConnection] RemoteAddr: 86.208.113.0:60419, Name: EOSIpNetConnection_2130439491, Driver: GameNetDriver EOSNetDriver_2131536283, IsServer: YES, PC: BP_PlayerController_C_2130438728, Owner: BP_PlayerController_C_2130438728, UniqueId: RedpointEOS:0002201300c327a19a4c6ae06dc955a3`
+      '[2025.01.27-22.05.26:087][233]LogNet: UChannel::Close: Sending CloseBunch. ChIndex == 0. Name: [UChannel] ChIndex: 0, Closing: 0 [UNetConnection] RemoteAddr: 86.208.113.0:60419, Name: EOSIpNetConnection_2130439491, Driver: GameNetDriver EOSNetDriver_2131536283, IsServer: YES, PC: BP_PlayerController_C_2130438728, Owner: BP_PlayerController_C_2130438728, UniqueId: RedpointEOS:0002201300c327a19a4c6ae06dc955a3'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '233',
@@ -268,7 +265,7 @@ describe('Log Parser events', () => {
   it('playerJoinSucceeded', () => {
     const mockEvent = vi.fn();
     logParser.events.playerJoinSucceeded.subscribe(mockEvent);
-    mockedLogReader.line$.next(`[2025.01.27-22.09.43:029][469]LogNet: Join succeeded: ShyGuy`);
+    mockedLogReader.line$.next('[2025.01.27-22.09.43:029][469]LogNet: Join succeeded: ShyGuy');
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '469',
       date: expect.any(Date),
@@ -280,7 +277,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerInitialized.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.31-17.18.07:493][805]LogGameMode: Initialized player Yuca with 1`
+      '[2025.01.31-17.18.07:493][805]LogGameMode: Initialized player Yuca with 1'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '805',
@@ -310,7 +307,7 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerRevived.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      `[2025.01.27-21.39.29:924][584]LogSquad:  Abdellechômeur (Online IDs: EOS: 0002626fee8e4d39864e713c21ebed1c steam: 76561198272567281) has revived  Guava ice (Online IDs: EOS: 00027c18ff1e4a53babc382bdb7a26e1 steam: 76561199162788472).`
+      '[2025.01.27-21.39.29:924][584]LogSquad:  Abdellechômeur (Online IDs: EOS: 0002626fee8e4d39864e713c21ebed1c steam: 76561198272567281) has revived  Guava ice (Online IDs: EOS: 00027c18ff1e4a53babc382bdb7a26e1 steam: 76561199162788472).'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       revived: {
