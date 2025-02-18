@@ -12,7 +12,7 @@ export const pluginBaseOptionsSchema = z.object({
     .string()
     .default('info')
     .describe(
-      `Available levels: ${logLevels.join(', ')}.\n` + `To disable a logger, set it to silent.`
+      `Available levels: ${logLevels.join(', ')}.\n` + 'To disable a logger, set it to silent.'
     ),
 });
 

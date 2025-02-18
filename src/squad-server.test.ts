@@ -5,7 +5,7 @@ import { SquadServer } from './squad-server';
 // TS should not transpile if there is anything wrong, but once TS is fixed this test should always pass.
 // noinspection JSUnusedLocalSymbols
 async function toBeNeverCalled(server: SquadServer) { // eslint-disable-line @typescript-eslint/no-unused-vars
-  server.chatEvents.message.subscribe(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+  server.chatEvents.message.subscribe(() => { /* no-op */ });
   server.helpers.getPlayerByEOSID('');
   await server.rcon.getListPlayers();
   await server.rcon.broadcast('hello');

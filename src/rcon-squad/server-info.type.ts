@@ -1,4 +1,4 @@
-export type GameServerInfo = {
+export interface GameServerInfo {
   // e.g. 100
   MaxPlayers: number;
 

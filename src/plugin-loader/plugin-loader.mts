@@ -27,7 +27,7 @@ export function usePluginLoader(
      */
     load: async (pluginOptionOverride?: Record<string, any>) => {
       if (pluginOptionOverride) {
-        logger.warn(`pluginOptionOverride enabled, use this only for testing purposes.`);
+        logger.warn('pluginOptionOverride enabled, use this only for testing purposes.');
       }
 
       logger.info('Loading plugins...');
@@ -39,7 +39,7 @@ export function usePluginLoader(
       // ---------- Check missing json5 file ----------
       const missingConfigPairs = pluginsPair.filter(pair => !existsSync(pair.configJSON5FilePath));
       const validConfigPairs = pluginsPair.filter(pair => existsSync(pair.configJSON5FilePath));
-      for (let pair of missingConfigPairs) {
+      for (const pair of missingConfigPairs) {
         logger.warn(
           `Missing json5 config file for ${pair.name}. It will be created from the schema.`
         );
@@ -57,7 +57,7 @@ export function usePluginLoader(
 
       if (missingConfigPairs.length > 0) {
         logger.error(
-          `Missing config files have been created, PLEASE CHECK THEM BEFORE restarting SquadTS to enabled theses plugins without any errors.`
+           'Missing config files have been created, PLEASE CHECK THEM BEFORE restarting SquadTS to enabled theses plugins without any errors.'
         );
       }
 

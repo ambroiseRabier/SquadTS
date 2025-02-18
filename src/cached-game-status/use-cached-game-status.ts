@@ -1,5 +1,5 @@
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, map, Subject } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
 import { merge, omit } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
@@ -11,7 +11,7 @@ import { useLogUpdates } from './use-log-updates';
 import { useServerInfoUpdates } from './use-server-info-updates';
 
 // todo rcon fields that can be undefined ?
-export type Player = {
+export interface Player {
   // (provided by log/rcon)
   id: string;
 
@@ -97,11 +97,6 @@ export type Squad = Awaited<ReturnType<RconSquad['getSquads']>>[number];
 //
 // null means no squad
 
-// Utility type to infer the emitted type from an Observable
-// Work like Awaited for promises
-type ObservableValue<T> = T extends Observable<infer V> ? V : never;
-
-// export type CachedGameStatus = Awaited<ReturnType<typeof useCachedGameStatus>>;
 export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
 
 interface Props {
@@ -146,7 +141,7 @@ export function useCachedGameStatus({
     rconSquad,
     config.updateInterval,
     initialServerInfo,
-    logParser.events.newGame.pipe(map(data => undefined))
+    logParser.events.newGame.pipe(map(() => undefined))
   );
 
   // todo idea, behaviorSubject per player ? following actions per ID and name ?
@@ -154,9 +149,6 @@ export function useCachedGameStatus({
   const playerGet = usePlayerGet(() => players$.getValue());
   const {
     getPlayerByEOSID,
-    getPlayerBySteamID,
-    getPlayersByName,
-    getPlayersByNameWithClanTag,
     tryGetPlayerByName,
     tryGetPlayerByNameWithClanTag,
   } = playerGet;

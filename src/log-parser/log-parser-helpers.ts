@@ -57,7 +57,7 @@ type LogEventUnion<ExtraData> = {
 }[LogParserRules[number][0]];
 
 // Having extra data make it harder to type, but that's how it is.
-type ExtraData = { date: Date; chainID: string };
+interface ExtraData { date: Date; chainID: string }
 type LogEventUnionWithExtraData = LogEventUnion<ExtraData>;
 
 export function parseLogLine(rules: LogParserRules, line: string, extraData: ExtraData) {

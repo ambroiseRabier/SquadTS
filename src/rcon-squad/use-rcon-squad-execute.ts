@@ -156,7 +156,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     },
 
     showServerInfo: async () => {
-      const infoStr = await execute(`ShowServerInfo`);
+      const infoStr = await execute('ShowServerInfo');
       const info = JSON.parse(infoStr) as GameServerInfo;
 
       // We check for change in returned data, and inform user/dev that something changed.

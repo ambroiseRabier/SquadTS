@@ -1,4 +1,5 @@
 // Namespace to correctly isolate stuff from Wiki with the rest of SquadTS.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GithubWikiWeapon {
   // Sadly, some weapons are missing, like the melee. Rocket launcher may also be missing ?
   //

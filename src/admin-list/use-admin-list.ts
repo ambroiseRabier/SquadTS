@@ -7,7 +7,7 @@ import { AdminPerms } from './permissions';
 export type AdminList = ReturnType<typeof useAdminList>;
 
 export function useAdminList(logger: Logger, options: AdminListConfig) {
-  let admins: Map<string, AdminPerms[]> = new Map();
+  const admins = new Map<string, AdminPerms[]>();
 
   return {
     admins,
@@ -33,7 +33,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
 
       let text: string;
 
-      for (let url of options.remote) {
+      for (const url of options.remote) {
         try {
           logger.info(`Fetching ${url}`);
 
@@ -49,7 +49,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
           logger.debug(`Received:\n${text}`);
 
           if (!text || text.length === 0) {
-            logger.error(`Received admin.cfg is empty!`);
+            logger.error('Received admin.cfg is empty!');
             continue;
           }
         } catch (error: any) {
@@ -63,14 +63,14 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
           continue;
         }
 
-        for (let [key, value] of admins) {
+        for (const [key, value] of admins) {
           if (parsed.has(key)) {
             logger.warn(`${key} is already in admin list. Overriding with new permissions.`);
           }
         }
 
         // Merge
-        for (let [key, value] of parsed) {
+        for (const [key, value] of parsed) {
           admins.set(key, value as any as AdminPerms[]);
         }
         logger.info(`Admin list fetched. ${admins.size} admins found.`);

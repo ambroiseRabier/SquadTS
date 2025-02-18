@@ -17,10 +17,8 @@ export function useLogParser(
   options: LogParserConfig,
   debugLogMatching: LoggerOptions['debugLogMatching']
 ) {
-  const now = new Date();
-  // Ok so careful here, because server time can be offset by a few minutes :/
-  // adjusted to GMT+0 ! Instead of being system dependent.
-  const startTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+  // Note: If you ever use a `new Date()`, be aware that server time may be offset by a few minutes :/
+  // Also squad server time most likely is GMT+0, but you have to double check
   const queue = new Subject<string>();
   let skipOnceIfNoDate = true;
   let emitLogs = true;
@@ -38,7 +36,7 @@ export function useLogParser(
 
       if (line.includes('DEBUG: [LogParser]')) {
         logger.warn(
-          `If this is a test, you most likely forgot to remove "DEBUG: [LogParser]" from the log !`
+          'If this is a test, you most likely forgot to remove "DEBUG: [LogParser]" from the log !'
         );
       }
     }),
@@ -107,7 +105,7 @@ export function useLogParser(
       const commonKey = keys1.some(key => keys2.includes(key));
       if (commonKey) {
         throw new Error(
-          `Regex named groups and metadata keys overlap. "date" and "chainID" are reserved.`
+          'Regex named groups and metadata keys overlap. "date" and "chainID" are reserved.'
         );
       }
     }),
@@ -322,7 +320,7 @@ export function useLogParser(
         );
         throw e;
       }
-      logger.info(`Watching log file.`);
+      logger.info('Watching log file.');
     },
     unwatch: async () => {
       await logReader.unwatch();

@@ -1,5 +1,5 @@
 import { Logger } from 'pino';
-import { interval, Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Client } from 'basic-ftp';
 import SFTPClient from 'ssh2-sftp-client';
 
@@ -63,9 +63,7 @@ function useClient(options: Props) {
       } else {
         await sftpClient.get(filepath, toLocalPath, {
           readStreamOptions: {
-            // Typing is not up to date here, this is valid:
-            // https://github.com/theophilusx/ssh2-sftp-client/blob/eda4510f8814c45fb500517dd0dc4d20519b7852/src/index.js#L501
-            // @ts-ignore
+            // @ts-expect-error Typing is not up to date here, this is valid: https://github.com/theophilusx/ssh2-sftp-client/blob/eda4510f8814c45fb500517dd0dc4d20519b7852/src/index.js#L501
             start: lastByteReceived,
           },
         });

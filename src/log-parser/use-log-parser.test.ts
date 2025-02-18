@@ -57,12 +57,12 @@ describe('Log Parser events', () => {
 
   it('should ignore first incomplete line', () => {
     // any event subscription
-    logParser.events.adminBroadcast.subscribe(data => {});
+    logParser.events.adminBroadcast.subscribe(() => { /* no-op */ });
     // Note if there is any other error, this test will also fail.
     expect(() => {
       // incomplete date, happen at start when we start reading file.
       mockedLogReader.line$.next(
-        `-13.27.36:294][437]LogEOS: Warning: [LogEOSAuth] Unable to get Epic account id from product user id - No logged in user found`
+        '-13.27.36:294][437]LogEOS: Warning: [LogEOSAuth] Unable to get Epic account id from product user id - No logged in user found'
       );
     }).not.toThrow();
   });

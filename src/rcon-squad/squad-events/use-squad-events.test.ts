@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { useSquadEvents } from './use-squad-events';
-import { firstValueFrom, ReplaySubject, Subject } from 'rxjs';
+import { firstValueFrom, ReplaySubject } from 'rxjs';
 
 describe('rcon-squad-events', () => {
   // Use a variant of subject that resend event to any new subscriber,
@@ -38,7 +38,7 @@ describe('rcon-squad-events', () => {
       date: expect.any(Date),
     });
   });
-  d;
+
   it('possessedAdminCamera', async () => {
     chatPacketEvent.next(
       '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.'

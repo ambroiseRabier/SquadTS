@@ -27,7 +27,7 @@ export function useLogUpdates({
   logParserConfig,
   logger,
   getPlayers,
-  getSquads,
+  getSquads, // todo may have to do something with that ?
 }: Props) {
   const players$ = new Subject<Player[]>();
   const loginTimeout =
@@ -108,6 +108,8 @@ export function useLogUpdates({
       ({
         loginRequest,
         playerConnected,
+        // Make it visible it is unused. And that map use the output of 5 events.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         playerJoinSucceeded,
         playerAddedToTeam,
         playerInitialized,

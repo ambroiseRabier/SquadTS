@@ -29,7 +29,7 @@ export const loggerOptionsSchema = z.object({
     })
     .describe(
       `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +
-        `To disable a logger, set it to silent.`
+        'To disable a logger, set it to silent.'
     ),
   debugLogMatching: z.object({
     showMatching: z
@@ -37,7 +37,7 @@ export const loggerOptionsSchema = z.object({
       .default(false)
       .describe(
         'Log matched logs, that will be turned into events. They show at DEBUG log level.\n' +
-          "verboseness.LogParser HAS TO BE set to 'debug' for this to work.\n" +
+          'verboseness.LogParser HAS TO BE set to \'debug\' for this to work.\n' +
           'Warning: very verbose, only use in development.'
       ),
     showNonMatching: z
@@ -57,7 +57,7 @@ export const loggerOptionsSchema = z.object({
         '^LogSquadCommon: SQCommonStatics Check Permissions',
         '^LogEOSAntiCheat::',
         '^LogSquad: RotorWashEffectListener::EndPlay \\(reason 0\\)',
-        "^LogEOSSessionListening: Verbose: Session 'GameSession'",
+        '^LogEOSSessionListening: Verbose: Session \'GameSession\'',
         '^LogSquadOnlineServices: Icmp ping failed',
         '^LogRCONServer: \\d+:FRCONSocket::CloseConnection\\(\\):',
         '^LogRCONServer: \\d+:FRCONSocket::Run\\(\\):',

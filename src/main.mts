@@ -1,7 +1,7 @@
 import { useLogger, useSubLogger } from './logger/use-logger.mjs';
 import { parseConfigs, useConfig } from './config/use-config';
 import { Rcon } from './rcon/rcon';
-import { RconSquad, useRconSquad } from './rcon-squad/use-rcon-squad';
+import { useRconSquad } from './rcon-squad/use-rcon-squad';
 import { LogReader, useLogReader } from './log-parser/use-log-reader';
 import { useLogParser } from './log-parser/use-log-parser';
 import { useAdminList } from './admin-list/use-admin-list';

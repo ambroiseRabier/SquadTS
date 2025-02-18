@@ -1,4 +1,4 @@
-import { filter, map, share, Subject, tap } from 'rxjs';
+import { filter, map, share, Subject } from 'rxjs';
 import { omit } from 'lodash-es';
 import { Logger } from 'pino';
 import { matchWithRegex } from '../../log-parser/log-parser-helpers';

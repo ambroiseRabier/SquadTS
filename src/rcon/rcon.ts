@@ -74,22 +74,22 @@ export class Rcon {
     this.connected = false;
     this.loggedin = false;
     if (hadError) {
-      this.logger.error(`Socket closed with error.`);
+      this.logger.error('Socket closed with error.');
     } else {
-      this.logger.info(`Socket closed without error.`);
+      this.logger.info('Socket closed without error.');
     }
 
     // Cleanup all local state onClose
     if (this.incomingData.length > 0) {
-      this.logger.debug(`Clearing Buffered Data`);
+      this.logger.debug('Clearing Buffered Data');
       this.incomingData = Buffer.from([]);
     }
     if (this.incomingResponse.length > 0) {
-      this.logger.debug(`Clearing Buffered Response Data`);
+      this.logger.debug('Clearing Buffered Response Data');
       this.incomingResponse = [];
     }
     if (this.responseCallbackQueue.length > 0) {
-      this.logger.debug(`Clearing Pending Callbacks`);
+      this.logger.debug('Clearing Pending Callbacks');
 
       // Cleanup Pending Callbacks; We should maybe retry these on next connection
       // However, depending on the reason we got disconnected it may be a while.
@@ -116,7 +116,7 @@ export class Rcon {
   private onPacket(decodedPacket: Packet) {
     // the logic in this method simply splits data sent via the data event into packets regardless of how they're
     // distributed in the event calls
-    this.logger.trace({ decodedPacket }, `Processing decoded packet: `);
+    this.logger.trace({ decodedPacket }, 'Processing decoded packet: ');
 
     switch (decodedPacket.type) {
       // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE

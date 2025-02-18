@@ -4,9 +4,9 @@ import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { gameServerInfoKeys } from './server-info.type';
 
 describe('rcon-squad-execute', () => {
-  let execute: MockedFunction<Rcon['execute']> = vi.fn();
+  const execute: MockedFunction<Rcon['execute']> = vi.fn();
   let rc: ReturnType<typeof useRconSquadExecute>;
-  let mockLogger = {
+  const mockLogger = {
     trace: vi.fn().mockImplementation(console.log),
     debug: vi.fn().mockImplementation(console.log),
     info: vi.fn().mockImplementation(console.log),
@@ -172,6 +172,8 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
 
     const obj = Object.fromEntries(gameServerInfoKeys.map(key => [key, ''] as const));
     obj['new_key_that_should_be_detected'] = '';
+    // That's on purpose, part of the test.
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete obj[gameServerInfoKeys[0]];
 
     localExecute.mockResolvedValue(JSON.stringify(obj));

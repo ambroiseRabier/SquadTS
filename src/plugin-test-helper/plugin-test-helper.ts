@@ -5,12 +5,10 @@ import { Rcon } from '../rcon/rcon';
 import { IncludesRCONCommand } from '../rcon-squad/rcon-commands';
 import { Options } from '../config/config.schema';
 import { merge } from 'lodash-es';
+import { DeepPartial } from '../utils';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 
-type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
 
 interface Props {
   executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
@@ -31,8 +29,8 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
 
   const mockLogReader: LogReader = {
     line$: new Subject<string>(),
-    watch: async () => {}, // no-op
-    unwatch: async () => {}, // no-op
+    watch: async () => { /* no-op */ },
+    unwatch: async () => { /* no-op */ },
   };
 
   // Since it is a class, TS complain even though all public properties are present.

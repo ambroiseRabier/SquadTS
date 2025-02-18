@@ -13,11 +13,6 @@ const isDev = process.env.NODE_ENV !== 'production';
 // Non pas besoin
 // Note: for test server, logs will be in the console, no need to save them to a file :)
 export function useLogger() {
-  // Pino will show pretty logs only in dev as per their recommendation.
-  const prettyStream = pretty({
-    colorize: true,
-    sync: process.env.NODE_ENV === 'test',
-  });
   //
   // const logger = pino({
   //   // level: isDev ? 'debug': 'info', // all levels are ok for main function.
@@ -68,6 +63,7 @@ export function useLogger() {
         level: 'trace',
         target: 'pino-pretty',
         options: {
+          // ? Show pretty logs only in dev as per their recommendation ?
           colorize: true,
           // pino recommendation to have it synchrone in tests
           sync: process.env.NODE_ENV === 'test',

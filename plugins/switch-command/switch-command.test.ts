@@ -1,19 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import switchCommand from './switch-command';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { SwitchCommandConfig } from './switch-command.config';
 import { SquadServer } from '../../src/squad-server';
 import { Player } from '../../src/cached-game-status/use-cached-game-status';
 import { AdminPerms } from '../../src/admin-list/permissions';
+import { ObservableValue } from '../../src/utils';
 
-type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
 
-// Utility type to infer the emitted type from an Observable
-// Work like Awaited for promises
-type ObservableValue<T> = T extends Observable<infer V> ? V : never;
 
 // todo: maybe make a helpers to mock the server ?
 // jest.mock('../../src/squad-server', () => {

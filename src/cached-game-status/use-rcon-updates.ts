@@ -3,7 +3,6 @@ import {
   exhaustMap,
   interval,
   map,
-  Observable,
   startWith,
   Subject,
   Subscription,
