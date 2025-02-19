@@ -4,6 +4,7 @@ import { useFtpTail } from '../ftp-tail/use-ftp-tail';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
 import { omit } from 'lodash-es';
+import fs from 'fs';
 
 export type LogReader = ReturnType<typeof useLogReader>;
 
@@ -22,9 +23,15 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
 
       // return the same API as the others.
       return {
+        // There isn't a "connect" for reading a file, but this is to keep the same API as FTP and SFTP
+        connect: async () => {
+          await fs.promises.access(fixedFilePath);
+          logger.info(`Local log file ${fixedFilePath} found.`)
+        },
         // Same as unwatch
         watch: () =>
           new Promise<void>(resolve => {
+            tail.on('error', (error: unknown) => logger.error(error))
             tail.watch();
             resolve();
           }),

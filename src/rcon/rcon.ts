@@ -47,26 +47,8 @@ export class Rcon {
     this.client.on('data', this.decodeData.bind(this));
     this.client.on('close', this.onClose.bind(this));
     this.client.on('error', this.onError.bind(this));
-
-    // Handle process signals for cleanup
-    process.on('SIGINT', this.handleShutdown.bind(this)); // e.g., Ctrl+C
-    process.on('SIGTERM', this.handleShutdown.bind(this)); // e.g., Process kill
   }
 
-  /**
-   * Handles shutdown signals (SIGINT, SIGTERM).
-   */
-  private async handleShutdown() {
-    this.logger.info('Shutdown signal received. Cleaning up...');
-    try {
-      await this.disconnect(); // Ensure graceful disconnection
-    } catch (error) {
-      this.logger.error('Error during shutdown disconnect:', error);
-    } finally {
-      // do not force exit, note that logParser also has some stuff to finish.
-      //process.exit(0); // (Optional) Exit the process after cleanup
-    }
-  }
 
   // https://nodejs.org/api/net.html#event-close -> Search `Event: 'close'`
   // "Emitted once the socket is fully closed. The argument hadError is a boolean which says if the socket was closed due to a transmission error."

@@ -1,48 +1,25 @@
+import { catchError, concatMap, EMPTY, filter, map, timeout } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
 import { LogParserConfig } from '../log-parser/log-parser.config';
-import {
-  catchError,
-  concatMap,
-  EMPTY,
-  filter,
-  map,
-  Subject,
-  Subscription,
-  tap,
-  timeout,
-} from 'rxjs';
 import { Logger } from 'pino';
-import { Player, Squad } from './use-cached-game-status';
 
-interface Props {
-  logParser: LogParser;
-  logParserConfig: LogParserConfig;
-  logger: Logger;
-  getPlayers: () => Player[];
-  getSquads: () => Squad[];
-}
-
-export function useLogUpdates({
-  logParser,
-  logParserConfig,
-  logger,
-  getPlayers,
-  getSquads, // todo may have to do something with that ?
-}: Props) {
-  const players$ = new Subject<Player[]>();
-  const loginTimeout =
+export function obtainEnteringPlayer(
+  events: LogParser['events'],
+  logParserConfig: LogParserConfig,
+  logger: Logger
+) {
+  const chainTimeout =
     60 * 1000 + (logParserConfig.mode !== 'tail' ? logParserConfig.ftp.fetchInterval * 1000 : 0);
 
-  // Add player through logs
-  const addPlayer$ = logParser.events.loginRequest.pipe(
+  const addPlayer$ = events.loginRequest.pipe(
     // Wait for matching playerConnected, for every login request, start an independent chain (concatMap)
     concatMap(loginRequest =>
-      logParser.events.playerConnected.pipe(
+      events.playerConnected.pipe(
         filter(playerConnected => playerConnected.eosID === loginRequest.eosID),
         // Theoretical case where playerConnected isn't fired (failed login ?)
         // Add a timeout here to ensure the chain does not wait forever.
         // If playerConnected event doesn't fire in 60 seconds (in tail, +fetchInterval in ftp/sftp), terminate this chain.
-        timeout(loginTimeout),
+        timeout(chainTimeout),
         // Send both events
         map(playerConnected => ({ loginRequest, playerConnected })),
         // Handle the timeout error
@@ -56,9 +33,9 @@ export function useLogUpdates({
       )
     ),
     concatMap(({ loginRequest, ...rest }) =>
-      logParser.events.playerAddedToTeam.pipe(
+      events.playerAddedToTeam.pipe(
         filter(playerAddedToTeam => playerAddedToTeam.name === loginRequest.name),
-        timeout(loginTimeout),
+        timeout(chainTimeout),
         map(playerAddedToTeam => ({
           loginRequest,
           playerAddedToTeam,
@@ -72,9 +49,9 @@ export function useLogUpdates({
       )
     ),
     concatMap(({ loginRequest, ...rest }) =>
-      logParser.events.playerInitialized.pipe(
+      events.playerInitialized.pipe(
         filter(playerInitialized => playerInitialized.name === loginRequest.name),
-        timeout(loginTimeout),
+        timeout(chainTimeout),
         map(playerInitialized => ({
           loginRequest,
           playerInitialized,
@@ -88,9 +65,9 @@ export function useLogUpdates({
       )
     ),
     concatMap(({ loginRequest, ...rest }) =>
-      logParser.events.playerJoinSucceeded.pipe(
+      events.playerJoinSucceeded.pipe(
         filter(playerJoinSucceeded => playerJoinSucceeded.name === loginRequest.name),
-        timeout(loginTimeout),
+        timeout(chainTimeout),
         map(playerJoinSucceeded => ({
           loginRequest,
           playerJoinSucceeded,
@@ -106,14 +83,14 @@ export function useLogUpdates({
     // Merging into one player
     map(
       ({
-        loginRequest,
-        playerConnected,
-        // Make it visible it is unused. And that map use the output of 5 events.
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        playerJoinSucceeded,
-        playerAddedToTeam,
-        playerInitialized,
-      }) => {
+         loginRequest,
+         playerConnected,
+         // Make it visible it is unused. And that map use the output of 5 events.
+         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         playerJoinSucceeded,
+         playerAddedToTeam,
+         playerInitialized,
+       }) => {
         // I believe there is a possibility for multiple subscribe to be called for the same player if
         // playerConnected or playerJoinSucceeded were cancelled. And player rejoined successfully before timeout.
         // Thanksfully the code bellow can be run multiple time and will give the same result.
@@ -121,10 +98,7 @@ export function useLogUpdates({
         // Maybe also, if another player joined with the same name and logs are out of order... we could get an unexpected behavior.
         // But there isn't much I can do about that, because playerJoined do not give an unique ID.
 
-        // If RCON run more often than log parser, RCON may have already registered the player. So we merge it.
-        const existingPlayer = getPlayers().find(player => player.eosID === loginRequest.eosID);
         return {
-          ...existingPlayer,
           name: loginRequest.name,
           eosID: loginRequest.eosID,
           controller: playerConnected.controller,
@@ -140,37 +114,7 @@ export function useLogUpdates({
         };
       }
     ),
-    tap(newPlayer => {
-      players$.next([
-        ...getPlayers().filter(player => player.eosID !== newPlayer.eosID),
-        newPlayer,
-      ]);
-    })
   );
 
-  // Note that we may have player disconnected events without ever having a connect event, because logs
-  // can start being read at any time.
-  // Remove players through logs
-  const removePlayer$ = logParser.events.playerDisconnected.pipe(
-    tap(playerDisconnected => {
-      // todo track disconnected, and reuse their data if reconnect
-      players$.next(getPlayers().filter(player => player.eosID !== playerDisconnected.eosID));
-    })
-  );
-  const sub: Subscription[] = [];
-
-  return {
-    /**
-     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
-     */
-    addPlayer$,
-    players$,
-    watch: () => {
-      // Will start adding and removing player in cache
-      sub.push(addPlayer$.subscribe(), removePlayer$.subscribe());
-    },
-    unwatch() {
-      sub.forEach(sub => sub.unsubscribe());
-    },
-  };
+  return addPlayer$;
 }

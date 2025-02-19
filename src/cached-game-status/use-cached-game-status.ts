@@ -1,16 +1,17 @@
+import { BehaviorSubject, exhaustMap, Subject, Subscription } from 'rxjs';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { BehaviorSubject, filter, map, Subject } from 'rxjs';
-import { LogParser } from '../log-parser/use-log-parser';
-import { merge, omit } from 'lodash-es';
+import { merge } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
+import { LogParser } from '../log-parser/use-log-parser';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';
-import { usePlayerGet } from './use-player-get';
-import { useRconUpdates } from './use-rcon-updates';
-import { useLogUpdates } from './use-log-updates';
-import { useServerInfoUpdates } from './use-server-info-updates';
+import { findSquadChanges } from './find-squad-changes';
+import { obtainEnteringPlayer } from './obtain-entering-player';
+import { intervalPlayersSquads, intervalServerInfo } from './rcon-updates';
 
-// todo rcon fields that can be undefined ?
+// todo use squad created log ?
+export type Squad = Awaited<ReturnType<RconSquad['getSquads']>>[number];
+
 export interface Player {
   // (provided by log/rcon)
   id: string;
@@ -48,357 +49,125 @@ export interface Player {
 
   // (provided by rcon)
   squad?: Squad;
-};
-
-/**
- * Squad lead helper type.
- */
-export type PlayerSL = Player & {
-  squad: NonNullable<Squad>;
-  squadID: NonNullable<Player['squadID']>;
-} & { isLeader: true };
-
-/**
- * Convenience method that will adjust Player type when isLeader is true.
- * @param player
- */
-export function isSL(player: Player): player is PlayerSL {
-  return player.isLeader;
 }
-
-/**
- * Unassigned helper type.
- */
-export type UnassignedPlayer = Omit<Player, 'squadID' | 'squad'>;
-
-/**
- * Convenience method that will adjust Player type when they are unassigned.
- * @param player
- */
-export function isUnassigned(player: Player): player is UnassignedPlayer {
-  return !!player.squadID; // or squad, both are updated at the same time.
-}
-
-// todo: rn, only rcon provide squad, we are not using squad created log.
-// interface Squad {
-//   // (provided by rcon) (unless this player just created a squad)
-//   teamID: string;
-//   // (provided by rcon) (unless this player just created a squad)
-//   squadID: string;
-//   // (provided by rcon) (unless this player just created a squad)
-//   name: string;
-// }
-export type Squad = Awaited<ReturnType<RconSquad['getSquads']>>[number];
-
-// Design note: We want to avoid some confusion at usage, a Squad["squadID"] does not change in a Squad lifetime (unless disband, recreate with same name).
-//              When we do `player.squad`, we are most likely thinking of the squad that `player` is currently in.
-//              Imagine a plugin saving a bunch of players, every 30sec you check the squad they are in, you most likely don't want stale data.
-//              To make it easier to see that the data is not stale, we use a function like `getSquad()` instead of `squad`.
-//
-// null means no squad
-
-export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
 
 interface Props {
-  rconSquad: RconSquad;
-  logParser: LogParser;
-  config: CachedGameStatusOptions;
-  logParserConfig: LogParserConfig;
-  logger: Logger;
+  initialPlayers: Player[];
+  initialSquads: Squad[];
   initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>;
+  logParserConfig: LogParserConfig;
+  logParser: LogParser;
+  logger: Logger;
+  config: CachedGameStatusOptions;
+  rconSquad: RconSquad;
   manualRCONUpdateForTest?: Subject<void>;
 }
 
+export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
+
 /**
- * Keep track of the game status, like players, layers, squad list.
+ * Cache game information like players/squads/server-info from both logs and RCON.
  */
 export function useCachedGameStatus({
-  rconSquad,
-  logParser,
-  config,
-  logParserConfig,
-  logger,
-  initialServerInfo,
-  manualRCONUpdateForTest,
-}: Props) {
-  const players$ = new BehaviorSubject<Player[]>([]);
-  const squads$ = new BehaviorSubject<Squad[]>([]);
-  const rconUpdates = useRconUpdates({
-    rconSquad,
-    updateInterval: config.updateInterval,
-    getPlayers: players$.getValue.bind(players$),
-    getSquads: squads$.getValue.bind(squads$),
-    manualUpdateForTest: manualRCONUpdateForTest,
-  });
-  const logUpdates = useLogUpdates({
-    logParser,
-    logParserConfig,
-    logger,
-    getPlayers: players$.getValue.bind(players$),
-    getSquads: squads$.getValue.bind(squads$),
-  });
-  const serverInfoUpdates = useServerInfoUpdates(
-    rconSquad,
-    config.updateInterval,
-    initialServerInfo,
-    logParser.events.newGame.pipe(map(() => undefined))
-  );
+                                       initialPlayers,
+                                       initialServerInfo,
+                                       initialSquads,
+                                       logParserConfig,
+                                       logParser,
+                                       logger,
+                                       config,
+                                       rconSquad,
+                                      manualRCONUpdateForTest,
+                                     }: Props) {
+  const players$ = new BehaviorSubject<Player[]>(initialPlayers);
+  const squads$ = new BehaviorSubject<Squad[]>(initialSquads);
+  const serverInfo$ = new BehaviorSubject<Awaited<ReturnType<RconSquad['showServerInfo']>>>(initialServerInfo);
+  const playersSquadChange$ = new Subject<Player[]>();
 
-  // todo idea, behaviorSubject per player ? following actions per ID and name ?
+  // todo idea, behaviorSubject per player ? following actions per eosID ?
+  // todo: squad created event (depuis RCON et depuis logs) ?
+  // todo: squad change lead event (depuis RCON seulement) ?
+  // todo suivre diconnected player pdt un moment ?
 
-  const playerGet = usePlayerGet(() => players$.getValue());
-  const {
-    getPlayerByEOSID,
-    tryGetPlayerByName,
-    tryGetPlayerByNameWithClanTag,
-  } = playerGet;
 
-  function getSquad(teamID: string, squadID: string) {
-    // Guard against plugin dev mistakes
-    if (!squadID) {
-      throw new Error('Provided squadID is nullish');
-    }
-    // Guard against plugin dev mistakes
-    if (!teamID) {
-      throw new Error('Provided teamID is nullish');
-    }
+  /**
+   * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+   * It is based on 5 consecutive logs
+   */
+  const addPlayer$ = obtainEnteringPlayer(logParser.events, logParserConfig, logger);
 
-    return squads$.getValue().find(
-      // We need to check both id, because each team can have a squad one for example.
-      squad => squad.teamID === teamID && squad.squadID === squadID
-    );
-  }
-
-  function getPlayersInSquad(teamID: string, squadID: string) {
-    // Guard against plugin dev mistakes
-    if (!squadID) {
-      throw new Error('Provided squadID is nullish');
-    }
-    // Guard against plugin dev mistakes
-    if (!teamID) {
-      throw new Error('Provided teamID is nullish');
-    }
-
-    return players$
-      .getValue()
-      .filter(player => player.squadID === squadID && player.teamID === teamID);
-  }
-
-  // todo, suad created event du tchat depuis rcon, existe aussi en logs ? le tchat c juste rcon ou logs aussi ?
-  // par contre, créer c pas la meme chose que de changer de lead, donc different qd meme.
-
-  // idea: do somekind of waiter, that emit only when all needed variable on player
-  //       are set ?
-
-  // todo: disconnectplayer, garder info sur eux et re-utiliser si reconnect.
-
-  // todo: suspicion que l'on ait par defaut un espace avant le name ds les logs (corriger les logs alors)
-
-  // todo: maybe stop mixing undef and null ?
-  function getPlayerSquad(eosID: string) {
-    // Guard against plugin dev mistakes
-    if (!eosID) {
-      throw new Error('Provided eosID is nullish');
-    }
-    const player = getPlayerByEOSID(eosID);
-    if (player === undefined || !player.squadID) {
-      return undefined;
-    } else {
-      return getSquad(player.teamID, player.squadID);
-    }
-  }
-
-  function getTeamName(teamID: '1' | '2') {
-    return teamID === '1'
-      ? serverInfoUpdates.serverInfo$.getValue().teamOne
-      : serverInfoUpdates.serverInfo$.getValue().teamTwo;
-  }
+  const sub: Subscription[] = [];
 
   return {
-    get serverInfo() {
-      return serverInfoUpdates.serverInfo$.getValue();
-    },
-    /**
-     * Events enriched in data using existing saved game status.
-     */
-    events: {
-      ...logParser.events,
-
-      // todo, saving up-to-date player controller from playerWounded ? (getPlayerByEOSID return stale controller)
-      //     may not be expected !
-      playerWounded: logParser.events.playerWounded.pipe(
-        // Since playerWounded log only give nameWithClanTag, there is a slight change we
-        // are not able to identify the victim to a player.
-        // May happen if there is multiple person with the same nameWithClanTag or when
-        // RCON has not yet returned the player (only RCON provide nameWithClanTag).
-        //
-        // May give access to logParser if some plugin really need
-        // playerWounded even when victim player is not fully identified.
-        // We'll see if player with same nameWithClanTag happen often enough...
-        filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
-        map(data => {
-          // Both RCON and logParser give eosID, 100% chance we get the player.
-          const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          // We just filtered above, so it safe to assert not null.
-          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)!;
-          // Send back augmented data with the latest update, concerns:
-          // - attacker.controller
-          // - victim.nameWithClanTag
-          return merge({attacker, victim}, data);
-        }),
-      ),
-      playerDied: logParser.events.playerDied.pipe(
-        filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
-        map(data => {
-          // Both RCON and logParser give eosID, 100% chance we get the player.
-          const attacker = getPlayerByEOSID(data.attacker.eosID)!;
-          // We just filtered above, so it safe to assert not null.
-          const victim = tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)!;
-
-          // Send back augmented data with the latest update, concerns:
-          // - attacker.controller
-          // - victim.nameWithClanTag
-          return merge({ attacker, victim }, data);
-        })
-      ),
-      deployableDamaged: logParser.events.deployableDamaged.pipe(
-        filter(data => !!tryGetPlayerByName(data.attackerName)),
-        map(data => {
-          // We just filtered above, so it safe to assert not null.
-          const attacker = tryGetPlayerByName(data.attackerName)!;
-
-          return {
-            ...data,
-            attacker,
-          };
-        })
-      ),
-      // Prevent accidentally using next by passing Subject as Observable.
-      playersSquadChange: rconUpdates.playersSquadChange$.asObservable(),
-      playerDisconnected: logParser.events.playerDisconnected.pipe(
-        map(data => ({
-          ...omit(data, ['controller', 'ip', 'eosID']),
-          player: {
-            ...getPlayerByEOSID(data.eosID)!,
-            // Make sure we use latest info here
-            controller: data.controller,
-            ip: data.ip,
-          },
-        }))
-      ),
-    },
-    chatEvents: {
-      ...rconSquad.chatEvents,
-      message: rconSquad.chatEvents.message.pipe(
-        map(data => ({
-          ...data,
-          player: {
-            // Prefer merging getPlayerByEOSID first as it can be out of date.
-            ...getPlayerByEOSID(data.player.eosID)!,
-            ...data.player,
-          },
-        }))
-      ),
-      command: rconSquad.chatEvents.command.pipe(
-        map(data => ({
-          ...data,
-          player: {
-            ...getPlayerByEOSID(data.player.eosID)!,
-            ...data.player,
-          },
-        }))
-      ),
-      possessedAdminCamera: rconSquad.chatEvents.possessedAdminCamera.pipe(
-        map(data => ({
-          ...getPlayerByEOSID(data.eosID)!,
-          ...data,
-        }))
-      ),
-      unPossessedAdminCamera: rconSquad.chatEvents.unPossessedAdminCamera.pipe(
-        map(data => ({
-          ...getPlayerByEOSID(data.eosID)!,
-          ...data,
-        }))
-      ),
-      playerWarned: rconSquad.chatEvents.playerWarned.pipe(
-        filter(data => !!tryGetPlayerByNameWithClanTag(data.nameWithClanTag)),
-        map(data => ({
-          ...tryGetPlayerByNameWithClanTag(data.nameWithClanTag)!,
-          ...data,
-        }))
-      ),
-      playerKicked: rconSquad.chatEvents.playerKicked.pipe(
-        map(data => ({
-          ...getPlayerByEOSID(data.eosID)!,
-          ...data,
-        }))
-      ),
-      playerBanned: rconSquad.chatEvents.playerBanned.pipe(
-        map(data => ({
-          ...getPlayerByEOSID(data.eosID)!,
-          ...data,
-        }))
-      ),
-      squadCreated: rconSquad.chatEvents.squadCreated.pipe(
-        map(data => ({
-          ...data,
-          creator: {
-            ...getPlayerByEOSID(data.creator.eosID)!,
-            ...data.creator,
-          },
-        }))
-      ),
-    },
-    getters: {
-      isSL, // Passed as part of server for convenience of finding the method :)
-      isUnassigned,
-      getSquad,
-      getPlayerSquad,
-      getPlayersInSquad,
-      getTeamName,
-      ...playerGet,
-    },
-    // You may subscribe to only one player by using pipe and filter by eosID
     players$,
-    // Note that data is immutable and won't be updated by reference, to get non stale data,
-    // call players each time, or getPlayerByEOSID
-    // Example:
-    // Up-To-Date: if (getPlayerByEOSID(savedEOSID).isLeader) ...
-    // Stale:  if (savedPlayer.isLeader) ...
-    //
-    // You may also use players$ stream.
-    players: players$.getValue(),
     squads$,
-    squads: squads$.getValue(),
-
-    /**
-     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
-     */
-    addPlayer$: logUpdates.addPlayer$,
-    /**
-     * Call after logParser are watching.
-     */
+    serverInfo$,
+    playersSquadChange$,
+    addPlayer$,
     watch: () => {
-      serverInfoUpdates.watch();
+      sub.push(
+        // ---- Log based events ----
 
-      // Will start adding and removing player in cache, from logs
-      logUpdates.players$.subscribe(players$.next.bind(players$));
-      logUpdates.watch();
+        logParser.events.playerDisconnected.subscribe(playerDisconnected => {
+          // Note that we may have player disconnected events without ever having a connect event, because logs
+          // can start being read at any time.
+          // Remove players through logs
 
-      // Start the interval of squad/players RCON updates.
-      rconUpdates.players$.subscribe(players$.next.bind(players$));
-      rconUpdates.squads$.subscribe(squads$.next.bind(squads$));
-      rconUpdates.watch();
+          // todo track disconnected, and reuse their data if reconnect
+          players$.next(players$.getValue().filter(player => player.eosID !== playerDisconnected.eosID));
+        }),
+
+        addPlayer$.subscribe(newPlayer => {
+          // If the player already exist (obtained through RCON), merge it.
+          const existingPlayer = players$.getValue().find(player => player.eosID === newPlayer.eosID);
+
+          // Emit the updated player list.
+          players$.next([
+            ...players$.getValue().filter(player => player.eosID !== newPlayer.eosID),
+            merge(existingPlayer, newPlayer),
+          ]);
+        }),
+
+        // ---- RCON based events ----
+
+        intervalPlayersSquads(
+          config.updateInterval,
+          rconSquad,
+          manualRCONUpdateForTest
+        ).subscribe(({players, squads}) => {
+          const squadChanges = findSquadChanges(players$.getValue(), players);
+
+          players$.next(
+            players.map(player =>
+              // Find the corresponding player in updatedPlayers, and deep merge it.
+              // If no player is found, ignore, probably a disconnect, log parser will handle this
+              // override with the new player if there is any existing keys.
+              merge(players$.getValue().find(p => p.eosID === player.eosID), player)
+            )
+          );
+
+          squads$.next(squads);
+
+          // It is likely expected by plugin dev to be triggered after players and squads have been updated
+          playersSquadChange$.next(squadChanges);
+        }),
+
+        intervalServerInfo(
+          config.updateInterval,
+          rconSquad
+        ).subscribe(serverInfo => {
+          serverInfo$.next(serverInfo);
+        }),
+
+        logParser.events.newGame
+          .pipe(exhaustMap(rconSquad.showServerInfo))
+          .subscribe(info => {
+            serverInfo$.next(info);
+          })
+      );
     },
-    unWatch: () => {
-      serverInfoUpdates.unwatch();
-
-      logUpdates.players$.unsubscribe();
-      logUpdates.unwatch();
-
-      rconUpdates.players$.unsubscribe();
-      rconUpdates.squads$.unsubscribe();
-      rconUpdates.unwatch();
-    },
+    unwatch: () => {
+      sub.forEach(sub => sub.unsubscribe());
+    }
   };
 }

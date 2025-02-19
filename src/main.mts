@@ -15,6 +15,8 @@ import { Options } from './config/config.schema';
 import { dirname } from 'path';
 import { fileURLToPath } from 'node:url';
 import { Subject } from 'rxjs';
+import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events';
+import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 
 
 interface Props {
@@ -76,35 +78,87 @@ export async function main(props?: Props) {
     config.logParser,
     config.logger.debugLogMatching
   );
-
-  // I need to connect to RCON early to get serverInfo and avoid having to deal with empty or undefined data in BehaviorSubject
-  // inside cachedGameStatus...
-  await rconSquad.connect();
-
   const adminList = useAdminList(adminListLogger, config.adminList);
-  const serverInfo = await rconSquad.showServerInfo();
+
+  // Handle process signals for cleanup
+  process.on('SIGINT', () => {
+    logger.info('Shutdown signal received. Cleaning up...');
+    console.log('SIGINT');
+    rcon.disconnect();
+    logReader.unwatch();
+  }); // e.g., Ctrl+C
+  process.on('SIGTERM', () => {
+    logger.info('Shutdown signal received. Cleaning up...');
+    console.log('SIGTERM');
+    rcon.disconnect();
+    logReader.unwatch();
+  }); // e.g., Process kill
+  process.on('disconnect', () => {
+    logger.info('Disconnect signal received. Cleaning up...');
+    console.log('disconnect');
+  })
+
+
+  // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
+  await rconSquad.connect();
+  await logReader.connect();
+
+
+  // Get extra info from squad wiki github. Only if file ETag changed.
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
   const githubInfo = await retrieveGithubInfo(
     path.join(dirname(fileURLToPath(import.meta.url)), '..', 'github-info-cache'),
     githubInfoLogger
   );
+
+  // Update admin list once at startup.
+  await adminList.fetch();
+
+  // Update the admin list once at game start.
+  // I believe admin role change is taken in account by squad only when changing layer.
+  logParser.events.newGame.subscribe(async () => {
+    await adminList.fetch();
+  });
+
+  // Retrieve initial
+  const serverInfo = await rconSquad.showServerInfo();
+  const players = await rconSquad.getListPlayers();
+  const squads = await rconSquad.getSquads();
+
   const cachedGameStatus = useCachedGameStatus({
+    initialPlayers: players,
+    initialSquads: squads,
+    initialServerInfo: serverInfo,
     rconSquad,
     logParser,
     config: config.cacheGameStatus,
     logParserConfig: config.logParser,
     logger: cachedGameStatusLogger,
-    initialServerInfo: serverInfo,
     manualRCONUpdateForTest: props?.mocks.manualRCONUpdateForTest,
   });
+
+  const refinedLogEvents = useRefinedLogEvents({
+    logParser,
+    cachedGameStatus,
+  });
+
+  const refinedChatEvents = useRefinedChatEvents({
+    rconSquad,
+    cachedGameStatus,
+  });
+
+  // Finally build the server that will be exposed to plugins.
   const server = useSquadServer({
     logger: squadServerLogger,
     rconSquad,
     logParser,
     cachedGameStatus,
+    refinedLogEvents,
+    refinedChatEvents,
     adminList,
   });
+
   const discordConnector = config.connectors.discord.enabled
     ? await useDiscordConnector(config.connectors.discord.token, logger).catch(error => {
         logger.error(`Discord connector failed to start: ${error?.message}`);
@@ -118,8 +172,6 @@ export async function main(props?: Props) {
     logger
   );
 
-  // Do authentification on RCON and FTP/SFTP first before loading plugins
-  await server.prepare();
   await pluginLoader.load(props?.mocks.pluginOptionOverride);
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.
   // But having logs all over the place is bad.

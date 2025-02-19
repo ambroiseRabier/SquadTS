@@ -269,13 +269,9 @@ export function useFtpTail(logger: Logger, options: Props) {
 
   // Note: this is not designed to be recalled after unwatch.
   async function watch() {
-    // Note: RXJS is not the most fit for the behavior we want.
+    // Note: RXJS is not the most fit for the behavior we want. (unless you can find an elegant solution?)
 
     logger.info('Watching FTP server...');
-
-    // Signal handling
-    process.on('SIGINT', unwatch);
-    process.on('SIGTERM', unwatch);
 
     // First execution, this one has huge chances to fail, wrong credentials will fail here.
     currentFetchPromise = executeFetchLoop();
@@ -311,6 +307,7 @@ export function useFtpTail(logger: Logger, options: Props) {
     // If log terminated due to an error in the loop and not due to process SIGINT or SIGTERM
     // Then send SIGINT so RCON can properly stop, and we don't continue
     // running squadTS with log parser disabled.
+    // (Since the loop is running in a somewhat detached mode, the error won't propagate)
     if (loopUnexpectedIssue) {
       process.kill(process.pid, 'SIGINT');
     }
@@ -322,6 +319,16 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   return {
+    connect: async () => {
+      const address =
+        (options.protocol === 'ftp' ? options.ftp.host : options.sftp.host)
+        + ':' +
+        (options.protocol === 'ftp' ? options.ftp.port : options.sftp.port);
+
+      logger.info(`Connecting to ${options.protocol.toUpperCase()} ${address}...`);
+      await client.connect();
+      logger.info(`Connected to ${options.protocol.toUpperCase()} ${address}`);
+    },
     line$,
     watch,
     unwatch,

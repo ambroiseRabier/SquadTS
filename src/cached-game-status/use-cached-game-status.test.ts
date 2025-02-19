@@ -1,12 +1,13 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogParser } from '../log-parser/use-log-parser';
-import { CachedGameStatus, Player, UnassignedPlayer, useCachedGameStatus } from './use-cached-game-status';
+import { CachedGameStatus, Player, useCachedGameStatus } from './use-cached-game-status';
 import { from, of, Subject } from 'rxjs';
 import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit, pick } from 'lodash-es';
 import { DeepPartial, ObservableValue } from '../utils';
 import { createMockLogger } from '../test-utils';
+import { UnassignedPlayer } from './use-helpers';
 
 
 // ---- team 1 ----

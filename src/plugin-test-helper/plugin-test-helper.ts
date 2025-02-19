@@ -29,6 +29,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
 
   const mockLogReader: LogReader = {
     line$: new Subject<string>(),
+    connect: async () => { /* no-op */ },
     watch: async () => { /* no-op */ },
     unwatch: async () => { /* no-op */ },
   };

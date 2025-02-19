@@ -21,12 +21,8 @@ export function useLogParser(
   // Also squad server time most likely is GMT+0, but you have to double check
   const queue = new Subject<string>();
   let skipOnceIfNoDate = true;
-  let emitLogs = true;
 
-  // Note: you can call that before or right after logReader watch, this will give the same result, as logReader
-  //       needs some extra time to download the logs while listening to an eventEmitter is instant...
-  //       So no point touching this line for debugEmitFirstDownloadedLogs
-  logReader.line$.pipe(filter(line => emitLogs)).subscribe((line: string) => {
+  logReader.line$.subscribe((line: string) => {
     queue.next(line);
   });
 
@@ -308,10 +304,6 @@ export function useLogParser(
           ...metadata,
         }))
       ),
-    },
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-    setEmitLogs(_emitLogs: boolean) {
-      emitLogs = _emitLogs;
     },
     watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);
