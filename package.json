@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.mts",
+    "start:dev": "tsc --noEmit && tsx src/index.mts",
     "test": "vitest --run",
     "test:coverage": "vitest --run --coverage",
     "lint": "eslint .",
