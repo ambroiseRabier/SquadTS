@@ -592,3 +592,7 @@ prettier auto ?
 is prettified to `match.groups ?? ({} as ObjectFromRegexStr<typeof regex>)`
 which is wrong, correct is `(match.groups ?? {}) as ObjectFromRegexStr<typeof regex>`
 avec les merge request cela devrait être ok...
+
+---
+
+rappel sigint et sigterm fonctionne plus
