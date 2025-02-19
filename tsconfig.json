@@ -35,5 +35,5 @@
     "moduleResolution": "bundler"
   },
   "include": ["src", "scripts", "plugins"],
-  "exclude": ["**/*.test.ts", "**/tests/**"]
+  "exclude": ["**/*.test.ts"]
 }

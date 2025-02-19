@@ -6,6 +6,7 @@ import { Logger } from 'pino';
 import { GameServerInfo, gameServerInfoKeys } from './server-info.type';
 import { IncludesRCONCommand } from './rcon-commands';
 
+// Note: you can do `ListCommands 1` with rcon to get documentation. (use script in scripts folder, not in-game so you can save output)
 export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, logger: Logger) {
   let missingAndExtraCalledOnce = false;
 
@@ -133,6 +134,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       await dryRunExecute(`AdminBroadcast ${message}`);
     },
 
+    // Doesn't do anything ?
     setFogOfWar: async (mode: string) => {
       await dryRunExecute(`AdminSetFogOfWar ${mode}`);
     },
@@ -148,7 +150,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
     // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
     ban: async (anyID: string, banLength: string, message: string) => {
-      await dryRunExecute(`AdminBan "${anyID}" ${banLength} ${message}`);
+      await dryRunExecute(`AdminBan "${anyID}" "${banLength}" ${message}`);
     },
 
     disbandSquad: async (teamID: string, squadID: string) => {
@@ -161,6 +163,28 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
     forceTeamChange: async (anyID: string) => {
       await dryRunExecute(`AdminForceTeamChange "${anyID}"`);
+    },
+
+    endMatch: async () => {
+      await dryRunExecute('AdminEndMatch');
+    },
+
+    // todo: rename squadID squadIndex everywhere :)
+    // todo: rename teamID TeamNumber everywhere (like the game does)
+    // Rename is not possible, but you can reset it to default name "Squad 1", "Squad 2", ...
+    resetSquadName: async (teamID: string, squadID: string) => {
+      await dryRunExecute(`AdminRenameSquad ${teamID} ${squadID}`);
+    },
+
+    demoteCommander: async (anyID: string) => {
+      await dryRunExecute(`AdminDemoteCommander ${anyID}`)
+    },
+
+    // Don't remember exactly which one, but some change are taken in account only
+    // at layer change, some only until restart, and this command is a recent addition
+    // from Squad to allow updating the config without having to restart the server.
+    reloadServerConfig: async () => {
+      await dryRunExecute('AdminReloadServerConfig');
     },
 
     showServerInfo: async () => {

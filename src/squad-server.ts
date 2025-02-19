@@ -9,6 +9,8 @@ import { AdminPerms } from './admin-list/permissions';
 import { RefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useHelpers } from './cached-game-status/use-helpers';
 import { RefinedChatEvents } from './cached-game-status/use-refined-chat-events';
+import { GithubWikiWeapon } from './github-info/github-weapons.type';
+import { GithubWiki } from './github-info/github-layer.type';
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
@@ -20,6 +22,10 @@ interface Props {
   adminList: AdminList;
   refinedLogEvents: RefinedLogEvents;
   refinedChatEvents: RefinedChatEvents;
+  githubInfo: {
+    layerInfo: GithubWiki.Layer;
+    weaponInfo: Record<string, GithubWikiWeapon.WeaponInfo>;
+  }
 }
 
 export function useSquadServer({
@@ -30,6 +36,7 @@ export function useSquadServer({
   adminList,
   refinedLogEvents,
   refinedChatEvents,
+  githubInfo,
 }: Props) {
   const { admins, getAdminsWithPermissions } = adminList;
   const helpers = useHelpers({
@@ -69,6 +76,7 @@ export function useSquadServer({
   };
 
   return {
+    githubInfo,
     //githubLayer,
     info: cachedGameStatus.serverInfo$.getValue(),
     get players() {

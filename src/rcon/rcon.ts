@@ -4,6 +4,7 @@ import { Logger } from 'pino';
 import { RconOptions } from './rcon.config';
 import { Subject } from 'rxjs';
 import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
+import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 
 enum DataType {
   EXEC_COMMAND = 0x02,
@@ -409,7 +410,10 @@ export class Rcon {
             const concernedLog = body in this.logCache;
             if (concernedLog) {
               const previousResponse = this.logCache[body as keyof typeof this.logCache];
-              const changeDetected = previousResponse !== (response as string);
+              const changeDetected =
+                this.options.debugCondenseLogsIgnoreSinceDisconnect ?
+                  hasChangesIgnoringSinceDisconnect(previousResponse, response as string)
+                  : previousResponse !== (response as string);
               if (changeDetected) {
                 // Update cache
                 this.logCache[body as keyof typeof this.logCache] = response as string;

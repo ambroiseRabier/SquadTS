@@ -5,10 +5,6 @@ import { matchWithRegex } from '../../log-parser/log-parser-helpers';
 import { extractIDs } from '../../rcon/id-parser';
 
 export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<string>) {
-  // Helper to debug and get test data.
-  if (logger.level === 'debug') {
-    chatPacketEvent.subscribe(data => logger.debug(`ChatPacketEvent: ${data}`));
-  }
 
   const message = chatPacketEvent.pipe(
     map(body =>
@@ -55,7 +51,10 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
         )
       ),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),
-      map(data => extractIDs(data.ids)),
+      map(data => ({
+        ...omit(data, 'ids'),
+        ...extractIDs(data.ids),
+      })),
       map(addTime)
     ),
     unPossessedAdminCamera: chatPacketEvent.pipe(
@@ -66,7 +65,10 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
         )
       ),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),
-      map(data => extractIDs(data.ids)),
+      map(data => ({
+        ...omit(data, 'ids'),
+        ...extractIDs(data.ids),
+      })),
       map(addTime)
     ),
     playerWarned: chatPacketEvent.pipe(

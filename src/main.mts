@@ -80,17 +80,17 @@ export async function main(props?: Props) {
   const adminList = useAdminList(adminListLogger, config.adminList);
 
   // Handle process signals for cleanup
-  process.on('SIGINT', () => {
-    logger.info('Shutdown signal received. Cleaning up...');
+  process.on('SIGINT', async () => {
     console.log('SIGINT');
-    rcon.disconnect();
-    logReader.unwatch();
-  }); // e.g., Ctrl+C
-  process.on('SIGTERM', () => {
     logger.info('Shutdown signal received. Cleaning up...');
+    await rcon.disconnect();
+    await logReader.unwatch();
+  }); // e.g., Ctrl+C
+  process.on('SIGTERM', async () => {
     console.log('SIGTERM');
-    rcon.disconnect();
-    logReader.unwatch();
+    logger.info('Shutdown signal received. Cleaning up...');
+    await rcon.disconnect();
+    await logReader.unwatch();
   }); // e.g., Process kill
   process.on('disconnect', () => {
     logger.info('Disconnect signal received. Cleaning up...');
@@ -154,6 +154,7 @@ export async function main(props?: Props) {
     refinedLogEvents,
     refinedChatEvents,
     adminList,
+    githubInfo,
   });
 
   const discordConnector = config.connectors.discord.enabled
@@ -170,6 +171,19 @@ export async function main(props?: Props) {
   );
 
   await pluginLoader.load(props?.mocks.pluginOptionOverride);
+
+  // Override and add server.unwatch() (will also stop rcon update from cached game status.
+  // Handle process signals for cleanup
+  process.on('SIGINT', async () => {
+    // Note that: if unwatch is really fast, logger won't have time to log.
+    logger.info('Shutdown signal received. Cleaning up...');
+    await server.unwatch();
+  }); // e.g., Ctrl+C
+  process.on('SIGTERM', async () => {
+    logger.info('Shutdown signal received. Cleaning up...');
+    await server.unwatch();
+  }); // e.g., Process kill
+
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.
   // But having logs all over the place is bad.
   await server.watch();

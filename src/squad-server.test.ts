@@ -4,6 +4,7 @@ import { SquadServer } from './squad-server';
 // We are just making sure fields are available to plugins developer.
 // TS should not transpile if there is anything wrong, but once TS is fixed this test should always pass.
 // noinspection JSUnusedLocalSymbols
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function toBeNeverCalled(server: SquadServer) {
   // eslint-disable-line @typescript-eslint/no-unused-vars
   server.chatEvents.message.subscribe(() => {

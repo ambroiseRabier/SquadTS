@@ -10,7 +10,8 @@
     "test:coverage": "vitest --run --coverage",
     "lint": "eslint .",
     "generate-config": "tsx scripts/generate-config.mts",
-    "prettier": "node --experimental-strip-types node_modules/prettier/bin/prettier.cjs . --write"
+    "prettier": "node --experimental-strip-types node_modules/prettier/bin/prettier.cjs . --write",
+    "prepare": "husky"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5",
@@ -39,6 +40,8 @@
     "date-fns": "^4.1.0",
     "eslint": "^9.20.1",
     "eslint-config-prettier": "^10.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.5.1",
     "tsx": "^4.19.3",

@@ -462,4 +462,40 @@ describe('Log Parser events', () => {
       tickRate: '39.52',
     });
   });
+
+  it('kick', () => {
+    const mockEvent = vi.fn();
+    logParser.events.serverTickRate.subscribe(mockEvent);
+    mockedLogReader.line$.next(
+      '[2025.02.19-09.34.52:304][525]LogOnlineGame: Display: Kicking player: -TWS- Yuca ; Reason = Kicked from the server: test',
+    );
+    mockedLogReader.line$.next(
+      // Note unreadable data after "from"
+      ' [2025.02.19-09.34.52:305][525]LogSquad: ADMIN COMMAND: Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca from δ▓áε╡á╚û',
+    );
+    expect(mockEvent.mock.calls[0][0]).toEqual({
+      chainID: '60',
+      date: expect.any(Date),
+      tickRate: '39.52',
+    });
+  });
+
+  it('ban', () => {
+    const mockEvent = vi.fn();
+    logParser.events.serverTickRate.subscribe(mockEvent);
+    mockedLogReader.line$.next(
+      '[2025.02.19-10.07.12:115][417]LogOnlineGame: Display: Banning player: Yuca ; Reason = because'
+    );
+    mockedLogReader.line$.next(
+      '[2025.02.19-10.07.12:117][417]LogOnlineGame: Display: Kicking player: -TWS-  Yuca ; Reason = Banned from the server for 0 Day(s). Admin Reason: because.'
+    );
+    mockedLogReader.line$.next(
+      '[2025.02.19-10.07.12:118][417]LogSquad: ADMIN COMMAND: -TWS-  Yuca [EOSID 0002a10186d9414496bf20d22d3860ba] Banned player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS-  Yuca for interval -541445648 from ΘªáεÄá╚û',
+    );
+    expect(mockEvent.mock.calls[0][0]).toEqual({
+      chainID: '60',
+      date: expect.any(Date),
+      tickRate: '39.52',
+    });
+  });
 });

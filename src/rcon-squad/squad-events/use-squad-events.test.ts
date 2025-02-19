@@ -76,13 +76,13 @@ describe('rcon-squad-events', () => {
   });
 
   it('squadCreated', async () => {
-    chatPacketEvent.next(
+    chatPacketEvent.next( // todo: squad created event from chatPacket event (instead of RCON)
       'lordmoi (Online IDs: EOS: 00027d9e31c04fda80ddac0443c3ce69 steam: 76561198006677354) has created Squad 1 (Squad Name: INF ) on Western Private Military Contractors'
     );
     expect(await firstValueFrom(events.chatEvents.squadCreated)).toEqual({
       creator: {
         eosID: '00027d9e31c04fda80ddac0443c3ce69',
-        name: 'lordmii',
+        name: 'lordmoi',
         squadName: 'INF ',
         steamID: '76561198006677354',
       },
@@ -94,16 +94,26 @@ describe('rcon-squad-events', () => {
   });
 
   it('playerKicked', async () => {
-    chatPacketEvent.next('');
+    chatPacketEvent.next('-TWS- Yuca was kicked: test');
+    chatPacketEvent.next('Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca');
     expect(await firstValueFrom(events.chatEvents.playerKicked)).toEqual({
       // todo need data
     });
   });
 
   it('playerBanned', async () => {
-    chatPacketEvent.next('');
+    // Banned myself (that's why I appear twice), interval was "1m" (1min)
+    chatPacketEvent.next('-TWS-  Yuca [EOSID 0002a10186d9414496bf20d22d3860ba] Banned player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS-  Yuca for interval -541445648');
     expect(await firstValueFrom(events.chatEvents.squadCreated)).toEqual({
       // todo need data
     });
+  });
+
+  it('immune', async () => {
+    // chatPacketEvent.next('ERROR: Unable to kick due to kick immune permission player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca');
+    // chatPacketEvent.next('ERROR: Unable to ban due to kick immune permission player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca');
+    // expect(await firstValueFrom(events.chatEvents.immune)).toEqual({
+    //   // todo need data
+    // });
   });
 });

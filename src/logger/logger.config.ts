@@ -62,6 +62,7 @@ export const loggerOptionsSchema = z.object({
         '^LogRCONServer: \\d+:FRCONSocket::CloseConnection\\(\\):',
         '^LogRCONServer: \\d+:FRCONSocket::Run\\(\\):',
         '^LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.',
+        '^LogEOSAntiCheat: Verbose:',
       ])
       .describe(
         'Every non matched line that will be additionally tested, if it match it will not be logged.\n' +
