@@ -8,7 +8,8 @@
     // > node16 and nodenext are the only correct module options for all apps and libraries that are intended to run in Node.js v12 or later
     // https://www.typescriptlang.org/docs/handbook/modules/reference.html#the-module-compiler-option
     // Current nodenext is node16
-    "module": "node16",
+    // Edit: Node16 is incompatible with moduleResolution bundler, preserve should be ok since we support ES modules.
+    "module": "preserve",
 
     // Allow default import like `import lodash from 'lodash';` instead of `import * as lodash from 'lodash';`
     "esModuleInterop": true,
