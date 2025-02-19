@@ -16,12 +16,12 @@ const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
   server.events.playersSquadChange.subscribe(async players => {
-    for (let player of players) {
+    for (const player of players) {
       const teamName = server.helpers.getTeamName(player.teamID);
       const squadName = server.helpers.getPlayerSquad(player.eosID)?.name ?? 'Unknown';
       if (options.useEmbed) {
         const embed: APIEmbed = {
-          title: `Squad Created`,
+          title: 'Squad Created',
           color: 16761867,
           fields: [
             {

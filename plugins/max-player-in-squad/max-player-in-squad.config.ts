@@ -32,7 +32,7 @@ const schema = pluginBaseOptionsSchema
     message: z
       .string()
       .default(
-        `Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.`
+        'Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.'
       )
       .describe(
         'Message sent to the squad leader and entering squad member when max player count is exceeded.\n' +

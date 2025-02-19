@@ -32,6 +32,8 @@ async function saveFiles() {
   let asked = false;
   let shouldOverride = false;
   for (const key in optionsSchema.shape) {
+    // never or unknown won't be ok for ZodObject.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const field = (optionsSchema as z.ZodObject<any>).shape[key];
 
     // Note: compared to plugins, we are not using dynamic import here, so Zod instance is the same.
@@ -52,7 +54,7 @@ async function saveFiles() {
         }
 
         if (!shouldOverride) {
-          console.log(`Skipping files...`);
+          console.log('Skipping files...');
           break;
         }
       }
@@ -64,21 +66,22 @@ async function saveFiles() {
       console.log(`File saved: ${chalk.blue.bold(filePath)}`);
     } else {
       throw new Error(
-        `[Config generator] Unsupported ZOD field type (${(field as any).constructor.name}): ${JSON.stringify(field)}`
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        `[Config generator] Unsupported ZOD field type (${(field as any)?.constructor.name}): ${JSON.stringify(field)}`
       );
     }
   }
 }
 
 async function savePluginFiles() {
-  console.info(`Generating plugin files...`);
+  console.info('Generating plugin files...');
 
   const pluginsDir = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins'); // Assume 'plugins' is the root directory for plugins
 
   // Ensure the 'config/plugins' folder exists
   const configPluginsFolder = path.join(configFolder, 'plugins');
   if (!fs.existsSync(configPluginsFolder)) {
-    console.info(`'config/plugins' folder not found, creating...`);
+    console.info("'config/plugins' folder not found, creating...");
     fs.mkdirSync(configPluginsFolder, { recursive: true });
   }
 
@@ -97,7 +100,7 @@ async function savePluginFiles() {
     const emphasizedMessage = `Plugins config folder is not empty, proceed and ${chalk.red.bold('override all files')} with defaults ? Type ${chalk.red.bold('"yes"')} to confirm:`;
     const proceed = await askUser(emphasizedMessage);
     if (!proceed) {
-      console.log(`Skipping plugin config files...`);
+      console.log('Skipping plugin config files...');
       return;
     }
   }
@@ -152,7 +155,7 @@ console.info(`Generating config files in ${chalk.blue.bold(configFolder)}`);
 
 // Ensure the 'config' folder exists
 if (!fs.existsSync(configFolder)) {
-  console.info(`Folder doesn't exist, creating config folder`);
+  console.info("Folder doesn't exist, creating config folder");
   fs.mkdirSync(configFolder, { recursive: true });
 }
 

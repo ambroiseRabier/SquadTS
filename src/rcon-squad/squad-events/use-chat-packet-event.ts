@@ -36,7 +36,9 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
           return {
             ...data,
             // re-add the '!' as it is easier to identify as a command and plugin config usually include it.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             command: '!' + match.groups!.command.toLowerCase(),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             message: match.groups!.message.trim(),
           };
         } else {

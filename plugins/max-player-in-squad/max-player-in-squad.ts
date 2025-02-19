@@ -31,7 +31,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
   server.events.playersSquadChange
     .pipe(
       // Do nothing when in seed
-      filter(players => options.enabledInSeed || !server.info.isSeed),
+      filter(() => options.enabledInSeed || !server.info.isSeed),
       // Only for players joining a squad, not when they leave.
       map(players =>
         players.filter(
@@ -40,7 +40,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
       )
     )
     .subscribe(async playerWithSquad => {
-      for (let player of playerWithSquad) {
+      for (const player of playerWithSquad) {
         // Selon la squad name, récupérer le bon maximum
         // On fait une recherche case insensitive
         const configForThisSquad = options.squadTypes.find(
@@ -76,6 +76,8 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
             Le max pour ${configForThisSquad.containWord} est ${maxPlayerInSquad}`
             );
             transgressors.set(playerSquadLead.eosID, {
+              // We are iterating playerWithSquad...
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               squadID: player.squadID!, // same as playerSquadLead.squadID
               teamID: player.teamID,
               squadName: player.squad.name,
@@ -113,6 +115,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
       }
 
       // Note: since we checked that player is SL, he cannot have a null/undef squadID/squad
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const squad = server.helpers.getSquad(sl.teamID, sl.squadID)!;
 
       // Squad name changed (but IDs are the same)

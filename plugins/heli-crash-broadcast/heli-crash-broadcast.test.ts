@@ -46,7 +46,7 @@ function setRconMock(
 // test intended to run in order with one time executed initial startup
 describe('Heli crash broadcast', () => {
   let testBed: TestServer;
-  let rconExec: MockedFunction<Rcon['execute']> = vi.fn();
+  const rconExec: MockedFunction<Rcon['execute']> = vi.fn();
 
   beforeAll(async () => {
     // server immediately call ShowServerInfo, player list and squd list, on startup, we provide some default

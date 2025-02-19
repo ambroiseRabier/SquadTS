@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Generate a description map
 import { z } from 'zod';
 
@@ -74,7 +75,7 @@ export function addCommentJson5Zod(
 ): string {
   const topLevelDescription = schema._def.description;
   const topLevelComment = !!topLevelDescription
-    ? `\/**\n * ${topLevelDescription.replaceAll('\n', '\n * ')}\n *\/\n`
+    ? `/**\n * ${topLevelDescription.replaceAll('\n', '\n * ')}\n */\n`
     : '';
 
   // Generate description map from the schema
@@ -85,13 +86,12 @@ export function addCommentJson5Zod(
   const commentedLines: string[] = [];
   const scopedKeys: string[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     const trimmedLine = line.trim();
-
     // Check if it's a key-value line (e.g., "key: value,")
     const keyMatch = trimmedLine.match(/^"?(?<key>\w+)"?:/);
     if (keyMatch) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { key } = keyMatch.groups!;
       const description =
         descriptions[`${scopedKeys.join('.')}${scopedKeys.length > 0 ? '.' : ''}${key}`];
@@ -109,6 +109,7 @@ export function addCommentJson5Zod(
 
     const objectMatch = trimmedLine.match(/^"?(?<key>\w+)"?: {/);
     if (objectMatch) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       scopedKeys.push(objectMatch.groups!.key);
     }
 

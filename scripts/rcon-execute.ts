@@ -31,10 +31,9 @@ async function rconExecute(options: RconOptions, command: string) {
   const rcon = new Rcon(options, logger);
   await rcon.connect();
   try {
-    // At worse, server will handle wrong command gracefully.
+    // At worse, server will handle the wrong command gracefully. Everything is still strings.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return await rcon.execute(command as any);
-  } catch (error) {
-    throw error;
   } finally {
     // Make sure we disconnect in case of error.
     await rcon.disconnect();
@@ -42,7 +41,7 @@ async function rconExecute(options: RconOptions, command: string) {
 }
 
 async function getRconOptions() {
-  logger.info(`Loading rcon options`);
+  logger.info('Loading rcon options');
   const inputJsonPath = process.argv[2];
 
   if (!inputJsonPath) {

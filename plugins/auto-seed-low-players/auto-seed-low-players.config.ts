@@ -33,7 +33,7 @@ const schema = pluginBaseOptionsSchema
       .array(z.enum(GithubWiki.mapAvailables))
       .default(['Sumari_Seed_v1', 'Sumari_Seed_v2', 'Sumari_Seed_v3', 'Sumari_Seed_v4'])
       .describe(
-        `List of seed layers to choose from (randomly picked from the list). Available layers are:\n` +
+        'List of seed layers to choose from (randomly picked from the list). Available layers are:\n' +
           GithubWiki.mapAvailables.filter(l => l.toLowerCase().includes('seed')).join(', ')
       ),
   })

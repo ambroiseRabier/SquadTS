@@ -57,6 +57,7 @@ export function useLogParser(
         return null;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { date, chainID, data } = matchDate.groups!;
 
       return {

@@ -78,7 +78,7 @@ export function usePluginLoader(
       }
 
       // ---------- Loading JSON5 and validating ----------
-      for (let pair of iterateOn) {
+      for (const pair of iterateOn) {
         logger.debug(`${pair.name}: Loading config...`);
 
         let json5;

@@ -71,7 +71,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
 
         // Merge
         for (const [key, value] of parsed) {
-          admins.set(key, value as any as AdminPerms[]);
+          admins.set(key, value as unknown as AdminPerms[]);
         }
         logger.info(`Admin list fetched. ${admins.size} admins found.`);
       }

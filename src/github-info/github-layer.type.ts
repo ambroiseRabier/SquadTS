@@ -1036,6 +1036,7 @@ export namespace GithubWiki {
     IrregularMilitiaForces = 'Irregular Militia Forces',
     MiddleEasternAlliance = 'Middle Eastern Alliance',
     PLANavyMarineCorps = 'PLA Navy Marine Corps',
+    // Double quotes are perfectly fine to escape single quote, prettier know that but not eslint ?
     PeopleSLiberationArmy = "People's Liberation Army",
     RussianAirborneForces = 'Russian Airborne Forces',
     RussianGroundForces = 'Russian Ground Forces',

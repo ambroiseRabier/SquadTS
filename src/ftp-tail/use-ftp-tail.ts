@@ -51,6 +51,8 @@ function useClient(options: Props) {
     fileSize(filepath: string): Promise<number> {
       return options.protocol === 'ftp'
         ? client.size(filepath)
+        // I am supposed to fix absence of typing of sftp.stat myself ? any is fine.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         : sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
     },
     async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
@@ -74,7 +76,8 @@ function useClient(options: Props) {
         client = new Client(options.timeout);
         client.ftp.log = logger.debug.bind(logger);
       } else {
-        sftpClient = new SFTPClient() as any;
+        // We slightly corrected SFTPClient type so we need to cast.
+        sftpClient = new SFTPClient() as typeof sftpClient;
         options.sftp.debug = logger.debug.bind(logger);
       }
     },
@@ -110,7 +113,9 @@ export function useFtpTail(logger: Logger, options: Props) {
       .digest('hex') + '.tmp'
   );
 
+  // Todo: options to delete or keep it ?
   // Deleting may remove useful logs for debug.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function removeTempFile() {
     if (fs.existsSync(tmpFilePath)) {
       fs.unlinkSync(tmpFilePath);
@@ -296,11 +301,12 @@ export function useFtpTail(logger: Logger, options: Props) {
       // In case the promise is still running, we await it.
       // This case happens when SIGINT or SIGTERM is called.
       await currentFetchPromise;
-    } catch (e) {
+    }
+      // Do not catch.
       // Do nothing here, as we already handle error on that promise elsewhere.
       // This case happens when the fetchLoop error, and unwatch is called to clean up
       // Promise got rejected, we ignore it and call disconnect.
-    } finally {
+    finally {
       await client.disconnect();
     }
 

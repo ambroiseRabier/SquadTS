@@ -2,6 +2,7 @@ import { Client } from 'discord.js';
 
 // SquadTS notes: Does not seem required by either Discord or Boost license. Leaving it here until further confirmation.
 /* As set out by the terms of the license, the following should not be modified. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const COPYRIGHT_MESSAGE = `Powered by SquadTS, Copyright © ${new Date().getFullYear()}`;
 
 /**

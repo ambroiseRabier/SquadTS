@@ -3,7 +3,7 @@ import path from 'path';
 import JSON5 from 'json5';
 import chalk from 'chalk';
 
-type Configs = Record<string, any>;
+type Configs = Record<string, unknown>;
 
 /**
  * Asynchronously loads and parses all JSON5 files in a given directory.

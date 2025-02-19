@@ -30,7 +30,7 @@ const DiscordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = as
       const admins = server.helpers.getOnlineAdminsWithPermissions([AdminPerms.CanSeeAdminChat]);
 
       let adminNotified = 0;
-      for (let admin of admins) {
+      for (const admin of admins) {
         await server.rcon.warn(admin.player.eosID, `[${data.player.name}] - ${data.message}`);
         adminNotified++;
       }
@@ -93,7 +93,7 @@ const DiscordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = as
             data.player.eosID,
             // options.messages.adminInGameNotification // not implemented yet... (plural form is tedious to handle)
             `There ${adminNotified > 1 ? 'are' : 'is'} ${adminNotified} in-game admin${adminNotified > 1 ? 's' : ''}.` +
-              `Please wait for us to get back to you.`
+              'Please wait for us to get back to you.'
           );
         }
       } else {

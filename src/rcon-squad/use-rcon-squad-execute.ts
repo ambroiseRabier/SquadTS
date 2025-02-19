@@ -29,7 +29,15 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     getCurrentMap: async () => {
       const response: string = await execute('ShowCurrentMap');
       const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
-      return match!.groups! as { level: string; layer: string };
+
+      if (!match) {
+        throw new Error(
+          `Failed to parse response from ShowCurrentMap: ${response}`
+        );
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return match.groups! as { level: string; layer: string };
     },
 
     getNextMap: async () => {
@@ -57,6 +65,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         .map(line => regex.exec(line))
         .filter((match): match is NonNullable<typeof match> => match !== null)
         .map(match => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
           const { isLeader, teamID, squadID, ids } = groups;
           return {
@@ -91,8 +100,8 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
             const matchSide = line.match(/Team ID: (?<teamID>\d) \((?<teamName>.+)\)/);
 
             if (matchSide) {
-              // check for yourself, this is ok. Let's keep it simple here
-              side = matchSide.groups! as any;
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              side = matchSide.groups! as {teamID: string; teamName: string};
             }
 
             if (!match) {
@@ -100,6 +109,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
               return null;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
 
             return {
@@ -162,6 +172,9 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       // We check for change in returned data, and inform user/dev that something changed.
       const infoKeys = Object.keys(info);
       const missingKeys = gameServerInfoKeys.filter(key => !infoKeys.includes(key));
+      // I'm trying to find potential string that are not part of gameServerInfoKeys, obviously type will mismatch.
+      // But still, we are using string all the way.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extraKeys = infoKeys.filter(key => !gameServerInfoKeys.includes(key as any));
 
       // Mostly aimed at SquadTS developers

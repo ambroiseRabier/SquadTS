@@ -66,7 +66,8 @@ export function parseLogLine(rules: LogParserRules, line: string, extraData: Ext
     if (match) {
       return [
         eventName,
-        match.groups! as ObjectFromRegexStr<typeof regex>,
+        // In case we have a match that contain no capturing group we put an empty object.
+        match.groups ?? {} as ObjectFromRegexStr<typeof regex>,
         extraData,
       ] as LogEventUnionWithExtraData;
     }
@@ -109,6 +110,6 @@ export function parseLogLine(rules: LogParserRules, line: string, extraData: Ext
 export function isEvent<T extends LogEventUnionWithExtraData['0']>(
   event: LogEventUnionWithExtraData,
   type: T
-): event is Extract<LogEventUnionWithExtraData, readonly [T, any, any]> {
+): event is Extract<LogEventUnionWithExtraData, readonly [T, unknown, unknown]> {
   return event[0] === type;
 }

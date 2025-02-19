@@ -96,6 +96,8 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
         await trySwitch(data.player.eosID);
       } else {
         logger.debug(`Player ${data.player.nameWithClanTag} (${data.player.eosID}) is on cooldown`);
+        // We checked that player has cooldown with !hasCooldown(data.player.eosID) above.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const timeDiff = new Date().getTime() - playerOnCooldown.get(data.player.eosID)!.getTime();
         await server.rcon.warn(
           data.player.eosID,
@@ -115,7 +117,7 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
 
   trackBalanceChange(server.players$)
     .pipe(
-      filter(newBalance => switchRequestToTeam1.length > 0 || switchRequestToTeam2.length > 0),
+      filter(() => switchRequestToTeam1.length > 0 || switchRequestToTeam2.length > 0),
       // Small debounce time to avoid spam at end/start of the game
       debounceTime(1000),
       tap(newBalance => {
@@ -124,8 +126,8 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
           `Balance changed: ${newBalance}. ${reqNb} switch request${reqNb > 1 ? 's' : ''}.`
         );
       }),
-      // no eosID sent to trySwitch
-      map(data => undefined),
+      // Do not send eosID to trySwitch.
+      map(() => undefined),
       // Avoid concurrent execution of trySwitch, unlikely to happen, but just not useful.
       concatMap(trySwitch)
     )
@@ -145,9 +147,13 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
 
     // Remove request if the player already switched
     switchRequestToTeam1 = switchRequestToTeam1.filter(
+      // We remove player from switchRequestToTeam1 when player disconnect, making it impossible to
+      // not get player by eos id.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       req => server.helpers.getPlayerByEOSID(req.eosID)!.teamID === '2'
     );
     switchRequestToTeam2 = switchRequestToTeam2.filter(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       req => server.helpers.getPlayerByEOSID(req.eosID)!.teamID === '1'
     );
 
@@ -205,7 +211,7 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
     }
 
     // Switch and inform selected players
-    for (let eosID of toBeSwitched) {
+    for (const eosID of toBeSwitched) {
       await server.rcon.forceTeamChange(eosID);
       await server.rcon.warn(eosID, options.messages.switch);
 

@@ -72,7 +72,7 @@ describe('Log Parser events', () => {
     // todo
     logParser = useLogParser(
       // note: Any missing function will just make the test fail without any information.
-      fakeLogger,
+      fakeLogger as any,
       mockedLogReader as any,
       logParserConfig,
       {

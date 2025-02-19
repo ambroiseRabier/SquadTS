@@ -2,7 +2,7 @@ import { SquadServer } from '../../src/squad-server';
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 import { HeliCrashBroadCastOptions } from './heli-crash-broadcast.config';
-import { filter, tap } from 'rxjs';
+import { filter } from 'rxjs';
 
 /**
  * Use vehicle spawn command in local server.

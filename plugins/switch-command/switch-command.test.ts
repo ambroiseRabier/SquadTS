@@ -138,6 +138,9 @@ const addPlayerToGame = async (
 
 describe('switchCommand', () => {
   let server: ReturnType<typeof serverMock>;
+  // Unused yeah, but it feels really weird to just call await switchCommand to nowhere.
+  // I don't want it to be garbage collected in the middle of the test ? (server should hold ref)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let plugin: Awaited<ReturnType<typeof switchCommand>>;
 
   beforeEach(async () => {

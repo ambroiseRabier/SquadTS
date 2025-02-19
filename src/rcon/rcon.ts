@@ -30,13 +30,13 @@ export class Rcon {
 
   private client: net.Socket;
   private incomingData: Buffer<ArrayBuffer> = Buffer.from([]);
-  private autoReconnect: boolean = false;
+  private autoReconnect = false;
   private callbackIds: { id: number; cmd: string }[] = [];
   private incomingResponse: Packet[] = [];
-  private connected: boolean = false;
-  private loggedin: boolean = false;
+  private connected = false;
+  private loggedin = false;
   private responseCallbackQueue: ((response: Packet | Error | string) => void)[] = [];
-  private count: number = 1;
+  private count = 1;
 
   constructor(
     private options: RconOptions,
@@ -317,7 +317,7 @@ export class Rcon {
 
       // the auth packet also sends a normal response, so we add an extra empty action to ignore it
       this.callbackIds.push({ id: this.count, cmd: password });
-      this.responseCallbackQueue.push(() => {}); // todo ? why no-op
+      this.responseCallbackQueue.push(() => {/* no-op */}); // This is by design of RCON protocol, one empty response is sent.
       this.responseCallbackQueue.push(decodedPacket => {
         this.client.removeListener('error', onError);
 

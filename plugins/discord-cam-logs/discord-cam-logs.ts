@@ -14,7 +14,7 @@ const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
 
   server.chatEvents.possessedAdminCamera.subscribe(async data => {
     const embed: APIEmbed = {
-      title: `Admin Entered Admin Camera`,
+      title: 'Admin Entered Admin Camera',
       color: 16761867,
       fields: [
         {
@@ -41,7 +41,7 @@ const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
 
   server.chatEvents.unPossessedAdminCamera.subscribe(async data => {
     const embed: APIEmbed = {
-      title: `Admin Left Admin Camera`,
+      title: 'Admin Left Admin Camera',
       color: 16761867,
       fields: [
         {

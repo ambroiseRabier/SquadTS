@@ -1,3 +1,5 @@
+// I don't see the problem with using any here, additionally, both never and unknown give TS errors.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { init } from 'zod-empty';
 import JSON5 from 'json5';
 import { addCommentJson5Zod } from './add-comment-json5-zod';

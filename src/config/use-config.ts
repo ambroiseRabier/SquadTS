@@ -16,7 +16,7 @@ export async function useConfig(logger: Logger) {
   return await parseConfigs(configs, logger);
 }
 
-export async function parseConfigs(configs: any, logger: Logger) {
+export async function parseConfigs(configs: unknown, logger: Logger) {
   const parsed = await optionsSchema.safeParseAsync(configs);
 
   // This ridiculous code duplication (look we return the same thing in both condition bodies)

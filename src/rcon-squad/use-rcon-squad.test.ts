@@ -1,25 +1,25 @@
-import { expect, beforeEach, describe, it, jest } from 'vitest';
+import { expect, beforeEach, describe, it, vi, Mocked } from 'vitest';
 import { useRconSquad } from './use-rcon-squad';
 import { Packet, Rcon } from '../rcon/rcon';
 import { Subject } from 'rxjs';
 
-jest.mock('../rcon/rcon');
+vi.mock('../rcon/rcon');
 
 // Note: there isn't much to test, perhaps I will remove it. (check execute sub part instead)
 describe('rcon-squad', () => {
   let squadRcon: ReturnType<typeof useRconSquad>;
-  let mockedRcon: jest.Mocked<Rcon>;
+  let mockedRcon: Mocked<Rcon>;
 
   beforeEach(() => {
     // Clear previous mock calls and implementations
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockedRcon = {
-      connect: jest.fn(),
-      disconnect: jest.fn(),
-      execute: jest.fn(),
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      execute: vi.fn(),
       chatPacketEvent: new Subject<Packet>(),
-    } as unknown as jest.Mocked<Rcon>;
+    } as unknown as Mocked<Rcon>;
     mockedRcon.connect.mockResolvedValue();
     mockedRcon.disconnect.mockResolvedValue();
     squadRcon = useRconSquad(

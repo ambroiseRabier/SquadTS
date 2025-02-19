@@ -1,3 +1,7 @@
+// Unless there is a chatEvents being received after a log disconnected,
+// getPlayerByEOSID(data.player.eosID)! should be ok.
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { CachedGameStatus } from './use-cached-game-status';
 import { usePlayerGet } from './use-player-get';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
