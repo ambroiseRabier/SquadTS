@@ -1,7 +1,6 @@
-import { SquadServer } from '../../src/squad-server';
-import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
 import { AutoRejoinOptions } from './auto-rejoin-team.config';
+import { SquadServer, SquadTSPlugin } from '../../src/exports';
 
 const autoRejoin: SquadTSPlugin<AutoRejoinOptions> = async (
   server: SquadServer,

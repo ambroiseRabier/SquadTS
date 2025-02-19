@@ -1,11 +1,9 @@
-import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { SwitchCommandConfig } from './switch-command.config';
-import { concatMap, debounceTime, exhaustMap, filter, map, tap } from 'rxjs';
-import { AdminPerms } from '../../src/admin-list/permissions';
+import { concatMap, debounceTime, filter, map, tap } from 'rxjs';
 import { balanceIncreaseSwitch, SwitchRequest, unbalanceSwitch } from './src/switch-helpers';
-import { Player } from '../../src/cached-game-status/use-cached-game-status';
 import { trackBalanceChange } from './src/track-balance-change';
 import { sortRequests } from './src/sort-requests';
+import { Player, AdminPerms, SquadTSPlugin } from '../../src/exports';
 
 const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
   server,
