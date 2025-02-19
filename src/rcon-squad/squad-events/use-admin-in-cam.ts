@@ -18,8 +18,8 @@ export function useAdminInCam(p: Props) {
       map(data => ({
         ...data,
         duration: adminsInAdminCam.has(data.eosID)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          ? data.date.getTime() - adminsInAdminCam.get(data.eosID)!.getTime()
+          ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            data.date.getTime() - adminsInAdminCam.get(data.eosID)!.getTime()
           : 0,
       })),
       tap(data => adminsInAdminCam.delete(data.eosID))

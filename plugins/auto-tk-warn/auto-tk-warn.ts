@@ -13,7 +13,10 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
     const attackerName = info.attacker.nameWithClanTag ?? info.attacker.name ?? 'Unknown';
     logger.info(`TK Warn: ${attackerName} (eosID: ${info.attacker.eosID})`);
     await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
-    await server.rcon.warn(info.victim.eosID, options.victimMessage.replace('%attacker%', attackerName));
+    await server.rcon.warn(
+      info.victim.eosID,
+      options.victimMessage.replace('%attacker%', attackerName)
+    );
   });
 };
 

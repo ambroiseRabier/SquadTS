@@ -55,7 +55,10 @@ type LogEventUnion<ExtraData> = {
 }[LogParserRules[number][0]];
 
 // Having extra data make it harder to type, but that's how it is.
-interface ExtraData { date: Date; chainID: string }
+interface ExtraData {
+  date: Date;
+  chainID: string;
+}
 type LogEventUnionWithExtraData = LogEventUnion<ExtraData>;
 
 export function parseLogLine(rules: LogParserRules, line: string, extraData: ExtraData) {
@@ -65,7 +68,7 @@ export function parseLogLine(rules: LogParserRules, line: string, extraData: Ext
       return [
         eventName,
         // In case we have a match that contain no capturing group we put an empty object.
-        match.groups ?? {} as ObjectFromRegexStr<typeof regex>,
+        (match.groups ?? {}) as ObjectFromRegexStr<typeof regex>,
         extraData,
       ] as LogEventUnionWithExtraData;
     }

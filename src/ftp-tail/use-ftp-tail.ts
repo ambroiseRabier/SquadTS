@@ -52,9 +52,9 @@ function useClient(options: Props) {
     fileSize(filepath: string): Promise<number> {
       return options.protocol === 'ftp'
         ? client.size(filepath)
-        // I am supposed to fix absence of typing of sftp.stat myself ? any is fine.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        : sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
+        : // I am supposed to fix absence of typing of sftp.stat myself ? any is fine.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
     },
     async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
       if (options.protocol === 'ftp') {
@@ -304,12 +304,11 @@ export function useFtpTail(logger: Logger, options: Props) {
       // In case the promise is still running, we await it.
       // This case happens when SIGINT or SIGTERM is called.
       await currentFetchPromise;
-    }
+    } finally {
       // Do not catch.
       // Do nothing here, as we already handle error on that promise elsewhere.
       // This case happens when the fetchLoop error, and unwatch is called to clean up
       // Promise got rejected, we ignore it and call disconnect.
-    finally {
       await client.disconnect();
     }
 
@@ -330,8 +329,8 @@ export function useFtpTail(logger: Logger, options: Props) {
   return {
     connect: async () => {
       const address =
-        (options.protocol === 'ftp' ? options.ftp.host : options.sftp.host)
-        + ':' +
+        (options.protocol === 'ftp' ? options.ftp.host : options.sftp.host) +
+        ':' +
         (options.protocol === 'ftp' ? options.ftp.port : options.sftp.port);
 
       logger.info(`Connecting to ${options.protocol.toUpperCase()} ${address}...`);

@@ -5,8 +5,7 @@ export function findSquadChanges(oldPlayerList: Player[], newPlayerList: Player[
   const playerStillConnected = newPlayerList
     .map(playerNow => [playerNow, oldPlayerList.find(p => p.eosID === playerNow.eosID)] as const)
     .filter(
-      (playerNow): playerNow is readonly [playerNow: Player, playerBefore: Player] =>
-        !!playerNow[1]
+      (playerNow): playerNow is readonly [playerNow: Player, playerBefore: Player] => !!playerNow[1]
     );
 
   // Check both for different squad ID, and also if the "id" is the same but he changed team.

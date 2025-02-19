@@ -18,7 +18,6 @@ import { Subject } from 'rxjs';
 import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 
-
 interface Props {
   /**
    * You may replace log reader and rcon by your own for testing.
@@ -96,13 +95,11 @@ export async function main(props?: Props) {
   process.on('disconnect', () => {
     logger.info('Disconnect signal received. Cleaning up...');
     console.log('disconnect');
-  })
-
+  });
 
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
   await rconSquad.connect();
   await logReader.connect();
-
 
   // Get extra info from squad wiki github. Only if file ETag changed.
   // todo use for.... ? Wasn't there a plugin that needed that

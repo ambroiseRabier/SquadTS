@@ -49,7 +49,6 @@ export class Rcon {
     this.client.on('error', this.onError.bind(this));
   }
 
-
   // https://nodejs.org/api/net.html#event-close -> Search `Event: 'close'`
   // "Emitted once the socket is fully closed. The argument hadError is a boolean which says if the socket was closed due to a transmission error."
   private onClose(hadError: boolean) {
@@ -317,7 +316,9 @@ export class Rcon {
 
       // the auth packet also sends a normal response, so we add an extra empty action to ignore it
       this.callbackIds.push({ id: this.count, cmd: password });
-      this.responseCallbackQueue.push(() => {/* no-op */}); // This is by design of RCON protocol, one empty response is sent.
+      this.responseCallbackQueue.push(() => {
+        /* no-op */
+      }); // This is by design of RCON protocol, one empty response is sent.
       this.responseCallbackQueue.push(decodedPacket => {
         this.client.removeListener('error', onError);
 

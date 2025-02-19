@@ -15,12 +15,10 @@ interface Props {
  */
 export type RefinedLogEvents = ReturnType<typeof useRefinedLogEvents>;
 
-export function useRefinedLogEvents({logParser, cachedGameStatus}: Props) {
-  const {
-    tryGetPlayerByNameWithClanTag,
-    getPlayerByEOSID,
-    tryGetPlayerByName,
-  } = usePlayerGet(() => cachedGameStatus.players$.getValue());
+export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
+  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID, tryGetPlayerByName } = usePlayerGet(() =>
+    cachedGameStatus.players$.getValue()
+  );
 
   return {
     ...logParser.events,
@@ -45,8 +43,8 @@ export function useRefinedLogEvents({logParser, cachedGameStatus}: Props) {
         // Send back augmented data with the latest update, concerns:
         // - attacker.controller
         // - victim.nameWithClanTag
-        return merge({attacker, victim}, data);
-      }),
+        return merge({ attacker, victim }, data);
+      })
     ),
     playerDied: logParser.events.playerDied.pipe(
       filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
@@ -59,7 +57,7 @@ export function useRefinedLogEvents({logParser, cachedGameStatus}: Props) {
         // Send back augmented data with the latest update, concerns:
         // - attacker.controller
         // - victim.nameWithClanTag
-        return merge({attacker, victim}, data);
+        return merge({ attacker, victim }, data);
       })
     ),
     deployableDamaged: logParser.events.deployableDamaged.pipe(

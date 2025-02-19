@@ -4,4 +4,4 @@ import { PlayerSL, UnassignedPlayer } from './cached-game-status/use-helpers';
 import { SquadTSPlugin } from './plugin-loader/plugin.interface';
 import { SquadServer } from './squad-server';
 
-export {Player, PlayerSL, UnassignedPlayer, SquadTSPlugin, SquadServer, AdminPerms}
+export { Player, PlayerSL, UnassignedPlayer, SquadTSPlugin, SquadServer, AdminPerms };

@@ -69,26 +69,27 @@ export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
  * Cache game information like players/squads/server-info from both logs and RCON.
  */
 export function useCachedGameStatus({
-                                       initialPlayers,
-                                       initialServerInfo,
-                                       initialSquads,
-                                       logParserConfig,
-                                       logParser,
-                                       logger,
-                                       config,
-                                       rconSquad,
-                                      manualRCONUpdateForTest,
-                                     }: Props) {
+  initialPlayers,
+  initialServerInfo,
+  initialSquads,
+  logParserConfig,
+  logParser,
+  logger,
+  config,
+  rconSquad,
+  manualRCONUpdateForTest,
+}: Props) {
   const players$ = new BehaviorSubject<Player[]>(initialPlayers);
   const squads$ = new BehaviorSubject<Squad[]>(initialSquads);
-  const serverInfo$ = new BehaviorSubject<Awaited<ReturnType<RconSquad['showServerInfo']>>>(initialServerInfo);
+  const serverInfo$ = new BehaviorSubject<Awaited<ReturnType<RconSquad['showServerInfo']>>>(
+    initialServerInfo
+  );
   const playersSquadChange$ = new Subject<Player[]>();
 
   // todo idea, behaviorSubject per player ? following actions per eosID ?
   // todo: squad created event (depuis RCON et depuis logs) ?
   // todo: squad change lead event (depuis RCON seulement) ?
   // todo suivre diconnected player pdt un moment ?
-
 
   /**
    * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
@@ -114,12 +115,16 @@ export function useCachedGameStatus({
           // Remove players through logs
 
           // todo track disconnected, and reuse their data if reconnect
-          players$.next(players$.getValue().filter(player => player.eosID !== playerDisconnected.eosID));
+          players$.next(
+            players$.getValue().filter(player => player.eosID !== playerDisconnected.eosID)
+          );
         }),
 
         addPlayer$.subscribe(newPlayer => {
           // If the player already exist (obtained through RCON), merge it.
-          const existingPlayer = players$.getValue().find(player => player.eosID === newPlayer.eosID);
+          const existingPlayer = players$
+            .getValue()
+            .find(player => player.eosID === newPlayer.eosID);
 
           // Emit the updated player list.
           players$.next([
@@ -130,44 +135,40 @@ export function useCachedGameStatus({
 
         // ---- RCON based events ----
 
-        intervalPlayersSquads(
-          config.updateInterval,
-          rconSquad,
-          manualRCONUpdateForTest
-        ).subscribe(({players, squads}) => {
-          const squadChanges = findSquadChanges(players$.getValue(), players);
+        intervalPlayersSquads(config.updateInterval, rconSquad, manualRCONUpdateForTest).subscribe(
+          ({ players, squads }) => {
+            const squadChanges = findSquadChanges(players$.getValue(), players);
 
-          players$.next(
-            players.map(player =>
-              // Find the corresponding player in updatedPlayers, and deep merge it.
-              // If no player is found, ignore, probably a disconnect, log parser will handle this
-              // override with the new player if there is any existing keys.
-              merge(players$.getValue().find(p => p.eosID === player.eosID), player)
-            )
-          );
+            players$.next(
+              players.map(player =>
+                // Find the corresponding player in updatedPlayers, and deep merge it.
+                // If no player is found, ignore, probably a disconnect, log parser will handle this
+                // override with the new player if there is any existing keys.
+                merge(
+                  players$.getValue().find(p => p.eosID === player.eosID),
+                  player
+                )
+              )
+            );
 
-          squads$.next(squads);
+            squads$.next(squads);
 
-          // It is likely expected by plugin dev to be triggered after players and squads have been updated
-          playersSquadChange$.next(squadChanges);
-        }),
+            // It is likely expected by plugin dev to be triggered after players and squads have been updated
+            playersSquadChange$.next(squadChanges);
+          }
+        ),
 
-        intervalServerInfo(
-          config.updateInterval,
-          rconSquad
-        ).subscribe(serverInfo => {
+        intervalServerInfo(config.updateInterval, rconSquad).subscribe(serverInfo => {
           serverInfo$.next(serverInfo);
         }),
 
-        logParser.events.newGame
-          .pipe(exhaustMap(rconSquad.showServerInfo))
-          .subscribe(info => {
-            serverInfo$.next(info);
-          })
+        logParser.events.newGame.pipe(exhaustMap(rconSquad.showServerInfo)).subscribe(info => {
+          serverInfo$.next(info);
+        })
       );
     },
     unwatch: () => {
       sub.forEach(sub => sub.unsubscribe());
-    }
+    },
   };
 }

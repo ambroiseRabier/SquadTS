@@ -8,7 +8,8 @@ const ID_MATCHER = /\s*(?<platform>[^\s:]+)\s*:\s*(?<id>[^\s]+)/g;
  */
 export function extractIDs(idsStr: string) {
   const match = Array.from(idsStr.matchAll(ID_MATCHER));
-  const steamId = match.find(match => match.groups?.platform?.toLowerCase() === 'steam')?.groups?.id;
+  const steamId = match.find(match => match.groups?.platform?.toLowerCase() === 'steam')?.groups
+    ?.id;
   const eosID = match.find(match => match.groups?.platform?.toLowerCase() === 'eos')?.groups?.id;
 
   // Not supposed to happen, right?

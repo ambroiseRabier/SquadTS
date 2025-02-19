@@ -139,7 +139,7 @@ export interface GameServerInfo {
 
   // e.g. "15003"
   BeaconPort_I: string;
-};
+}
 
 export const gameServerInfoKeys: (keyof GameServerInfo)[] = [
   'MaxPlayers',

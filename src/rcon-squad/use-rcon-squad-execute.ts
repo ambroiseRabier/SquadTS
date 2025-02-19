@@ -31,9 +31,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       const match = response.match(/^Current level is (?<level>[^,]*), layer is (?<layer>[^,]*)/);
 
       if (!match) {
-        throw new Error(
-          `Failed to parse response from ShowCurrentMap: ${response}`
-        );
+        throw new Error(`Failed to parse response from ShowCurrentMap: ${response}`);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -101,7 +99,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
             if (matchSide) {
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              side = matchSide.groups! as {teamID: string; teamName: string};
+              side = matchSide.groups! as { teamID: string; teamName: string };
             }
 
             if (!match) {

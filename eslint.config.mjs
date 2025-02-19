@@ -22,7 +22,7 @@ export default tseslint.config(
   {
     rules: {
       // Set to single quote like prettier, ignore usage of double quote when escaping single quote.
-      quotes: ['warn', 'single',  { avoidEscape: true }],
+      quotes: ['warn', 'single', { avoidEscape: true }],
       // Widely used, just make sure
       //'@typescript-eslint/no-non-null-assertion': 'off'
 
@@ -33,7 +33,7 @@ export default tseslint.config(
       // Using `<MyType>{}` is different from `{} as MyType`, so I disagree with this rule.
       // The first one gives you type completion. There is a subtle difference in their meaning that
       // I won't take 20 lines to explain.
-      '@typescript-eslint/consistent-type-assertions': 'off'
+      '@typescript-eslint/consistent-type-assertions': 'off',
     },
   },
   {
@@ -41,8 +41,8 @@ export default tseslint.config(
     // Disable these rules for test files
     rules: {
       // Passing mock around necessitate to ignore typing.
-      '@typescript-eslint/no-explicit-any': 'off'
-    }
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
-  includeIgnoreFile(gitignorePath),
+  includeIgnoreFile(gitignorePath)
 );

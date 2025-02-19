@@ -6,7 +6,6 @@ import { createMockLogger } from '../test-utils';
 import { Logger } from 'pino';
 import { LogReader } from './use-log-reader';
 
-
 describe('Log Parser events', () => {
   let logParser: LogParser;
   let mockedLogReader: {
@@ -58,7 +57,9 @@ describe('Log Parser events', () => {
 
   it('should ignore first incomplete line', () => {
     // any event subscription
-    logParser.events.adminBroadcast.subscribe(() => { /* no-op */ });
+    logParser.events.adminBroadcast.subscribe(() => {
+      /* no-op */
+    });
     // Note if there is any other error, this test will also fail.
     expect(() => {
       // incomplete date, happen at start when we start reading file.

@@ -1,11 +1,9 @@
-
 ## About
 
 SquadTS automatize moderation for Squad servers, it handles RCON and log parsing.
 For your convenience SquadJS comes shipped with multiple plugins.
 
 SquadTS is a modern rewrite of [SquadJS](https://github.com/Team-Silver-Sphere/SquadJS).
-
 
 ## Install and Run
 
@@ -15,7 +13,6 @@ SquadTS is a modern rewrite of [SquadJS](https://github.com/Team-Silver-Sphere/S
 4. Install node dependencies with `npm install`.
 5. Customize the config in `.json5` files inside `config` folder`.
 6. Start SquadTS by running `npm run start`.
-
 
 ## Config folder
 
@@ -37,7 +34,6 @@ export SQUAD_TS_CONFIG_PATH="myserver-config" && npm run start
 
 You may also use an absolute path like: `"/l/PROJECTS_3/WEB/SquadTS/myserver-config"`.
 
-
 ## Server configuration
 
 Everything is detailed in comments (comments starts the line with `//`) insides each `json5` config file.
@@ -50,6 +46,7 @@ If you enable plugins that use discord, make sure you provide a valid login toke
 ## Plugin configuration
 
 There are two properties that will be on every plugin:
+
 - `enabled`: Enable/Disable the plugin by settings this to `true` or `false`
 - `loggerVerbosity`: Choose how verbose the plugin logger will be.
 
@@ -75,8 +72,8 @@ If you have some more knowledge, I recommend these steps:
 3. Clone the project with git.
 4. Use git bash and install node dependencies.
 
-1. `npm i`
-2. `npm run watch`
+5. `npm i`
+6. `npm run watch`
 
 To test on a squad server, you may host yourself (but it will be a hassle):
 
@@ -99,10 +96,11 @@ npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-c
 ## SquadTS vs SquadJS
 
 SquadTS offer several advantages for plugin developers:
+
 - Type safety.
 - Revisited API.
 - RXJS.
-- Tested code*
+- Tested code\*
 - Support unit test and e2e tests for plugins.
 - Rewritten code in functional composition. (no `this`, no `.bind()`)
 - Abstracted complexity
@@ -110,7 +108,7 @@ SquadTS offer several advantages for plugin developers:
 - No more searching for which events exist `'NEW_GAME'`, find them statically with code completion: `server.events.newGame.subscribe(() => {});`
 - Better logging, instead of `this.verbose(1, "message")` (do you know what `1` means here ?) you have `logger.info("message"); logger.warn("message")`.
 
-*this both help understanding how SquadTS work, help you write modular change, help you test code without going live with the server, and make it harder to break.
+\*this both help understanding how SquadTS work, help you write modular change, help you test code without going live with the server, and make it harder to break.
 
 No more `if` to check if options have been provided since config is validated ahead. And typing actually tells you which fields will be present:
 
@@ -134,11 +132,15 @@ server.events.teamKill.subscribe(async info => {
   // Guaranteed info.attacker and options.attackerMessage
   await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
   // Guaranteed info.victim and options.victimMessage
-  await server.rcon.warn(info.victim.eosID, options.victimMessage.replace('%attacker%', attackerName));
+  await server.rcon.warn(
+    info.victim.eosID,
+    options.victimMessage.replace('%attacker%', attackerName)
+  );
 });
 ```
 
 For everyone:
+
 - SquadTS configs are separated in multiple files for increased readability.
 - Plugins configs are separated in multiple files for increased readability.
 - SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
@@ -154,18 +156,20 @@ For everyone:
 
 This makes it easier to develop and maintain plugins.
 
-Cons: 
+Cons:
+
 - Less live tested because it is new.
 - SquadJS plugins are incompatible and need to be rewritten. Many have been rewritten partially or totally in
-plugins folder.
+  plugins folder.
 - Likely some missing feature, if there is anything you use and might be useful for others too, feel free to make a feature request.
 
-
 ## Statement on accuracy
-Some logs do not provide eosID but only the `name`/`nameWithClanTag` of the player, SquadTS will try to find the corresponding player, 
+
+Some logs do not provide eosID but only the `name`/`nameWithClanTag` of the player, SquadTS will try to find the corresponding player,
 but may fail for reasons explained bellow:
 
 ### RCON update interval
+
 SquadTS retrieve the list of player with RCON, and also listen to logs that indicate a new player joined.
 Only RCON `"ListPlayers"` provide the `nameWithClanTag`, and some logs only provide `nameWithClanTag`.
 If the player has not been obtained through RCON, logs with only `nameWithClanTag` will fail to find the player.
@@ -174,24 +178,20 @@ of 5 seconds.
 This should be low enough to avoid having any logs without player.
 
 ### Duplicate player names
+
 If there are two players with the same name, we cannot uniquely identify the player.
 
 ### Logs without player
+
 Logs without fully identified player are rare, annoying to type, and make plugin development more complex.
 So the decision has been made to not emit them, when the player is absent from the log data.
 
 If you happen to really need those rare logs, you will need direct access to `logParser`,
 I invite you to share your reasons in a feature request.
 
-
 ## License
 
 As this is derived work from SquadJS, the license is the same: (Read License)[./LICENSE]
-
-
-
-
-
 
 ## Cela je vais pas faire, mais pas sur que je vais mettre ds readme final
 
@@ -203,13 +203,10 @@ cannot or will not be rewritten by me, too hard, I need to reproduce the exact s
 with all its quirks, to keep backward compatibility, no thanks. Much easier to rewrite for most plugins.
 And since SquadJS is not typed, I first need to find the exact type of data that is send by SquadJS....
 
-
 ## IDea
 
 bot kill count plugin (devra utiliser probablement logParser et non
 cached-game-status ! car victim nullptr), pr aider à l'attente..
-
-
 
 ## Aussi intéressant:
 
@@ -586,3 +583,12 @@ je suis certain que list player est set avant ?
       ),
 
 avec le refactor use game status oui
+
+---
+
+prettier auto ?
+
+`match.groups ?? {} as ObjectFromRegexStr<typeof regex>`
+is prettified to `match.groups ?? ({} as ObjectFromRegexStr<typeof regex>)`
+which is wrong, correct is `(match.groups ?? {}) as ObjectFromRegexStr<typeof regex>`
+avec les merge request cela devrait être ok...

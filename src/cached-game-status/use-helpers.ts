@@ -2,7 +2,6 @@ import { Player, Squad } from './use-cached-game-status';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { usePlayerGet } from './use-player-get';
 
-
 interface Props {
   players: () => Player[];
   squads: () => Squad[];
@@ -38,12 +37,9 @@ export function isUnassigned(player: Player): player is UnassignedPlayer {
   return !!player.squadID; // or squad, both are updated at the same time.
 }
 
-
 export function useHelpers(p: Props) {
   const playerGet = usePlayerGet(p.players);
-  const {
-    getPlayerByEOSID,
-  } = playerGet;
+  const { getPlayerByEOSID } = playerGet;
 
   function getSquad(teamID: string, squadID: string) {
     // Guard against plugin dev mistakes
@@ -71,8 +67,7 @@ export function useHelpers(p: Props) {
       throw new Error('Provided teamID is nullish');
     }
 
-    return p.players()
-      .filter(player => player.squadID === squadID && player.teamID === teamID);
+    return p.players().filter(player => player.squadID === squadID && player.teamID === teamID);
   }
 
   function getPlayerSquad(eosID: string) {
@@ -89,9 +84,7 @@ export function useHelpers(p: Props) {
   }
 
   function getTeamName(teamID: '1' | '2') {
-    return teamID === '1'
-      ? p.serverInfo().teamOne
-      : p.serverInfo().teamTwo;
+    return teamID === '1' ? p.serverInfo().teamOne : p.serverInfo().teamTwo;
   }
 
   return {
@@ -102,6 +95,5 @@ export function useHelpers(p: Props) {
     getPlayersInSquad,
     getTeamName,
     ...playerGet,
-  }
-
+  };
 }

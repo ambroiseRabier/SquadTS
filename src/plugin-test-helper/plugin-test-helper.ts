@@ -9,7 +9,6 @@ import { DeepPartial } from '../utils';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 
-
 interface Props {
   executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
   optionsOverride?: DeepPartial<Options>;
@@ -29,9 +28,15 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
 
   const mockLogReader: LogReader = {
     line$: new Subject<string>(),
-    connect: async () => { /* no-op */ },
-    watch: async () => { /* no-op */ },
-    unwatch: async () => { /* no-op */ },
+    connect: async () => {
+      /* no-op */
+    },
+    watch: async () => {
+      /* no-op */
+    },
+    unwatch: async () => {
+      /* no-op */
+    },
   };
 
   // Since it is a class, TS complain even though all public properties are present.

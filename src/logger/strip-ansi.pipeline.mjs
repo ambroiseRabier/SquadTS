@@ -29,7 +29,9 @@ export default async function (options) {
         },
       });
       // Use no-op instead of stdout.
-      pipeline(source, myTransportStream, () => {/* no-op */});
+      pipeline(source, myTransportStream, () => {
+        /* no-op */
+      });
       return myTransportStream;
     },
     {

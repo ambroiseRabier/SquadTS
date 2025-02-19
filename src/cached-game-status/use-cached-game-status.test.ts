@@ -9,7 +9,6 @@ import { DeepPartial, ObservableValue } from '../utils';
 import { createMockLogger } from '../test-utils';
 import { UnassignedPlayer } from './use-helpers';
 
-
 // ---- team 1 ----
 // We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
 const playerYuca: Required<UnassignedPlayer> = {

@@ -58,7 +58,7 @@ export function usePluginLoader(
 
       if (missingConfigPairs.length > 0) {
         logger.error(
-           'Missing config files have been created, PLEASE CHECK THEM BEFORE restarting SquadTS to enabled theses plugins without any errors.'
+          'Missing config files have been created, PLEASE CHECK THEM BEFORE restarting SquadTS to enabled theses plugins without any errors.'
         );
       }
 

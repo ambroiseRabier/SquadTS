@@ -1,4 +1,4 @@
-import {vi} from 'vitest';
+import { vi } from 'vitest';
 
 /**
  * If anything is missing (e.g trace), it will silently fail, also having logs helps debug tests (mockImplementation...).

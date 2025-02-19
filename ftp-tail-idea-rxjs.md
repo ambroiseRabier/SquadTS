@@ -1,5 +1,3 @@
-
-
 ```ts
 import { Subject, timer, from, Observable } from 'rxjs';
 import { exhaustMap, repeat } from 'rxjs/operators';
@@ -33,7 +31,7 @@ export function intervalPlayersSquads(
   return (manualRCONUpdateForTest ?? new Subject<void>()).pipe(
     switchMap(() => {
       // Use a recursive function to trigger dynamically adjusted intervals
-      return new Observable<void>((subscriber) => {
+      return new Observable<void>(subscriber => {
         const triggerNext = async () => {
           try {
             const startTime = Date.now();
@@ -53,4 +51,3 @@ export function intervalPlayersSquads(
 ```
 
 plutot que des promises, lequel est plus lisible ? puis gestion des erreurs aussi.
-

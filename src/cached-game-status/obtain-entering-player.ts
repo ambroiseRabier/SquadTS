@@ -83,14 +83,14 @@ export function obtainEnteringPlayer(
     // Merging into one player
     map(
       ({
-         loginRequest,
-         playerConnected,
-         // Make it visible it is unused. And that map use the output of 5 events.
-         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-         playerJoinSucceeded,
-         playerAddedToTeam,
-         playerInitialized,
-       }) => {
+        loginRequest,
+        playerConnected,
+        // Make it visible it is unused. And that map use the output of 5 events.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        playerJoinSucceeded,
+        playerAddedToTeam,
+        playerInitialized,
+      }) => {
         // I believe there is a possibility for multiple subscribe to be called for the same player if
         // playerConnected or playerJoinSucceeded were cancelled. And player rejoined successfully before timeout.
         // Thanksfully the code bellow can be run multiple time and will give the same result.
@@ -113,7 +113,7 @@ export function obtainEnteringPlayer(
           squad: undefined,
         };
       }
-    ),
+    )
   );
 
   return addPlayer$;

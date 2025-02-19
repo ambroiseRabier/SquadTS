@@ -9,8 +9,6 @@ import { AdminPerms } from '../../src/admin-list/permissions';
 import { ObservableValue } from '../../src/utils';
 import { createMockLogger } from '../../src/test-utils';
 
-
-
 // todo: maybe make a helpers to mock the server ?
 // jest.mock('../../src/squad-server', () => {
 //   // Input data comes from chatEvents.command

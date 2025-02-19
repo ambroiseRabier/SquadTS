@@ -17,11 +17,10 @@ interface Props {
  */
 export type RefinedChatEvents = ReturnType<typeof useRefinedChatEvents>;
 
-export function useRefinedChatEvents({rconSquad, cachedGameStatus}: Props) {
-  const {
-    tryGetPlayerByNameWithClanTag,
-    getPlayerByEOSID,
-  } = usePlayerGet(() => cachedGameStatus.players$.getValue());
+export function useRefinedChatEvents({ rconSquad, cachedGameStatus }: Props) {
+  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID } = usePlayerGet(() =>
+    cachedGameStatus.players$.getValue()
+  );
 
   return {
     ...rconSquad.chatEvents,
