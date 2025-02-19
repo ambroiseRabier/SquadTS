@@ -13,7 +13,7 @@ export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 interface Props {
   executeFn: <T extends string>(command: IncludesRCONCommand<T>) => Promise<string>;
   optionsOverride?: DeepPartial<Options>;
-  pluginOptionOverride?: Record<string, any>;
+  pluginOptionOverride?: Record<string, unknown>;
 }
 
 /**

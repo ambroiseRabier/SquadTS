@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { LogParser } from '../log-parser/use-log-parser';
 import { filter, map } from 'rxjs';
 import { merge, omit } from 'lodash-es';

@@ -47,9 +47,10 @@ export function usePluginLoader(
           const json5Commented = generateJson5Commented(pair.configSchema.default);
           writeFileSync(pair.configJSON5FilePath, json5Commented, 'utf8');
           logger.info(`Creating config file: ${pair.configJSON5FilePath}`);
+          // eslint-disable-next-line
         } catch (e: any) {
           logger.error(
-            `Failed to create config file: ${pair.configJSON5FilePath}. Please create it yourself. Error: ${e.message}`,
+            `Failed to create config file: ${pair.configJSON5FilePath}. Please create it yourself. Error: ${e?.message}`,
             e
           );
         }
@@ -85,8 +86,9 @@ export function usePluginLoader(
         if (!pluginOptionOverride) {
           try {
             json5 = await loadJSON5(pair.configJSON5FilePath);
+            // eslint-disable-next-line
           } catch (e: any) {
-            logger.error(`Invalid JSON5 file, unabled to parse. ${e.message}`, e);
+            logger.error(`Invalid JSON5 file, unabled to parse. ${e?.message}`, e);
             logger.warn(
               `Skipping ${pair.name} plugin. Please make sure you have a valid JSON5 file (consider using IDE like VSCode or Webstorm to edit these files)`
             );
@@ -225,6 +227,7 @@ async function loadPlugins(logger: Logger) {
   const pluginPairs: {
     name: string;
     plugin: { default: SquadTSPlugin<PluginBaseOptions> };
+    // eslint-disable-next-line
     configSchema: { default: ZodObject<any> };
     configJSON5FileName: string;
     configJSON5FilePath: string;
@@ -268,6 +271,7 @@ async function loadPlugins(logger: Logger) {
       // plugin = require(pluginPath); // .replace(/\\/g, '/')
       // plugin = await import(pluginPath);
       plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
+      // eslint-disable-next-line
     } catch (e: any) {
       logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
       continue;
@@ -285,9 +289,10 @@ async function loadPlugins(logger: Logger) {
         pathToFileURL(configSchemaPath).href,
         fileURLToPath(import.meta.url)
       );
+      // eslint-disable-next-line
     } catch (e: any) {
       logger.error(
-        `Failed to import plugin files: ${configSchemaFileName}. Error: ${e.message}`,
+        `Failed to import plugin files: ${configSchemaFileName}. Error: ${e?.message}`,
         e
       );
       continue;

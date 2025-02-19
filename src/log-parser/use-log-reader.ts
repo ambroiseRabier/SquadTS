@@ -65,6 +65,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
         tailLastBytes: options.ftp.initialTailSize,
       });
     default:
-      throw new Error(`Invalid mode: ${(options as any).mode}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      throw new Error(`Invalid mode: ${(options as any)?.mode}`);
   }
 }

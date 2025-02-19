@@ -96,6 +96,7 @@ export function useLogParser(
     // Filter out non matching line, having a tuple make things less visible, but we are just checking `obj` from above
     // filter((tuple): tuple is [NonNullable<typeof tuple[0]>, typeof tuple[1]] => !!tuple[0]),
     filter((obj): obj is NonNullable<typeof obj> => !!obj),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     tap(([eventName, lineObj, metadata]) => {
       const keys1 = Object.keys(lineObj ?? {}); // roundEnded has no groups.
       const keys2 = Object.keys(metadata);

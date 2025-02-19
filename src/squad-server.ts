@@ -31,7 +31,7 @@ export function useSquadServer({
   refinedLogEvents,
   refinedChatEvents,
 }: Props) {
-  const { admins, fetch: fetchAdmins, getAdminsWithPermissions } = adminList;
+  const { admins, getAdminsWithPermissions } = adminList;
   const helpers = useHelpers({
     squads: () => cachedGameStatus.squads$.getValue(),
     players: () => cachedGameStatus.players$.getValue(),

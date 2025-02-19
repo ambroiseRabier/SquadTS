@@ -72,13 +72,13 @@ export async function retrieveGithubInfo(savingFolder: string, logger: Logger) {
     const layerInfo = (await loadURL(LAYER_FINISHED_JSON)) as Layer;
     try {
       GithubWiki.Convert.validate(layerInfo);
-    } catch (e) {
-      const err = e as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
       logger.error(
         `JSON ${LAYER_FINISHED_JSON.url} is valid JSON but expected type is different, this may have no impact or break some plugins.` +
           'Likely a SQUAD update ! An update on SquadTS will soon be available to fix this.'
       );
-      logger.error(err?.message || err);
+      logger.error(e?.message || e);
       // Even if it fails, we continue with the data we have, as it may not impact plugins at all.
     }
 
@@ -89,13 +89,13 @@ export async function retrieveGithubInfo(savingFolder: string, logger: Logger) {
     const weaponInfo = (await loadURL(WEAPON_INFO_JSON)) as Record<string, WeaponInfo>;
     try {
       GithubWikiWeapon.Convert.validate(weaponInfo);
-    } catch (e) {
-      const err = e as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
       logger.error(
         `JSON ${WEAPON_INFO_JSON.url} is valid JSON but expected type is different, this may have no impact or break some plugins.` +
           'Likely a SQUAD update ! An update on SquadTS will soon be available to fix this.'
       );
-      logger.error(err?.message || err);
+      logger.error(e?.message ?? e);
       // Even if it fails, we continue with the data we have, as it may not impact plugins at all.
     }
 

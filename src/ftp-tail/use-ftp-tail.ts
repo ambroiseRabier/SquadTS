@@ -33,6 +33,7 @@ type Props = {
 function useClient(options: Props) {
   let client: Client;
   // quick fix for lib typing being incorrect.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let sftpClient: SFTPClient & { sftp: any };
 
   return {
@@ -197,6 +198,7 @@ export function useFtpTail(logger: Logger, options: Props) {
       12,
       logger,
       () => stopSignal,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (error: any) => error?.message.toLowerCase().includes('timeout')
     );
     logger.debug('Downloading file...');
@@ -205,6 +207,7 @@ export function useFtpTail(logger: Logger, options: Props) {
       12,
       logger,
       () => stopSignal,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (error: any) => error?.message.toLowerCase().includes('timeout')
     );
     // Don't process the file again if it hasn't changed, or you get duplicated logs.

@@ -3,6 +3,7 @@ import { pipeline, Transform } from 'node:stream';
 import stripAnsi from 'strip-ansi';
 
 // See https://github.com/pinojs/pino/blob/main/docs/transports.md#creating-a-transport-pipeline
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function (options) {
   return build(
     function (source) {
@@ -27,7 +28,8 @@ export default async function (options) {
           cb();
         },
       });
-      pipeline(source, myTransportStream, () => {});
+      // Use no-op instead of stdout.
+      pipeline(source, myTransportStream, () => {/* no-op */});
       return myTransportStream;
     },
     {

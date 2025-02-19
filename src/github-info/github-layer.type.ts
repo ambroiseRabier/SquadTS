@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/consistent-indexed-object-style */
 // Namespace to correctly isolate stuff from Wiki with the rest of SquadTS.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GithubWiki {
   // From https://raw.githubusercontent.com/Squad-Wiki/squad-wiki-pipeline-map-data/master/completed_output/_Current%20Version/finished.json
   // How to generate: npx quicktype -l ts -s json tmp/finished.json > tmp/type.ts

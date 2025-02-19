@@ -52,6 +52,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
             logger.error('Received admin.cfg is empty!');
             continue;
           }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           logger.error(`Failed to fetch ${url}. Error: ${error?.message}`, error);
           continue;
@@ -63,6 +64,7 @@ export function useAdminList(logger: Logger, options: AdminListConfig) {
           continue;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const [key, value] of admins) {
           if (parsed.has(key)) {
             logger.warn(`${key} is already in admin list. Overriding with new permissions.`);

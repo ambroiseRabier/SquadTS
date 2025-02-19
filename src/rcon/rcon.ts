@@ -26,7 +26,7 @@ const END_PACKET_ID = 0x02;
 const MAXIMUM_PACKET_SIZE = 4096;
 
 export class Rcon {
-  public readonly chatPacketEvent: Subject<string> = new Subject();
+  public readonly chatPacketEvent = new Subject<string>();
 
   private client: net.Socket;
   private incomingData: Buffer<ArrayBuffer> = Buffer.from([]);
@@ -89,7 +89,7 @@ export class Rcon {
     }
   }
 
-  private onError(err: any) {
+  private onError(err: unknown) {
     this.logger.error(`Socket error: ${err}`);
     // todo: emit ou pas.
     // this.emit('RCON_ERROR', err);
@@ -234,7 +234,7 @@ export class Rcon {
         }
       };
 
-      const onError = (err: any) => {
+      const onError = (err: unknown) => {
         this.client.removeListener('connect', onConnect);
 
         this.logger.error(`Failed to connect to ${this.options.host}:${this.options.port}`, err);
@@ -265,7 +265,7 @@ export class Rcon {
         resolve();
       };
 
-      const onError = (err: any) => {
+      const onError = (err: unknown) => {
         this.client.removeListener('close', onClose);
 
         this.logger.error(
@@ -309,7 +309,7 @@ export class Rcon {
         return;
       }
 
-      const onError = (err: any) => {
+      const onError = (err: unknown) => {
         this.logger.error('Error occurred. Wiping response action queue.', err);
         this.responseCallbackQueue = [];
         reject(err);
@@ -327,7 +327,7 @@ export class Rcon {
           this.logger.error('decodePacket is an ERROR, unknown how to handle', decodedPacket);
         }
         // force for TS, we'll ignore for now as this code currently work
-        decodedPacket = decodedPacket as any as Packet;
+        decodedPacket = decodedPacket as unknown as Packet;
 
         // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
         // "If auth failed, -1"
@@ -389,7 +389,7 @@ export class Rcon {
         return;
       }
 
-      const onError = (err: any) => {
+      const onError = (err: unknown) => {
         this.logger.error('Error occurred. Wiping response action queue.', err);
         this.responseCallbackQueue = [];
         reject(err);
@@ -480,8 +480,14 @@ function encodePacket(
 }
 
 function bufToHexString(buf: Buffer<ArrayBuffer>) {
-  // Note: I dunno if/how buf.toString('hex').match(/../g) === null should be handled.
-  return buf.toString('hex').match(/../g)!.join(' ');
+  const match = buf.toString('hex').match(/../g);
+
+  // Probably never happen ? But I can't assert that.
+  if (!match) {
+    throw new Error('bufToHexString: match is null');
+  }
+
+  return match.join(' ');
 }
 
 function decodedPacketToString(decodedPacket: Packet) {

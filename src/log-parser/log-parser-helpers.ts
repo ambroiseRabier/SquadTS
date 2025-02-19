@@ -12,9 +12,7 @@ type ExtractGroupNames<T extends string> =
 /**
  * Ex: "<?name>.<?ext>" will give `{ name: string; ext: string; }`
  */
-export type ObjectFromRegexStr<T extends string> = {
-  [K in ExtractGroupNames<T>]: string;
-};
+export type ObjectFromRegexStr<T extends string> = Record<ExtractGroupNames<T>, string>;
 
 export function matchWithRegex<T extends string>(
   body: string,
