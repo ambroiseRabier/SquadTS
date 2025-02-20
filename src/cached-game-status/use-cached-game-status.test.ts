@@ -1,14 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CachedGameStatus, Player, Squad, useCachedGameStatus } from './use-cached-game-status';
 import { of } from 'rxjs';
-import { Logger } from 'pino';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit } from 'lodash-es';
 import { DeepPartial } from '../utils';
-import { createMockLogger, wait } from '../test-utils';
-import { UnassignedPlayer, useHelpers } from './use-helpers';
+import { wait } from '../test-utils';
+import { UnassignedPlayer } from './use-helpers';
 
-// ---- team 1 ----
 // We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.
 const playerYuca: Required<UnassignedPlayer> = {
   controller: 'controller0',
@@ -20,20 +18,6 @@ const playerYuca: Required<UnassignedPlayer> = {
   nameWithClanTag: '-TWS- Yuca',
   steamID: 'steamYuca',
   teamID: '1',
-  role: 'WPMC_Engineer_01', // invented
-};
-
-// ---- team 2 ----
-const playerPika: Required<UnassignedPlayer> = {
-  controller: 'controller0',
-  eosID: 'eosPika',
-  id: '0', // if on another team, the id can be the same, it is called id by squad but work more like an index.
-  ip: 'ipPika',
-  isLeader: false,
-  name: 'Pika',
-  nameWithClanTag: '-TWS- Pika',
-  steamID: 'steamPika',
-  teamID: '2',
   role: 'WPMC_Engineer_01', // invented
 };
 
@@ -70,28 +54,6 @@ function mockRconSquad(override: DeepPartial<RconSquad>): RconSquad {
 }
 
 describe('use-cached-game-status', () => {
-  // todo idea: faire un gameStatus et cachedGameStatus ? euh non ?
-
-  let mockLogger: Logger;
-  let helpers: ReturnType<typeof useHelpers>;
-
-  const logParserConfig = {
-    logFile: 'mock.log',
-    ftp: {
-      host: 'localhost',
-      port: 21,
-      username: 'user',
-      password: 'pass',
-      fetchInterval: 300,
-      initialTailSize: 1024,
-    },
-    mode: 'ftp',
-  } as const;
-
-  beforeAll(() => {
-    mockLogger = createMockLogger() as any;
-  });
-
   beforeEach(async () => {
     // Clear previous mock calls and implementations
     vi.clearAllMocks();
@@ -112,7 +74,7 @@ describe('use-cached-game-status', () => {
         events: {
           playerDisconnected: of(),
           newGame: of(),
-        }
+        },
       } as any,
       addPlayer$: of(logObtainedPlayerYuca),
       config: {
@@ -143,7 +105,7 @@ describe('use-cached-game-status', () => {
         events: {
           playerDisconnected: of(),
           newGame: of(),
-        }
+        },
       } as any,
       addPlayer$: of(),
       config: {
@@ -183,16 +145,19 @@ describe('use-cached-game-status', () => {
       initialServerInfo: {} as any,
       rconSquad: mockRconSquad({
         getSquads: () => Promise.resolve<Squad[]>([squad]),
-        getListPlayers: () => Promise.resolve<Player[]>([{
-          ...playerYuca,
-          squadID: '2'
-        }]),
+        getListPlayers: () =>
+          Promise.resolve<Player[]>([
+            {
+              ...playerYuca,
+              squadID: '2',
+            },
+          ]),
       }),
       logParser: {
         events: {
           playerDisconnected: of(),
           newGame: of(),
-        }
+        },
       } as any,
       addPlayer$: of(),
       config: {
@@ -216,6 +181,4 @@ describe('use-cached-game-status', () => {
       squad,
     });
   });
-
-
 });

@@ -265,7 +265,9 @@ heli crash suicide pas appelé, et pb de logs dupliqué...
 
 ---
 
+```
 [22:15:22.865] WARN: [LogParser] No match on line: [2025.02.12-21.13.34:523][360]LogSquad: Warning: Suicide -TWS- Yuca
+```
 
 should also handle suicide by "Respawn" I suppose, better than watching playerWounded !
 

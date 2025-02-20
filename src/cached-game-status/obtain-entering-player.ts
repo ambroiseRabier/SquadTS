@@ -15,7 +15,7 @@ export function obtainEnteringPlayer(
   const chainTimeout =
     60 * 1000 + (logParserConfig.mode !== 'tail' ? logParserConfig.ftp.fetchInterval * 1000 : 0);
 
-  const addPlayer$ = events.loginRequest.pipe(
+  return events.loginRequest.pipe(
     // Wait for matching playerConnected, for every login request, start an independent chain (concatMap)
     concatMap(loginRequest =>
       events.playerConnected.pipe(
@@ -119,6 +119,4 @@ export function obtainEnteringPlayer(
       }
     )
   );
-
-  return addPlayer$;
 }

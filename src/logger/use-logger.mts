@@ -123,72 +123,40 @@ export function useLogger() {
 }
 
 export function useSubLogger(logger: Logger, verboseness: Options['logger']['verboseness']) {
-  /* prettier-ignore-start */
   // More readable with less line breaks.
+  // prettier-ignore
   return {
-    squadServerLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.yellowBright('[SquadServer] '),
-        level: verboseness.SquadServer,
-      }
-    ),
-    rconLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.cyanBright('[RCON] '),
-        level: verboseness.RCON,
-      }
-    ),
-    logParserLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.blueBright('[LogParser] '),
-        level: verboseness.LogParser,
-      }
-    ),
-    rconSquadLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.blue('[RCONSquad] '),
-        level: verboseness.RCONSquad,
-      }
-    ),
-    cachedGameStatusLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.greenBright('[CachedGameStatus] '),
-        level: verboseness.CachedGameStatus,
-      }
-    ),
-    pluginLoaderLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.magenta('[PluginLoader] '),
-        level: verboseness.PluginLoader,
-      }
-    ),
-    adminListLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.greenBright('[AdminList] '),
-        level: verboseness.AdminList,
-      }
-    ),
-    logReaderLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.green('[LogReader] '),
-        level: verboseness.LogReader,
-      }
-    ),
-    githubInfoLogger: logger.child(
-      {},
-      {
-        msgPrefix: chalk.magentaBright('[GithubInfo] '),
-        level: verboseness.GithubInfo,
-      }
-    ),
+    squadServerLogger: logger.child({}, {
+      msgPrefix: chalk.yellowBright('[SquadServer] '),
+      level: verboseness.SquadServer,
+    }),
+    rconLogger: logger.child({}, {
+      msgPrefix: chalk.cyanBright('[RCON] '),
+      level: verboseness.RCON,
+    }),
+    logParserLogger: logger.child({}, {
+      msgPrefix: chalk.blueBright('[LogParser] '),
+      level: verboseness.LogParser,
+    }),
+    rconSquadLogger: logger.child({}, {
+      msgPrefix: chalk.blue('[RCONSquad] '),
+      level: verboseness.RCONSquad,
+    }),
+    pluginLoaderLogger: logger.child({}, {
+      msgPrefix: chalk.magenta('[PluginLoader] '),
+      level: verboseness.PluginLoader,
+    }),
+    adminListLogger: logger.child({}, {
+      msgPrefix: chalk.greenBright('[AdminList] '),
+      level: verboseness.AdminList,
+    }),
+    logReaderLogger: logger.child({}, {
+      msgPrefix: chalk.green('[LogReader] '),
+      level: verboseness.LogReader,
+    }),
+    githubInfoLogger: logger.child({}, {
+      msgPrefix: chalk.magentaBright('[GithubInfo] '),
+      level: verboseness.GithubInfo,
+    }),
   };
-  /* prettier-ignore-end */
 }

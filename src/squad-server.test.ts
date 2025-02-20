@@ -4,10 +4,10 @@ import { it } from 'vitest';
 // This test is a bit special.
 // We are just making sure fields are available to plugins developer.
 // TS should not transpile if there is anything wrong, but once TS is fixed this test should always pass.
-// noinspection JSUnusedLocalSymbols
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function toBeNeverCalled(server: SquadServer) {
-  // eslint-disable-line @typescript-eslint/no-unused-vars
+  // noinspection JSUnusedLocalSymbols
   server.chatEvents.message.subscribe(() => {
     /* no-op */
   });
@@ -19,7 +19,9 @@ async function toBeNeverCalled(server: SquadServer) {
     broad.message.charAt(0); // is string...
   });
 
-  server.players.forEach(() => {/* no-op */})
+  server.players.forEach(() => {
+    /* no-op */
+  });
   console.log(server.info.teamOne);
 }
 

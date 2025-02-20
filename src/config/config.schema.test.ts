@@ -17,7 +17,6 @@ describe('parseConfig', () => {
           LogParser: 'info',
           RCON: 'info',
           SquadServer: 'info',
-          CachedGameStatus: 'info',
           PluginLoader: 'info',
           RCONSquad: 'info',
           AdminList: 'info',

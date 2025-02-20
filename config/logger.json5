@@ -8,7 +8,6 @@
     // You may use debugCondenseLogs in rcon config to reduce verboseness of some responses.
     RCON: 'info',
     RCONSquad: 'info',
-    CachedGameStatus: 'info',
     PluginLoader: 'info',
     AdminList: 'info',
     // Will also be used for FTP/SFTP debug logs if enabled.

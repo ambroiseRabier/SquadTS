@@ -1,6 +1,6 @@
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { exhaustMap, from, interval, Subject } from 'rxjs';
+import { exhaustMap, interval, Subject } from 'rxjs';
 
 export function intervalPlayersSquads(
   updateInterval: CachedGameStatusOptions['updateInterval'],

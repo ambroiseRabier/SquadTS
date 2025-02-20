@@ -43,7 +43,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       logger.warn('getNextMap is not implemented, use showNextMap instead');
       const response = await execute('ShowNextMap');
       // In map vote this is what I get, but can't tell for the rest...
-      const match = response.match(/^Next map is not defined/);
+      // const match = response.match(/^Next map is not defined/);
       return response;
       // const match = response.match(/^Next level is ([^,]*), layer is ([^,]*)/);
       // return {
@@ -183,7 +183,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     },
 
     demoteCommander: async (anyID: string) => {
-      await dryRunExecute(`AdminDemoteCommander ${anyID}`)
+      await dryRunExecute(`AdminDemoteCommander ${anyID}`);
     },
 
     // Don't remember exactly which one, but some change are taken in account only

@@ -19,7 +19,6 @@ export const loggerOptionsSchema = z.object({
             'You may use debugCondenseLogs in rcon config to reduce verboseness of some responses.'
         ),
       RCONSquad: pinoLevelSchema.default('info'),
-      CachedGameStatus: pinoLevelSchema.default('info'),
       PluginLoader: pinoLevelSchema.default('info'),
       AdminList: pinoLevelSchema.default('info'),
       LogReader: pinoLevelSchema
