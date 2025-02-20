@@ -1,11 +1,15 @@
 # Check typing, as tsx does not check typing.
+echo "--------- Checking Typescript ---------"
 npx tsc --noEmit --project tsconfig.test-included.json
 
 # Eslint and prettier
+echo "--------- Prettier and eslint ---------"
 npx lint-staged --config lint-staged.config.js
 
 # Generate config, making sure it is up-to-date
-npm run generate-config
+echo "--------- Generating server and plugin config ---------"
+npm run generate-config --force
 
 # Run tests
+echo "--------- Unit and e2e tests ---------"
 npm test

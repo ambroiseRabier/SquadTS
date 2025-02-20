@@ -1,4 +1,3 @@
-
 ## Cela je vais pas faire, mais pas sur que je vais mettre ds readme final
 
 some plugin like
@@ -393,3 +392,11 @@ roll 0-100 plugin
 ---
 
 faire admin vote ?
+
+---
+
+refine autant d'events que possible
+
+---
+
+faire une liste d'events dispo depuis la page principale. pr donner envie.

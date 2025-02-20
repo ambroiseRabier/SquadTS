@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "generate-config": "tsx scripts/generate-config.mts",
     "prettier": "node --experimental-strip-types node_modules/prettier/bin/prettier.cjs . --write",
-    "prepare": "husky"
+    "prepare": "husky",
+    "typecheck": "npx tsc --noEmit --project tsconfig.test-included.json"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5",

@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { BehaviorSubject, of } from 'rxjs';
 import { LogParser } from '../log-parser/use-log-parser';
 import { CachedGameStatus } from './use-cached-game-status';
-import { merge, omit } from 'lodash-es';
 import { useRefinedLogEvents } from './use-refined-log-events';
 import { UnassignedPlayer } from './use-helpers';
 import { ObservableValue } from '../utils';
@@ -66,7 +65,11 @@ describe('UseRefinedLogEvents - playerWounded', () => {
     } as LogParser;
 
     const cachedGameStatus = {
-      players$: new BehaviorSubject([playerYuca, merge(playerPika, { nameWithClanTag: playerYuca.nameWithClanTag })]),
+      // Do not use lodash merge as it modify original object !
+      players$: new BehaviorSubject([playerYuca, {
+        ...playerPika,
+        nameWithClanTag: playerYuca.nameWithClanTag,
+      }]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -97,6 +100,7 @@ describe('UseRefinedLogEvents - playerWounded', () => {
 
     const mockSub = vi.fn();
     refined.playerWounded.subscribe(mockSub)
+    expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
       attacker: playerYuca,
@@ -107,7 +111,7 @@ describe('UseRefinedLogEvents - playerWounded', () => {
       date: expect.any(Date),
     });
   });
-})
+});
 
 describe('UseRefinedLogEvents - playerDied', () => {
   const playerDiedEvent: ObservableValue<LogParser['events']['playerDied']> = {
@@ -135,7 +139,10 @@ describe('UseRefinedLogEvents - playerDied', () => {
       }
     } as LogParser;
     const cachedGameStatus = {
-      players$: new BehaviorSubject([playerYuca, merge(playerPika, { nameWithClanTag: playerYuca.nameWithClanTag })]),
+      players$: new BehaviorSubject([playerYuca, {
+        ...playerPika,
+        nameWithClanTag: playerYuca.nameWithClanTag
+      }]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -166,6 +173,7 @@ describe('UseRefinedLogEvents - playerDied', () => {
 
     const mockSub = vi.fn();
     refined.playerDied.subscribe(mockSub)
+    expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
       attacker: playerYuca,
@@ -191,7 +199,7 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
     weapon: 'BP_Mortarround4',
   };
 
-  it('deployableDamaged is not called if duplicated player name', () => {
+  it('deployableDamaged is CALLED if duplicated player name', () => {
     const logParser = {
       events: {
         deployableDamaged: of(deployableDamagedEvent),
@@ -201,7 +209,10 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
       }
     } as LogParser;
     const cachedGameStatus = {
-      players$: new BehaviorSubject([playerYuca, merge(playerPika, { name: playerYuca.name })]),
+      players$: new BehaviorSubject([playerYuca, {
+        ...playerPika,
+        name: playerYuca.name
+      }]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -210,7 +221,9 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
 
     const mockSub = vi.fn();
     refined.deployableDamaged.subscribe(mockSub)
-    expect(mockSub).not.toHaveBeenCalled();
+    // Yes, to have been called, since we have a fancy tryGetByName function that is able to resolve
+    // player in some cases. And this is one of those case :).
+    expect(mockSub).toHaveBeenCalled();
   });
 
   it('deployableDamaged get augmented', () => {
@@ -232,6 +245,7 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
 
     const mockSub = vi.fn();
     refined.deployableDamaged.subscribe(mockSub)
+    expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
       chainID: '461',

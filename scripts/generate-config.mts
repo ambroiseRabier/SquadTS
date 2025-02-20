@@ -96,7 +96,7 @@ async function savePluginFiles() {
     return fs.statSync(itemPath).isDirectory();
   });
 
-  if (fs.readdirSync(configPluginsFolder).length > 0) {
+  if (fs.readdirSync(configPluginsFolder).length > 0 && !FORCE_OVERRIDE) {
     const emphasizedMessage = `Plugins config folder is not empty, proceed and ${chalk.red.bold('override all files')} with defaults ? Type ${chalk.red.bold('"yes"')} to confirm:`;
     const proceed = await askUser(emphasizedMessage);
     if (!proceed) {

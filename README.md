@@ -131,6 +131,7 @@ SquadTS offer several advantages for plugin developers:
 - Modern JS (welcome to `Map` type and much more)
 - No more searching for which events exist `'NEW_GAME'`, find them statically with code completion: `server.events.newGame.subscribe(() => {});`
 - Better logging, instead of `this.verbose(1, "message")` (do you know what `1` means here ?) you have `logger.info("message"); logger.warn("message")`.
+- More events, and adding new ones is easy.
 
 \*this both help understanding how SquadTS work, help you write modular change, help you test code without going live with the server, and make it harder to break.
 

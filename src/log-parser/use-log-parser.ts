@@ -1,5 +1,5 @@
 import { LogParserConfig } from './log-parser.config';
-import { filter, map, share, Subject, tap } from 'rxjs';
+import { filter, map, share, Subject, switchMap, take, tap } from 'rxjs';
 import { Logger } from 'pino';
 import { parse } from 'date-fns';
 import { logParserRules } from './rules';
@@ -312,6 +312,74 @@ export function useLogParser(
           ...metadata,
         }))
       ),
+      playerKicked: events.pipe(
+        filter(obj => isEvent(obj, 'playerKickedA')),
+        map(([eventName, lineObj, metadata]) => ({
+          ...lineObj,
+          ...metadata,
+        })),
+        switchMap((playerKickedA) =>
+          events.pipe(
+            filter(obj => isEvent(obj, 'playerKickedB')),
+            take(1),
+            map(([eventName, lineObj, metadata]) => ({
+              ...lineObj,
+              ...metadata,
+            })),
+            map(playerKickedB => ({
+              playerKickedA,
+              playerKickedB,
+            }))
+          )
+        ),
+        map(data => ({
+          // chainID is the same last time I checked,
+          // Date will be almost the same.
+          ...omit(data.playerKickedA, ['nameWithClanTag']),
+          player: omit(data.playerKickedB, ['date', 'chainID'])
+        })),
+      ),
+      playerBanned: events.pipe(
+        filter(obj => isEvent(obj, 'playerBannedA')),
+        map(([eventName, lineObj, metadata]) => ({
+          ...lineObj,
+          ...metadata,
+        })),
+        switchMap((playerBannedA) =>
+          events.pipe(
+            filter(obj => isEvent(obj, 'playerBannedB')),
+            take(1),
+            map(([eventName, lineObj, metadata]) => ({
+              ...lineObj,
+              ...metadata,
+            })),
+            map(playerBannedB => ({
+              playerBannedA,
+              playerBannedB,
+            }))
+          )
+        ),
+        map(({playerBannedA, playerBannedB}) => ({
+          // chainID is the same last time I checked,
+          // Date will be almost the same.
+          chainID: playerBannedA.chainID,
+          date: playerBannedA.date,
+          reason: playerBannedA.reason,
+          // todo: find unit of interval, days ? seconds ?
+          interval: parseInt(playerBannedB.interval),
+          forever: parseInt(playerBannedB.interval) < 0, // interval likely will be: -541445648
+          adminPlayer: {
+            eosID: playerBannedB.adminEosID,
+            nameWithClanTag: playerBannedB.adminNameWithClanTag,
+          },
+          bannedPlayer: {
+            eosID: playerBannedB.bannedEosID,
+            nameWithClanTag: playerBannedB.bannedNameWithClanTag,
+            id: playerBannedB.bannedID,
+            steamID: playerBannedB.bannedSteamID,
+          },
+        })),
+      )
     },
     watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);

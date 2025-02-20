@@ -436,19 +436,20 @@ describe('Log Parser events', () => {
     });
   });
 
-  it('vehicleSeatTakeDamage', () => {
-    expect(true).toEqual(false);
-    // todo implement
-    mockedLogReader.line$.next(
-      '[2025.01.27-21.39.52:306][461]LogSquadTrace: [DedicatedServer]ASQDeployable::TakeDamage(): BP_I_Sandbag_2_C_2130546928: 350.00 damage attempt by causer BP_Mortarround4_C_2130496948 instigator Mooz with damage type BP_Fragmentation_DamageType_C health remaining 214.57'
-    );
-    // logParser.events.takeDamage.subscribe((data) => {
-    //   expect(data).toBe({
-    //     message: 'hello',
-    //     from: 'stufddddf'
-    //   });
-    // })
-  });
+  // todo
+  // it('vehicleSeatTakeDamage', () => {
+  //   expect(true).toEqual(false);
+  //   // todo implement
+  //   mockedLogReader.line$.next(
+  //     '[2025.01.27-21.39.52:306][461]LogSquadTrace: [DedicatedServer]ASQDeployable::TakeDamage(): BP_I_Sandbag_2_C_2130546928: 350.00 damage attempt by causer BP_Mortarround4_C_2130496948 instigator Mooz with damage type BP_Fragmentation_DamageType_C health remaining 214.57'
+  //   );
+  //   // logParser.events.takeDamage.subscribe((data) => {
+  //   //   expect(data).toBe({
+  //   //     message: 'hello',
+  //   //     from: 'stufddddf'
+  //   //   });
+  //   // })
+  // });
 
   it('serverTickRate', () => {
     const mockEvent = vi.fn();
@@ -465,37 +466,58 @@ describe('Log Parser events', () => {
 
   it('kick', () => {
     const mockEvent = vi.fn();
-    logParser.events.serverTickRate.subscribe(mockEvent);
+    logParser.events.playerKicked.subscribe(mockEvent);
     mockedLogReader.line$.next(
       '[2025.02.19-09.34.52:304][525]LogOnlineGame: Display: Kicking player: -TWS- Yuca ; Reason = Kicked from the server: test',
     );
     mockedLogReader.line$.next(
       // Note unreadable data after "from"
-      ' [2025.02.19-09.34.52:305][525]LogSquad: ADMIN COMMAND: Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca from δ▓áε╡á╚û',
+      '[2025.02.19-09.34.52:305][525]LogSquad: ADMIN COMMAND: Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca from δ▓áε╡á╚û',
     );
+    expect(mockEvent).toHaveBeenCalled();
     expect(mockEvent.mock.calls[0][0]).toEqual({
-      chainID: '60',
+      chainID: "525",
       date: expect.any(Date),
-      tickRate: '39.52',
+      player: {
+        eosID: "0002a10186d9414496bf20d22d3860ba",
+          id: "0",
+          nameWithClanTag: "-TWS- Yuca",
+          steamID: "76561198016942077",
+      },
+      reason: "test",
     });
   });
 
   it('ban', () => {
     const mockEvent = vi.fn();
-    logParser.events.serverTickRate.subscribe(mockEvent);
+    logParser.events.playerBanned.subscribe(mockEvent);
     mockedLogReader.line$.next(
       '[2025.02.19-10.07.12:115][417]LogOnlineGame: Display: Banning player: Yuca ; Reason = because'
     );
-    mockedLogReader.line$.next(
-      '[2025.02.19-10.07.12:117][417]LogOnlineGame: Display: Kicking player: -TWS-  Yuca ; Reason = Banned from the server for 0 Day(s). Admin Reason: because.'
-    );
+    // No use for this one. Note that it is different from the one in kick.
+    // mockedLogReader.line$.next(
+    //   '[2025.02.19-10.07.12:117][417]LogOnlineGame: Display: Kicking player: -TWS-  Yuca ; Reason = Banned from the server for 0 Day(s). Admin Reason: because.'
+    // );
     mockedLogReader.line$.next(
       '[2025.02.19-10.07.12:118][417]LogSquad: ADMIN COMMAND: -TWS-  Yuca [EOSID 0002a10186d9414496bf20d22d3860ba] Banned player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS-  Yuca for interval -541445648 from ΘªáεÄá╚û',
     );
+    expect(mockEvent).toHaveBeenCalled();
     expect(mockEvent.mock.calls[0][0]).toEqual({
-      chainID: '60',
+      adminPlayer: {
+        eosID: "0002a10186d9414496bf20d22d3860ba",
+        nameWithClanTag: "-TWS-  Yuca",
+      },
+      bannedPlayer: {
+        eosID: "0002a10186d9414496bf20d22d3860ba",
+        id: "0",
+        nameWithClanTag: "-TWS-  Yuca",
+        steamID: "76561198016942077",
+      },
+      chainID: "417",
       date: expect.any(Date),
-      tickRate: '39.52',
+      forever: true,
+      interval: -541445648,
+      reason: "because",
     });
   });
 });
