@@ -78,7 +78,7 @@ describe('obtainEnteringPlayer', () => {
     expect(mockSub.mock.calls[0][0]).toEqual({
       ...omit(playerYuca, ['nameWithClanTag', 'role']),
       squad: undefined,
-      squadID: undefined,
+      squadIndex: undefined,
     });
   });
 });

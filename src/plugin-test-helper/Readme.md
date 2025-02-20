@@ -8,7 +8,7 @@ const playerList: Awaited<ReturnType<RconSquad['getListPlayers']>> = [
     id: '1',
     isLeader: false,
     nameWithClanTag: '-TWS- Yuca',
-    squadID: undefined,
+    squadIndex: undefined,
     steamID: '76561198016942077',
   },
 ];
@@ -149,7 +149,7 @@ it('Broadcast on heli crash (option 1)', () => {
       id: '1',
       isLeader: false,
       nameWithClanTag: '-TWS- Yuca',
-      squadID: undefined,
+      squadIndex: undefined,
       steamID: '76561198016942077',
     },
   ];

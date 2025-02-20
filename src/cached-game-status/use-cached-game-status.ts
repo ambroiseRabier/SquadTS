@@ -33,8 +33,10 @@ export interface Player {
   // (provided by rcon) (defaulted to false in log connect)
   isLeader: boolean;
 
+  // Note: it is name squadIndex like the game does (see  rcon "ListCommands 1")
+  //       instead of confusing squadID
   // (provided by rcon) (defaulted to null in log connect)
-  squadID?: string;
+  squadIndex?: string;
 
   // (provided by log)
   controller?: string;

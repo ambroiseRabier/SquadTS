@@ -87,7 +87,7 @@ describe('rcon-squad-events', () => {
         squadName: 'INF ',
         steamID: '76561198006677354',
       },
-      squadID: '1',
+      squadIndex: '1',
       squadName: 'INF ',
       teamName: 'Western Private Military Contractors',
       date: expect.any(Date),

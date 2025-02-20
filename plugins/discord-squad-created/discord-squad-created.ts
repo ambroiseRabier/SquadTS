@@ -35,7 +35,7 @@ const discordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
             },
             {
               name: 'Squad Number & Squad Name',
-              value: `${player.squadID} : ${squadName}`,
+              value: `${player.squadIndex} : ${squadName}`,
             },
           ],
           // We do not have a squad change event in logs, so the squad change date is depending
@@ -45,7 +45,7 @@ const discordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
         await channel.send({ embeds: [embed] });
       } else {
         await channel.send(
-          ` \`\`\`Player: ${player.name}\n created Squad ${player.squadID} : ${squadName}\n on ${teamName}\`\`\` `
+          ` \`\`\`Player: ${player.name}\n created Squad ${player.squadIndex} : ${squadName}\n on ${teamName}\`\`\` `
         );
       }
     }

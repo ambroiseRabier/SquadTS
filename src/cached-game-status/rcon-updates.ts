@@ -43,7 +43,7 @@ async function obtainRCONPlayersAndSquads(rconSquad: RconSquad) {
     players: players.map(player => ({
       ...player,
       squad: squads.find(
-        squad => squad.teamID === player.teamID && squad.squadID === player.squadID
+        squad => squad.teamID === player.teamID && squad.squadIndex === player.squadIndex
       ),
     })),
   };

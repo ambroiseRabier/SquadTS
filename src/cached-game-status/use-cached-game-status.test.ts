@@ -62,7 +62,7 @@ describe('use-cached-game-status', () => {
   it('should save log connected player', () => {
     const logObtainedPlayerYuca = {
       ...omit(playerYuca, 'nameWithClanTag', 'role'),
-      squadID: undefined,
+      squadIndex: undefined,
       squad: undefined,
     };
     const cachedGameStatus: CachedGameStatus = useCachedGameStatus({
@@ -134,7 +134,7 @@ describe('use-cached-game-status', () => {
       },
       locked: false,
       size: 8,
-      squadID: '2',
+      squadIndex: '2',
       name: 'Squad 2',
       teamID: playerYuca.teamID,
       teamName: 'Manticore Security Task Force',
@@ -149,7 +149,7 @@ describe('use-cached-game-status', () => {
           Promise.resolve<Player[]>([
             {
               ...playerYuca,
-              squadID: '2',
+              squadIndex: '2',
             },
           ]),
       }),
@@ -177,7 +177,7 @@ describe('use-cached-game-status', () => {
     expect(cachedGameStatus.squads$.getValue()).toContainEqual(squad);
     expect(cachedGameStatus.players$.getValue()).toContainEqual({
       ...playerYuca,
-      squadID: '2',
+      squadIndex: '2',
       squad,
     });
   });

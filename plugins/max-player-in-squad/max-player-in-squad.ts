@@ -3,7 +3,7 @@ import { Player, PlayerSL, SquadTSPlugin } from '../../src/exports';
 import { exhaustMap, filter, interval, map } from 'rxjs';
 
 interface TransgressorDetails {
-  squadID: string;
+  squadIndex: string;
   teamID: string;
   squadName: string;
   firstWarn: number;
@@ -35,7 +35,8 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
       // Only for players joining a squad, not when they leave.
       map(players =>
         players.filter(
-          (player): player is Player & Required<Pick<Player, 'squad' | 'squadID'>> => !!player.squad
+          (player): player is Player & Required<Pick<Player, 'squad' | 'squadIndex'>> =>
+            !!player.squad
         )
       )
     )
@@ -56,7 +57,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
         // Récup l'ensemble des joueurs dans la squad ID.
         const playersInSquad = server.players.filter(
-          p => p.squadID === player.squadID && p.teamID === player.teamID
+          p => p.squadIndex === player.squadIndex && p.teamID === player.teamID
         );
         // There is always a lead in a squad
         const playerSquadLead = playersInSquad.find(p => p.isLeader) as Player;
@@ -78,7 +79,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
             transgressors.set(playerSquadLead.eosID, {
               // We are iterating playerWithSquad...
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              squadID: player.squadID!, // same as playerSquadLead.squadID
+              squadIndex: player.squadIndex!, // same as playerSquadLead.squadIndex
               teamID: player.teamID,
               squadName: player.squad.name,
               firstWarn: Date.now(),
@@ -109,14 +110,17 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
       }
 
       // Has changed squad or team
-      if (sl.squadID !== transgressorDetails.squadID || sl.teamID !== transgressorDetails.teamID) {
+      if (
+        sl.squadIndex !== transgressorDetails.squadIndex ||
+        sl.teamID !== transgressorDetails.teamID
+      ) {
         transgressors.delete(squadLead_eosID);
         continue;
       }
 
-      // Note: since we checked that player is SL, he cannot have a null/undef squadID/squad
+      // Note: since we checked that player is SL, he cannot have a null/undef squadIndex/squad
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const squad = server.helpers.getSquad(sl.teamID, sl.squadID)!;
+      const squad = server.helpers.getSquad(sl.teamID, sl.squadIndex)!;
 
       // Squad name changed (but IDs are the same)
       if (transgressorDetails.squadName !== squad.name) {
@@ -133,7 +137,7 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
       const playersInSquad = server.helpers.getPlayersInSquad(
         transgressorDetails.teamID,
-        transgressorDetails.squadID
+        transgressorDetails.squadIndex
       );
       const tooManyPlayers = playersInSquad.length > transgressorDetails.maxPlayerInSquad;
 
@@ -195,9 +199,9 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     );
 
     // Disband the squad
-    await server.rcon.disbandSquad(squadLeader.teamID, squadLeader.squadID);
+    await server.rcon.disbandSquad(squadLeader.teamID, squadLeader.squadIndex);
     await server.rcon.broadcast(
-      `Team ${transgressorDetails.teamID} Squad ${transgressorDetails.squadID} "${transgressorDetails.squadName}" has been disbanded because it exceed maximum player count (${transgressorDetails.maxPlayerInSquad}) for squad type (${transgressorDetails.containWord}).`
+      `Team ${transgressorDetails.teamID} Squad ${transgressorDetails.squadIndex} "${transgressorDetails.squadName}" has been disbanded because it exceed maximum player count (${transgressorDetails.maxPlayerInSquad}) for squad type (${transgressorDetails.containWord}).`
     );
 
     logger.info(

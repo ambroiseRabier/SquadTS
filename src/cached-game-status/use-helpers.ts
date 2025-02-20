@@ -13,7 +13,7 @@ interface Props {
  */
 export type PlayerSL = Player & {
   squad: NonNullable<Squad>;
-  squadID: NonNullable<Player['squadID']>;
+  squadIndex: NonNullable<Player['squadIndex']>;
 } & { isLeader: true };
 
 /**
@@ -27,24 +27,24 @@ export function isSL(player: Player): player is PlayerSL {
 /**
  * Unassigned helper type.
  */
-export type UnassignedPlayer = Omit<Player, 'squadID' | 'squad'>;
+export type UnassignedPlayer = Omit<Player, 'squadIndex' | 'squad'>;
 
 /**
  * Convenience method that will adjust Player type when they are unassigned.
  * @param player
  */
 export function isUnassigned(player: Player): player is UnassignedPlayer {
-  return !!player.squadID; // or squad, both are updated at the same time.
+  return !!player.squadIndex; // or squad, both are updated at the same time.
 }
 
 export function useHelpers(p: Props) {
   const playerGet = usePlayerGet(p.players);
   const { getPlayerByEOSID } = playerGet;
 
-  function getSquad(teamID: string, squadID: string) {
+  function getSquad(teamID: string, squadIndex: string) {
     // Guard against plugin dev mistakes
-    if (!squadID) {
-      throw new Error('Provided squadID is nullish');
+    if (!squadIndex) {
+      throw new Error('Provided squadIndex is nullish');
     }
     // Guard against plugin dev mistakes
     if (!teamID) {
@@ -53,21 +53,23 @@ export function useHelpers(p: Props) {
 
     return p.squads().find(
       // We need to check both id, because each team can have a squad one for example.
-      squad => squad.teamID === teamID && squad.squadID === squadID
+      squad => squad.teamID === teamID && squad.squadIndex === squadIndex
     );
   }
 
-  function getPlayersInSquad(teamID: string, squadID: string) {
+  function getPlayersInSquad(teamID: string, squadIndex: string) {
     // Guard against plugin dev mistakes
-    if (!squadID) {
-      throw new Error('Provided squadID is nullish');
+    if (!squadIndex) {
+      throw new Error('Provided squadIndex is nullish');
     }
     // Guard against plugin dev mistakes
     if (!teamID) {
       throw new Error('Provided teamID is nullish');
     }
 
-    return p.players().filter(player => player.squadID === squadID && player.teamID === teamID);
+    return p
+      .players()
+      .filter(player => player.squadIndex === squadIndex && player.teamID === teamID);
   }
 
   function getPlayerSquad(eosID: string) {
@@ -76,10 +78,10 @@ export function useHelpers(p: Props) {
       throw new Error('Provided eosID is nullish');
     }
     const player = getPlayerByEOSID(eosID);
-    if (player === undefined || !player.squadID) {
+    if (player === undefined || !player.squadIndex) {
       return undefined;
     } else {
-      return getSquad(player.teamID, player.squadID);
+      return getSquad(player.teamID, player.squadIndex);
     }
   }
 

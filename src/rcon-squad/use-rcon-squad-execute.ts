@@ -61,7 +61,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
       const regexStr =
-        '^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadID>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$';
+        '^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadIndex>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$';
       const regex = new RegExp(regexStr);
 
       // (response ?? '') allow us to use type inference instead of making an empty array return before with a if, that would add the return type any[].
@@ -72,13 +72,13 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
         .map(match => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const groups = match.groups! as ObjectFromRegexStr<typeof regexStr>;
-          const { isLeader, teamID, squadID, ids } = groups;
+          const { isLeader, teamID, squadIndex, ids } = groups;
           return {
-            ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
+            ...omit(groups, ['isLeader', 'teamID', 'squadIndex', 'ids']),
             isLeader: isLeader === 'True',
             // There was teamID !== 'N/A' in SquadJS, but I don't see that happening anywhere, maybe with mods ?
             teamID: teamID as '1' | '2',
-            squadID: squadID !== 'N/A' ? squadID : undefined,
+            squadIndex: squadIndex !== 'N/A' ? squadIndex : undefined,
             ...extractIDs(ids),
           };
         });
@@ -88,7 +88,7 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       const response = await execute('ListSquads');
       // Attention: creator name is without clan tag here...
       const regexStr =
-        'ID: (?<squadID>\\d+) \\| Name: (?<name>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)';
+        'ID: (?<squadIndex>\\d+) \\| Name: (?<name>.+) \\| Size: (?<size>\\d+) \\| Locked: (?<locked>True|False) \\| Creator Name: (?<creatorName>.+) \\| Creator Online IDs:(?<creator_ids>[^|]+)';
       const regex = new RegExp(regexStr);
       let side: {
         teamID: string;
@@ -160,8 +160,8 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       await dryRunExecute(`AdminBan "${anyID}" "${banLength}" ${message}`);
     },
 
-    disbandSquad: async (teamID: string, squadID: string) => {
-      await dryRunExecute(`AdminDisbandSquad ${teamID} ${squadID}`);
+    disbandSquad: async (teamID: string, squadIndex: string) => {
+      await dryRunExecute(`AdminDisbandSquad ${teamID} ${squadIndex}`);
     },
 
     kick: async (anyID: string, reason: string) => {
@@ -177,8 +177,8 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     },
 
     // Rename is not possible, but you can reset it to default name "Squad 1", "Squad 2", ...
-    resetSquadName: async (teamID: string, squadID: string) => {
-      await dryRunExecute(`AdminRenameSquad ${teamID} ${squadID}`);
+    resetSquadName: async (teamID: string, squadIndex: string) => {
+      await dryRunExecute(`AdminRenameSquad ${teamID} ${squadIndex}`);
     },
 
     demoteCommander: async (anyID: string) => {

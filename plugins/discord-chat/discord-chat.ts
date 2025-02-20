@@ -37,7 +37,7 @@ const discordChat: SquadTSPlugin<DiscordChatEnabledOptions> = async (
           },
           {
             name: 'Team & Squad',
-            value: `Team: ${data.player.teamID}, Squad: ${data.player.squadID || 'Unassigned'}`,
+            value: `Team: ${data.player.teamID}, Squad: ${data.player.squadIndex || 'Unassigned'}`,
           },
           {
             name: 'Message',

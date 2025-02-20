@@ -113,7 +113,7 @@ export function obtainEnteringPlayer(
           // When you join a game, you aren't leader
           isLeader: false,
           // When you join a game, you aren't in a squad
-          squadID: undefined,
+          squadIndex: undefined,
           squad: undefined,
         };
       }

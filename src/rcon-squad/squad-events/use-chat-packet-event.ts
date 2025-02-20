@@ -98,7 +98,7 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
       map(body =>
         matchWithRegex(
           body,
-          '(?<playerName>.+) \\(Online IDs:(?<ids>[^)]+)\\) has created Squad (?<squadID>\\d+) \\(Squad Name: (?<squadName>.+)\\) on (?<teamName>.+)'
+          '(?<playerName>.+) \\(Online IDs:(?<ids>[^)]+)\\) has created Squad (?<squadIndex>\\d+) \\(Squad Name: (?<squadName>.+)\\) on (?<teamName>.+)'
         )
       ),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),

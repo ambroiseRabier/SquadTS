@@ -11,8 +11,8 @@ export function findSquadChanges(oldPlayerList: Player[], newPlayerList: Player[
   // Check both for different squad ID, and also if the "id" is the same but he changed team.
   const playersWithDifferentSquadID = playerStillConnected.filter(
     ([playerNow, playerBefore]) =>
-      playerBefore.squadID !== playerNow.squadID ||
-      (playerBefore.squadID === playerNow.squadID && playerBefore.teamID !== playerNow.teamID)
+      playerBefore.squadIndex !== playerNow.squadIndex ||
+      (playerBefore.squadIndex === playerNow.squadIndex && playerBefore.teamID !== playerNow.teamID)
   );
 
   return playersWithDifferentSquadID.map(([playerNow, playerBefore]) =>
