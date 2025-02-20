@@ -11,11 +11,9 @@ const prettier =
  * @filename: lint-staged.config.js
  * @type {import('lint-staged').Configuration}
  */
-// export default {
-//   '*': prettier,
-// };
-
 export default {
-  '!(*.{ts, mts})': prettier,
-  '*.{ts, mts}': [prettier, 'eslint --max-warnings=0'],
+  // Since I am not using eslint --fix, I have not race condition to handle.
+  // However, it is still better to run prettier first, to fix issue like double quote not being single quote that
+  // eslint will error onto.
+  '*': [prettier, 'eslint --max-warnings=0'],
 };
