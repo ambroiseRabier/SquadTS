@@ -8,7 +8,7 @@ npx lint-staged --config lint-staged.config.js
 
 # Generate config, making sure it is up-to-date
 echo "--------- Generating server and plugin config ---------"
-npm run generate-config --force
+npm run generate-config -- --force
 
 # Run tests
 echo "--------- Unit and e2e tests ---------"

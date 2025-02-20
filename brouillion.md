@@ -326,14 +326,14 @@ indiquer si des trucs on changé et doivent être enlever si obsolète)
 ---
 
 eslint config in webstorm, it may not automatically be correctly set because using eslint.config.mjs instead of eslintrc.
-![img.png](img.png)
+![img.png](assets/img.png)
 
 ---
 
 recommend unchecking from file
 because it is too easy to confuse with TS errors (that actually needs immediate fixing)
 
-![img_1.png](img_1.png)
+![img_1.png](assets/img_1.png)
 
 ---
 
