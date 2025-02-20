@@ -1,4 +1,4 @@
-/* prettier-ignore */
+// prettier-ignore
 // vertical alignement of toEqual make it more readable. But prettier can't know that.
 
 import { describe, expect, it } from 'vitest';
