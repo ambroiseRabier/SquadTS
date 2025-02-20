@@ -468,23 +468,23 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.playerKicked.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      '[2025.02.19-09.34.52:304][525]LogOnlineGame: Display: Kicking player: -TWS- Yuca ; Reason = Kicked from the server: test',
+      '[2025.02.19-09.34.52:304][525]LogOnlineGame: Display: Kicking player: -TWS- Yuca ; Reason = Kicked from the server: test'
     );
     mockedLogReader.line$.next(
       // Note unreadable data after "from"
-      '[2025.02.19-09.34.52:305][525]LogSquad: ADMIN COMMAND: Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca from δ▓áε╡á╚û',
+      '[2025.02.19-09.34.52:305][525]LogSquad: ADMIN COMMAND: Kicked player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS- Yuca from δ▓áε╡á╚û'
     );
     expect(mockEvent).toHaveBeenCalled();
     expect(mockEvent.mock.calls[0][0]).toEqual({
-      chainID: "525",
+      chainID: '525',
       date: expect.any(Date),
       player: {
-        eosID: "0002a10186d9414496bf20d22d3860ba",
-          id: "0",
-          nameWithClanTag: "-TWS- Yuca",
-          steamID: "76561198016942077",
+        eosID: '0002a10186d9414496bf20d22d3860ba',
+        id: '0',
+        nameWithClanTag: '-TWS- Yuca',
+        steamID: '76561198016942077',
       },
-      reason: "test",
+      reason: 'test',
     });
   });
 
@@ -499,25 +499,25 @@ describe('Log Parser events', () => {
     //   '[2025.02.19-10.07.12:117][417]LogOnlineGame: Display: Kicking player: -TWS-  Yuca ; Reason = Banned from the server for 0 Day(s). Admin Reason: because.'
     // );
     mockedLogReader.line$.next(
-      '[2025.02.19-10.07.12:118][417]LogSquad: ADMIN COMMAND: -TWS-  Yuca [EOSID 0002a10186d9414496bf20d22d3860ba] Banned player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS-  Yuca for interval -541445648 from ΘªáεÄá╚û',
+      '[2025.02.19-10.07.12:118][417]LogSquad: ADMIN COMMAND: -TWS-  Yuca [EOSID 0002a10186d9414496bf20d22d3860ba] Banned player 0. [Online IDs= EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077] -TWS-  Yuca for interval -541445648 from ΘªáεÄá╚û'
     );
     expect(mockEvent).toHaveBeenCalled();
     expect(mockEvent.mock.calls[0][0]).toEqual({
       adminPlayer: {
-        eosID: "0002a10186d9414496bf20d22d3860ba",
-        nameWithClanTag: "-TWS-  Yuca",
+        eosID: '0002a10186d9414496bf20d22d3860ba',
+        nameWithClanTag: '-TWS-  Yuca',
       },
       bannedPlayer: {
-        eosID: "0002a10186d9414496bf20d22d3860ba",
-        id: "0",
-        nameWithClanTag: "-TWS-  Yuca",
-        steamID: "76561198016942077",
+        eosID: '0002a10186d9414496bf20d22d3860ba',
+        id: '0',
+        nameWithClanTag: '-TWS-  Yuca',
+        steamID: '76561198016942077',
       },
-      chainID: "417",
+      chainID: '417',
       date: expect.any(Date),
       forever: true,
       interval: -541445648,
-      reason: "because",
+      reason: 'because',
     });
   });
 });

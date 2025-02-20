@@ -24,9 +24,7 @@ export const rconOptionsSchema = z.object({
   debugCondenseLogsIgnoreSinceDisconnect: z
     .boolean()
     .default(true)
-    .describe(
-      'If true, exclusive change in `Since Disconnect: 03m.14s` will not be displayed.'
-    ),
+    .describe('If true, exclusive change in `Since Disconnect: 03m.14s` will not be displayed.'),
 });
 
 export type RconOptions = z.infer<typeof rconOptionsSchema>;

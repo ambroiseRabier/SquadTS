@@ -5,7 +5,6 @@ import { matchWithRegex } from '../../log-parser/log-parser-helpers';
 import { extractIDs } from '../../rcon/id-parser';
 
 export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<string>) {
-
   const message = chatPacketEvent.pipe(
     map(body =>
       matchWithRegex(

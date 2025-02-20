@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 
-
 describe('hasChangeSinceDisconnect', () => {
   it('Ignore since disconnect', () => {
     const str1 = `----- Active Players -----
@@ -24,4 +23,4 @@ ID: 0 | Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 765611980169420
 
     expect(hasChangesIgnoringSinceDisconnect(str1, str2)).toEqual(true);
   });
-})
+});

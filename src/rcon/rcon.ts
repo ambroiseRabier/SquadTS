@@ -78,6 +78,8 @@ export class Rcon {
       // IE, Squad server crash, Squad server shutdown for multiple minutes.
 
       while (this.responseCallbackQueue.length > 0) {
+        // eslint is right here, but the whole class may need a refactor for it to be removed.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.responseCallbackQueue.shift()!(new Error('RCON DISCONNECTED'));
       }
       this.callbackIds = [];
@@ -120,6 +122,9 @@ export class Rcon {
             // OKay so i understand now, doc say we need to pair response with auth request, so this is sending back
             // the response to the writeAuth
             // we should refactor that after confirming I havent broken anything else in between.
+            //
+            // eslint is right here, but the whole class may need a refactor for it to be removed.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.responseCallbackQueue.shift()!(
               this.incomingResponse
                 .map(packet => {
@@ -410,10 +415,9 @@ export class Rcon {
             const concernedLog = body in this.logCache;
             if (concernedLog) {
               const previousResponse = this.logCache[body as keyof typeof this.logCache];
-              const changeDetected =
-                this.options.debugCondenseLogsIgnoreSinceDisconnect ?
-                  hasChangesIgnoringSinceDisconnect(previousResponse, response as string)
-                  : previousResponse !== (response as string);
+              const changeDetected = this.options.debugCondenseLogsIgnoreSinceDisconnect
+                ? hasChangesIgnoringSinceDisconnect(previousResponse, response as string)
+                : previousResponse !== (response as string);
               if (changeDetected) {
                 // Update cache
                 this.logCache[body as keyof typeof this.logCache] = response as string;

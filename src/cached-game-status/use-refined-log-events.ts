@@ -16,8 +16,8 @@ interface Props {
 export type RefinedLogEvents = ReturnType<typeof useRefinedLogEvents>;
 
 export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
-  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID, tryGetPlayerByName } = usePlayerGet(
-    () => cachedGameStatus.players$.getValue()
+  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID, tryGetPlayerByName } = usePlayerGet(() =>
+    cachedGameStatus.players$.getValue()
   );
 
   return {

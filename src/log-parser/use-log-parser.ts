@@ -136,7 +136,7 @@ export function useLogParser(
         map(data => ({
           ...data,
           damage: parseFloat(data.damage),
-          healthRemaining: parseFloat(data.healthRemaining)
+          healthRemaining: parseFloat(data.healthRemaining),
         }))
       ),
       loginRequest: events.pipe(
@@ -318,7 +318,7 @@ export function useLogParser(
           ...lineObj,
           ...metadata,
         })),
-        switchMap((playerKickedA) =>
+        switchMap(playerKickedA =>
           events.pipe(
             filter(obj => isEvent(obj, 'playerKickedB')),
             take(1),
@@ -336,8 +336,8 @@ export function useLogParser(
           // chainID is the same last time I checked,
           // Date will be almost the same.
           ...omit(data.playerKickedA, ['nameWithClanTag']),
-          player: omit(data.playerKickedB, ['date', 'chainID'])
-        })),
+          player: omit(data.playerKickedB, ['date', 'chainID']),
+        }))
       ),
       playerBanned: events.pipe(
         filter(obj => isEvent(obj, 'playerBannedA')),
@@ -345,7 +345,7 @@ export function useLogParser(
           ...lineObj,
           ...metadata,
         })),
-        switchMap((playerBannedA) =>
+        switchMap(playerBannedA =>
           events.pipe(
             filter(obj => isEvent(obj, 'playerBannedB')),
             take(1),
@@ -359,7 +359,7 @@ export function useLogParser(
             }))
           )
         ),
-        map(({playerBannedA, playerBannedB}) => ({
+        map(({ playerBannedA, playerBannedB }) => ({
           // chainID is the same last time I checked,
           // Date will be almost the same.
           chainID: playerBannedA.chainID,
@@ -378,8 +378,8 @@ export function useLogParser(
             id: playerBannedB.bannedID,
             steamID: playerBannedB.bannedSteamID,
           },
-        })),
-      )
+        }))
+      ),
     },
     watch: async () => {
       logger.info(`Attempting to watch log file at "${options.logFile}"...`);

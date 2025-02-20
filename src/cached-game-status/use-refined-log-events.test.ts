@@ -35,7 +35,6 @@ const playerPika: Required<UnassignedPlayer> = {
   role: 'WPMC_Engineer_01', // invented
 };
 
-
 // Note: Use log-parser.test.ts to get initial data.
 
 describe('UseRefinedLogEvents - playerWounded', () => {
@@ -61,15 +60,18 @@ describe('UseRefinedLogEvents - playerWounded', () => {
         playerDied: of({} as any),
         deployableDamaged: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
 
     const cachedGameStatus = {
       // Do not use lodash merge as it modify original object !
-      players$: new BehaviorSubject([playerYuca, {
-        ...playerPika,
-        nameWithClanTag: playerYuca.nameWithClanTag,
-      }]),
+      players$: new BehaviorSubject([
+        playerYuca,
+        {
+          ...playerPika,
+          nameWithClanTag: playerYuca.nameWithClanTag,
+        },
+      ]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -77,7 +79,7 @@ describe('UseRefinedLogEvents - playerWounded', () => {
     });
 
     const mockSub = vi.fn();
-    refined.playerWounded.subscribe(mockSub)
+    refined.playerWounded.subscribe(mockSub);
     expect(mockSub).not.toHaveBeenCalled();
   });
 
@@ -88,7 +90,7 @@ describe('UseRefinedLogEvents - playerWounded', () => {
         playerDied: of({} as any),
         deployableDamaged: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
       players$: new BehaviorSubject([playerYuca, playerPika]),
@@ -99,7 +101,7 @@ describe('UseRefinedLogEvents - playerWounded', () => {
     });
 
     const mockSub = vi.fn();
-    refined.playerWounded.subscribe(mockSub)
+    refined.playerWounded.subscribe(mockSub);
     expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
@@ -127,7 +129,7 @@ describe('UseRefinedLogEvents - playerDied', () => {
     weapon: 'weapon0',
     chainID: 'chain0',
     date: new Date(0),
-  }
+  };
 
   it('playerDied is not called if duplicated player nameWithClanTag', () => {
     const logParser = {
@@ -136,13 +138,16 @@ describe('UseRefinedLogEvents - playerDied', () => {
         playerWounded: of({} as any),
         deployableDamaged: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
-      players$: new BehaviorSubject([playerYuca, {
-        ...playerPika,
-        nameWithClanTag: playerYuca.nameWithClanTag
-      }]),
+      players$: new BehaviorSubject([
+        playerYuca,
+        {
+          ...playerPika,
+          nameWithClanTag: playerYuca.nameWithClanTag,
+        },
+      ]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -150,7 +155,7 @@ describe('UseRefinedLogEvents - playerDied', () => {
     });
 
     const mockSub = vi.fn();
-    refined.playerDied.subscribe(mockSub)
+    refined.playerDied.subscribe(mockSub);
     expect(mockSub).not.toHaveBeenCalled();
   });
 
@@ -161,7 +166,7 @@ describe('UseRefinedLogEvents - playerDied', () => {
         playerWounded: of({} as any),
         deployableDamaged: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
       players$: new BehaviorSubject([playerYuca, playerPika]),
@@ -172,7 +177,7 @@ describe('UseRefinedLogEvents - playerDied', () => {
     });
 
     const mockSub = vi.fn();
-    refined.playerDied.subscribe(mockSub)
+    refined.playerDied.subscribe(mockSub);
     expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
@@ -187,7 +192,6 @@ describe('UseRefinedLogEvents - playerDied', () => {
 });
 
 describe('UseRefinedLogEvents - deployableDamaged', () => {
-
   const deployableDamagedEvent: ObservableValue<LogParser['events']['deployableDamaged']> = {
     chainID: '461',
     damage: 350,
@@ -206,13 +210,16 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
         playerWounded: of({} as any),
         playerDied: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
-      players$: new BehaviorSubject([playerYuca, {
-        ...playerPika,
-        name: playerYuca.name
-      }]),
+      players$: new BehaviorSubject([
+        playerYuca,
+        {
+          ...playerPika,
+          name: playerYuca.name,
+        },
+      ]),
     } as unknown as CachedGameStatus;
     const refined = useRefinedLogEvents({
       logParser,
@@ -220,7 +227,7 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
     });
 
     const mockSub = vi.fn();
-    refined.deployableDamaged.subscribe(mockSub)
+    refined.deployableDamaged.subscribe(mockSub);
     // Yes, to have been called, since we have a fancy tryGetByName function that is able to resolve
     // player in some cases. And this is one of those case :).
     expect(mockSub).toHaveBeenCalled();
@@ -233,7 +240,7 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
         playerWounded: of({} as any),
         playerDied: of({} as any),
         playerDisconnected: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
       players$: new BehaviorSubject([playerYuca, playerPika]),
@@ -244,7 +251,7 @@ describe('UseRefinedLogEvents - deployableDamaged', () => {
     });
 
     const mockSub = vi.fn();
-    refined.deployableDamaged.subscribe(mockSub)
+    refined.deployableDamaged.subscribe(mockSub);
     expect(mockSub).toHaveBeenCalled();
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
@@ -277,7 +284,7 @@ describe('UseRefinedLogEvents - playerDisconnected', () => {
         playerWounded: of({} as any),
         playerDied: of({} as any),
         deployableDamaged: of({} as any),
-      }
+      },
     } as LogParser;
     const cachedGameStatus = {
       players$: new BehaviorSubject([playerYuca, playerPika]),
@@ -288,7 +295,7 @@ describe('UseRefinedLogEvents - playerDisconnected', () => {
     });
 
     const mockSub = vi.fn();
-    refined.playerDisconnected.subscribe(mockSub)
+    refined.playerDisconnected.subscribe(mockSub);
     // Using toEqual instead of toHaveBeenCalledWith has better IDE support with diff.
     expect(mockSub.mock.calls[0][0]).toEqual({
       player: {
@@ -299,6 +306,5 @@ describe('UseRefinedLogEvents - playerDisconnected', () => {
       chainID: '233',
       date: expect.any(Date),
     });
-  })
-
+  });
 });

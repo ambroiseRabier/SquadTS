@@ -42,7 +42,9 @@ async function rconExecute(options: RconOptions, command: string) {
 
 async function getRconOptions() {
   logger.info('Loading RCON options');
-  logger.warn('Note that if you use that while SquadTS server is on, Squad server will disconnect you based on IP.');
+  logger.warn(
+    'Note that if you use that while SquadTS server is on, Squad server will disconnect you based on IP.'
+  );
   const inputJsonPath = process.argv[2];
 
   if (!inputJsonPath) {

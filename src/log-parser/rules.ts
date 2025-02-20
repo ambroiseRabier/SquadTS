@@ -32,12 +32,18 @@ export const logParserRules = [
   // Yes, there is two spaces after Player, probably a mistake from Squad devs.
   ['playerAddedToTeam', '^LogSquad: Player  (?<name>.+) has been added to Team (?<teamID>[0-9]+)'],
 
-  ['playerBannedA', '^LogOnlineGame: Display: Banning player: (?<name>.*) ; Reason = (?<reason>.*)'],
+  [
+    'playerBannedA',
+    '^LogOnlineGame: Display: Banning player: (?<name>.*) ; Reason = (?<reason>.*)',
+  ],
 
   // No use for this one
   // ['playerBannedB', '^LogOnlineGame: Display: Kicking player: (?<nameWithClanTag>.*) ; Reason = Banned from the server for (?<dayDuration>\\d+) Day\\(s\\). Admin Reason: (?<reason>.*)\\.'],
 
-  ['playerBannedB', '^LogSquad: ADMIN COMMAND: (?<adminNameWithClanTag>.*) \\[EOSID (?<adminEosID>\\w+)\\] Banned player (?<bannedID>\\d+)\\. \\[Online IDs= EOS: (?<bannedEosID>\\w+) steam: (?<bannedSteamID>\\w+)\\] (?<bannedNameWithClanTag>.*) for interval (?<interval>\\+?-?\\d+) from '],
+  [
+    'playerBannedB',
+    '^LogSquad: ADMIN COMMAND: (?<adminNameWithClanTag>.*) \\[EOSID (?<adminEosID>\\w+)\\] Banned player (?<bannedID>\\d+)\\. \\[Online IDs= EOS: (?<bannedEosID>\\w+) steam: (?<bannedSteamID>\\w+)\\] (?<bannedNameWithClanTag>.*) for interval (?<interval>\\+?-?\\d+) from ',
+  ],
 
   // Called between loginRequest and playerJoinSucceeded
   [
@@ -65,9 +71,15 @@ export const logParserRules = [
   // Called at start of each game it seems, and right before playerAddedToTeam
   ['playerInitialized', '^LogGameMode: Initialized player (?<name>.+) with (?<id>[0-9]+)'],
 
-  ['playerKickedA', '^LogOnlineGame: Display: Kicking player: (?<nameWithClanTag>.+) ; Reason = Kicked from the server: (?<reason>.+)'],
+  [
+    'playerKickedA',
+    '^LogOnlineGame: Display: Kicking player: (?<nameWithClanTag>.+) ; Reason = Kicked from the server: (?<reason>.+)',
+  ],
   // Note: avoid fancy extractID for new logs. KISS
-  ['playerKickedB', '^LogSquad: ADMIN COMMAND: Kicked player (?<id>\\d+)\\. \\[Online IDs= EOS: (?<eosID>\\w+) steam: (?<steamID>\\w+)\\] (?<nameWithClanTag>.*) from '],
+  [
+    'playerKickedB',
+    '^LogSquad: ADMIN COMMAND: Kicked player (?<id>\\d+)\\. \\[Online IDs= EOS: (?<eosID>\\w+) steam: (?<steamID>\\w+)\\] (?<nameWithClanTag>.*) from ',
+  ],
 
   // todo: Ok so this one is strange, in SquadJS, it get transform into playerConnected
   // seems like it want to track player that try to join but fail ?

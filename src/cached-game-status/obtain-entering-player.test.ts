@@ -65,8 +65,8 @@ describe('obtainEnteringPlayer', () => {
       {
         mode: 'ftp',
         ftp: {
-          fetchInterval: 1
-        }
+          fetchInterval: 1,
+        },
       } as any,
       createMockLogger() as any
     );

@@ -25,10 +25,8 @@ interface Props {
   githubInfo: {
     layerInfo: GithubWiki.Layer;
     weaponInfo: Record<string, GithubWikiWeapon.WeaponInfo>;
-  }
+  };
 }
-// test eslint, prettier
-var v = "double quote oh no with var and not const oh no";
 
 export function useSquadServer({
   logger,
