@@ -4,11 +4,19 @@ npx tsc --noEmit --project tsconfig.test-included.json
 
 echo "✅ Typing is ok."
 
+
+# Eslint and prettier
+echo "--------- Prettier and eslint ---------"
+npx lint-staged --config lint-staged.config.js
+
+echo "✅ Prettier ran. Eslint ok"
+
+
 # Generate config, making sure it is up-to-date
 echo "--------- Generating server and plugin config ---------"
 npm run generate-config -- --force
 
-# Check for unstaged changes in tracked files
+## Check for unstaged changes in tracked files
 if [ -n "$(git diff --name-only)" ]; then
   echo "⚠️  Unstaged changes in tracked files detected! Please stage these changes before committing."
   echo "⚠️  Run 'git add <files>' to stage, and then try committing again."
@@ -16,7 +24,7 @@ if [ -n "$(git diff --name-only)" ]; then
   exit 1
 fi
 
-# Check for untracked files that are not staged
+## Check for untracked files that are not staged
 if [ -n "$(git ls-files --others --exclude-standard)" ]; then
   echo "⚠️  Untracked files detected! Please stage new files before committing."
   echo "⚠️  Run 'git add <files>' to stage, and then try committing again."
@@ -25,12 +33,6 @@ if [ -n "$(git ls-files --others --exclude-standard)" ]; then
 fi
 
 echo "✅ Config is up-to-date."
-
-# Eslint and prettier
-echo "--------- Prettier and eslint ---------"
-npx lint-staged --config lint-staged.config.js
-
-# echo "✅ todo."
 
 
 # Run tests

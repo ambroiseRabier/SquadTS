@@ -107,9 +107,15 @@ and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-conf
 
 Pre-commit hook will override everything inside config folder. Be warned.
 
-Prettier is runned in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
+Prettier is executed in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
 You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
-`// prettier-ignore` at top of the file like in `check-unbalance-switchability.test.ts`.
+`// prettier-ignore` on a statement like in `check-unbalance-switchability.test.ts`.
+
+We only run prettier, and not `eslint --fix`. Since there are too many occasions where there is disagreement with eslint --fix.
+It also give devs the occasion to learn from their mistake, and re-evaluate code, like is that non-null-assertion really safe
+and documented ?
+However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
+eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
 
 ### (Utility) Get output of a single RCON command
 
