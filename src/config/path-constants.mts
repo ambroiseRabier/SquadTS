@@ -1,9 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-//todo rename file
-// maybe rename constant: plugin ts folder, ...
-
 /**
  * Use config folder by default, unless envConfigPath env var is specified.
  * Support both envConfigPath relative from root path and absolute path.

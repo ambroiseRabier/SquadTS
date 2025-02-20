@@ -70,7 +70,6 @@ describe('Log Parser events', () => {
   });
 
   it('should not log multiple time for many subscriber', async () => {
-    // todo
     logParser = useLogParser(
       // note: Any missing function will just make the test fail without any information.
       fakeLogger as any,

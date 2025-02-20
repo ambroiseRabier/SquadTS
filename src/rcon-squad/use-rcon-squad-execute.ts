@@ -76,7 +76,8 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
           return {
             ...omit(groups, ['isLeader', 'teamID', 'squadID', 'ids']),
             isLeader: isLeader === 'True',
-            teamID: teamID as '1' | '2', // teamID !== 'N/A' ? teamID : null, // todo: actually possible ? admin cam perhaps ?
+            // There was teamID !== 'N/A' in SquadJS, but I don't see that happening anywhere, maybe with mods ?
+            teamID: teamID as '1' | '2',
             squadID: squadID !== 'N/A' ? squadID : undefined,
             ...extractIDs(ids),
           };
@@ -175,8 +176,6 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
       await dryRunExecute('AdminEndMatch');
     },
 
-    // todo: rename squadID squadIndex everywhere :)
-    // todo: rename teamID TeamNumber everywhere (like the game does)
     // Rename is not possible, but you can reset it to default name "Squad 1", "Squad 2", ...
     resetSquadName: async (teamID: string, squadID: string) => {
       await dryRunExecute(`AdminRenameSquad ${teamID} ${squadID}`);

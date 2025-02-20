@@ -62,7 +62,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
       debugCondenseLogsIgnoreSinceDisconnect: false, // same as above
     },
     logger: {
-      verboseness: {
+      verbosity: {
         // recommended to keep it at least at debug to fully enable debugLogMatching,
         // trace will also warn you if there is wrong or absent dates
         LogParser: 'trace',

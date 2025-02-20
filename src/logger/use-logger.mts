@@ -6,51 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 // const isDev = process.env.NODE_ENV !== 'production';
 
-// todo save logs on file, also keep the file at a certain max size.
-// Also allow saving log at 2 different location for tests and prod/dev ...
-// env var ? like for config
-// Non pas besoin
-// Note: for test server, logs will be in the console, no need to save them to a file :)
 export function useLogger() {
-  //
-  // const logger = pino({
-  //   // level: isDev ? 'debug': 'info', // all levels are ok for main function.
-  //   // todo: add a transport for file, max file size needed too.
-  //   // todo: handle rcon-execute also neededing this part.
-  //   // transport: toFileTransport,
-  //   ...(isDev ? {
-  //     base: null,  // Remove processID and hostname
-  //   } : {}),
-  //   // formatters:,
-  // }, isDev ? prettyStream : undefined, );
-
-  // const transport = pino.transport({
-  //   targets: [
-  //     {
-  //       target: 'pino-pretty',
-  //     },
-  //     {
-  //       target: 'pino/file',
-  //       options: {
-  //         destination: LOG_FILE,
-  //       }
-  //     }
-  //   ]
-  // })
-  //
-  // const logger = pino({
-  //   transport,
-  //   base: null, // Remove processID and hostname
-  // });
-
-  // non
-  // const logger = pino({
-  //   base: null,
-  // },
-  //   prettyStream,
-  //   pino.destination(LOG_FILE)
-  // );
-
   // transports vs stream: https://github.com/pinojs/pino/issues/1514
   // Prefer transports, worker thread, better performance.
   // Also, multi-stream repo has been archived.
@@ -87,6 +43,8 @@ export function useLogger() {
           //     destination: LOG_FILE,
           //   },
           // }
+
+          // https://stackoverflow.com/questions/65035838/how-can-i-rotate-log-files-in-pino-js-logger
           // https://github.com/mcollina/pino-roll
           {
             target: 'pino-roll',
@@ -107,9 +65,6 @@ export function useLogger() {
           },
         ],
       },
-
-      // https://stackoverflow.com/questions/65035838/how-can-i-rotate-log-files-in-pino-js-logger
-      // pino-roll maybe, do I actually need it ? todo
     ],
   });
   const logger = pino(
@@ -122,41 +77,41 @@ export function useLogger() {
   return logger;
 }
 
-export function useSubLogger(logger: Logger, verboseness: Options['logger']['verboseness']) {
+export function useSubLogger(logger: Logger, verbosity: Options['logger']['verbosity']) {
   // More readable with less line breaks.
   // prettier-ignore
   return {
     squadServerLogger: logger.child({}, {
       msgPrefix: chalk.yellowBright('[SquadServer] '),
-      level: verboseness.SquadServer,
+      level: verbosity.SquadServer,
     }),
     rconLogger: logger.child({}, {
       msgPrefix: chalk.cyanBright('[RCON] '),
-      level: verboseness.RCON,
+      level: verbosity.RCON,
     }),
     logParserLogger: logger.child({}, {
       msgPrefix: chalk.blueBright('[LogParser] '),
-      level: verboseness.LogParser,
+      level: verbosity.LogParser,
     }),
     rconSquadLogger: logger.child({}, {
       msgPrefix: chalk.blue('[RCONSquad] '),
-      level: verboseness.RCONSquad,
+      level: verbosity.RCONSquad,
     }),
     pluginLoaderLogger: logger.child({}, {
       msgPrefix: chalk.magenta('[PluginLoader] '),
-      level: verboseness.PluginLoader,
+      level: verbosity.PluginLoader,
     }),
     adminListLogger: logger.child({}, {
       msgPrefix: chalk.greenBright('[AdminList] '),
-      level: verboseness.AdminList,
+      level: verbosity.AdminList,
     }),
     logReaderLogger: logger.child({}, {
       msgPrefix: chalk.green('[LogReader] '),
-      level: verboseness.LogReader,
+      level: verbosity.LogReader,
     }),
     githubInfoLogger: logger.child({}, {
       msgPrefix: chalk.magentaBright('[GithubInfo] '),
-      level: verboseness.GithubInfo,
+      level: verbosity.GithubInfo,
     }),
   };
 }

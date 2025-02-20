@@ -13,7 +13,7 @@ describe('parseConfig', () => {
         debugCondenseLogsIgnoreSinceDisconnect: false,
       },
       logger: {
-        verboseness: {
+        verbosity: {
           LogParser: 'info',
           RCON: 'info',
           SquadServer: 'info',

@@ -402,3 +402,31 @@ refine autant d'events que possible
 ---
 
 faire une liste d'events dispo depuis la page principale. pr donner envie.
+
+---
+
+useCache avec les chat events.
+
+---
+
+prob pas une bonne idée: faire de la validation de params sur les command rcon, par ex:
+kick player X, X existe ds cache ? alors ok, sinon erreur. Peut etre pratique
+pour trouver les erreurs tôt, mais risque de donner des résultats faux.
+Et faut le coder.
+
+Mieux ?
+Les code erreurs de retours si ban/kick, mais player deco ou existe pas.
+soit je renvoie un code erreur, soit je throw...
+
+---
+
+ce serait pas mal...
+
+    // todo: rename squadID squadIndex everywhere :)
+    // todo: rename teamID TeamNumber everywhere (like the game does)
+
+comme ds la description des commandes
+
+```
+AdminDisbandSquad <TeamNumber = [1|2]> <SquadIndex> (Disbands the specified Squad)
+```

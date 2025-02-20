@@ -1,7 +1,7 @@
 {
   // Define the log levels for each logger, available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
-  verboseness: {
+  verbosity: {
     SquadServer: 'info',
     LogParser: 'info',
     // Set to debug to view every response made, trace to view every RCON call made.
@@ -16,16 +16,16 @@
   },
   debugLogMatching: {
     // Log matched logs, that will be turned into events. They show at DEBUG log level.
-    // verboseness.LogParser HAS TO BE set to 'debug' for this to work.
+    // verbosity.LogParser HAS TO BE set to 'debug' for this to work.
     // Warning: very verbose, only use in development.
     showMatching: false,
     // Log non matched logs. They show at WARN log level.
     // You can use this to find new logs, that could be turned into events !
-    // If however, the log appear useless, you can add it to ignoreRegexMatch to reduce the verboseness.
+    // If however, the log appear useless, you can add it to ignoreRegexMatch to reduce the verbosity.
     // Warning: very verbose, only use in development.
     showNonMatching: false,
     // Every non matched line that will be additionally tested, if it match it will not be logged.
-    // Reduce the verboseness by ignoring logs you know are not useful to us.
+    // Reduce the verbosity by ignoring logs you know are not useful to us.
     // Use this with caution.
     ignoreRegexMatch: [
       '^LogEOS:',

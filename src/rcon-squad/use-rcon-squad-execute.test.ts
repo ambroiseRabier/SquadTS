@@ -20,7 +20,6 @@ describe('rcon-squad-execute', () => {
   it('does not call execute on game modifying command when dry run is enabled', async () => {
     const dryRunRCON = useRconSquadExecute(execute as any, true, mockLogger as any);
 
-    // todo params check or error, will have to udpate the test here.
     await dryRunRCON.broadcast('hello');
     await dryRunRCON.kick('', '');
     await dryRunRCON.ban('', '', '');
@@ -184,6 +183,4 @@ ID: 2 | Name: Squad 2 | Size: 8 | Locked: False | Creator Name: kilmol | Creator
   // });
 
   // todo: test next map when defined.
-  // todo: check ban/kick/disolve squad when incorrect parameters
-  //       or when player already left the server.
 });

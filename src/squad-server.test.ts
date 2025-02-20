@@ -23,6 +23,9 @@ async function toBeNeverCalled(server: SquadServer) {
     /* no-op */
   });
   console.log(server.info.teamOne);
+
+  // Raw RCON available
+  await server.rcon.execute('ShowServerInfo');
 }
 
 it('return a well defined API', () => {

@@ -7,8 +7,7 @@ const logLevels = Object.keys(pino.levels.values);
 const pinoLevelSchema = z.enum(logLevels as [string, ...string[]]);
 
 export const loggerOptionsSchema = z.object({
-  // todo replace by verbosity, more common english
-  verboseness: z
+  verbosity: z
     .object({
       SquadServer: pinoLevelSchema.default('info'),
       LogParser: pinoLevelSchema.default('info'),
@@ -36,7 +35,7 @@ export const loggerOptionsSchema = z.object({
       .default(false)
       .describe(
         'Log matched logs, that will be turned into events. They show at DEBUG log level.\n' +
-          "verboseness.LogParser HAS TO BE set to 'debug' for this to work.\n" +
+          "verbosity.LogParser HAS TO BE set to 'debug' for this to work.\n" +
           'Warning: very verbose, only use in development.'
       ),
     showNonMatching: z
@@ -45,7 +44,7 @@ export const loggerOptionsSchema = z.object({
       .describe(
         'Log non matched logs. They show at WARN log level.\n' +
           'You can use this to find new logs, that could be turned into events !\n' +
-          'If however, the log appear useless, you can add it to ignoreRegexMatch to reduce the verboseness.\n' +
+          'If however, the log appear useless, you can add it to ignoreRegexMatch to reduce the verbosity.\n' +
           'Warning: very verbose, only use in development.'
       ),
     ignoreRegexMatch: z
@@ -65,7 +64,7 @@ export const loggerOptionsSchema = z.object({
       ])
       .describe(
         'Every non matched line that will be additionally tested, if it match it will not be logged.\n' +
-          'Reduce the verboseness by ignoring logs you know are not useful to us.\n' +
+          'Reduce the verbosity by ignoring logs you know are not useful to us.\n' +
           'Use this with caution.'
       ),
   }),

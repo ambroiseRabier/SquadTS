@@ -13,7 +13,7 @@ enum DataType {
   AUTH_RESPONSE = 0x02,
   RESPONSE_VALUE = 0x00,
   AUTH = 0x03,
-  CHAT_VALUE = 0x01, // todo: maybe rename that LOG_VALUE, as this is not (only) player chat !
+  CHAT_VALUE = 0x01,
 }
 
 // Ex: 1 => "CHAT_VALUE"
@@ -426,7 +426,7 @@ export class Rcon {
                 this.logger.debug(
                   `Returning response for "${body}" (logging only when changed): "${response as string}"`
                 );
-              } // else do nothing to reduce verboseness
+              } // else do nothing to reduce verbosity
             } else {
               this.logger.debug(`Returning response for "${body}": "${response as string}"`);
             }

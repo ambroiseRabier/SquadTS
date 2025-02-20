@@ -32,8 +32,6 @@ interface Props {
   };
 }
 
-// todo, maybe use some kind or DI, why not place logParser inside squadServer ?
-
 export async function main(props?: Props) {
   const logger = useLogger();
   logger.info('Starting SquadTS');
@@ -63,12 +61,11 @@ export async function main(props?: Props) {
     rconLogger,
     logParserLogger,
     rconSquadLogger,
-    cachedGameStatusLogger,
     pluginLoaderLogger,
     adminListLogger,
     logReaderLogger,
     githubInfoLogger,
-  } = useSubLogger(logger, config.logger.verboseness);
+  } = useSubLogger(logger, config.logger.verbosity);
   const rcon = props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
   const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);

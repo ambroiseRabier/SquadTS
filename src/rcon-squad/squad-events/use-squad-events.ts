@@ -10,7 +10,6 @@ export function useSquadEvents(logger: Logger, chatPacketEvent: Subject<string>)
 
   return {
     adminsInAdminCam,
-    // todo, send it to useCached... to get player obj
     chatEvents: {
       ...chatEvents,
       possessedAdminCamera,
