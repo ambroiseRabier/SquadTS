@@ -108,7 +108,8 @@ and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-conf
 Pre-commit hook will override everything inside config folder. Be warned.
 
 Prettier is runned in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
-You may check your changes in pull request again.
+You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
+`// prettier-ignore` at top of the file like in `check-unbalance-switchability.test.ts`.
 
 ### (Utility) Get output of a single RCON command
 

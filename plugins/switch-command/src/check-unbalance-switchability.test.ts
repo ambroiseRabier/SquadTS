@@ -1,15 +1,12 @@
-// prettier-ignore
-// vertical alignement of toEqual make it more readable. But prettier can't know that.
-
 import { describe, expect, it } from 'vitest';
 import { checkUnbalancedSwitchability } from './check-unbalance-switchability';
 
+// vertical alignement of toEqual make it more readable. But prettier can't know that.
+
+// prettier-ignore
 describe('checkSwitchability', () => {
   it('maxAllowedPlayerCountDiff === 1, Team 1 too big', () => {
-    expect(checkUnbalancedSwitchability(50, 50, 1)).toEqual({
-      maxTeam1MoveAllowed: 0,
-      maxTeam2MoveAllowed: 0,
-    });
+    expect(checkUnbalancedSwitchability(50, 50, 1)).toEqual({maxTeam1MoveAllowed: 0, maxTeam2MoveAllowed: 0});
     expect(checkUnbalancedSwitchability(50, 49, 1)).toEqual({
       maxTeam1MoveAllowed: 1,
       maxTeam2MoveAllowed: 0,
