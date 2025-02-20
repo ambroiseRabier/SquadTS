@@ -6,7 +6,6 @@ import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.con
 const enabledSchema = pluginBaseOptionsSchema
   .extend({
     enabled: z.literal(true),
-    requireConnectors: z.tuple([]),
     command: z.string().default('!switch').describe('Call to switch to the opposite team.'),
     watchDuration: z
       .number()

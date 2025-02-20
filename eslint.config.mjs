@@ -44,5 +44,9 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
-  includeIgnoreFile(gitignorePath)
+  includeIgnoreFile(gitignorePath),
+  // In addition of .gitignore
+  {
+    ignores: ['.husky', '.github', '.idea', '/config'],
+  }
 );

@@ -1,0 +1,38 @@
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+
+name-template: 'Release v{{version}}'
+tag-template: 'v{{version}}'
+categories:
+  - title: 🚀 Features
+    labels:
+      - feature
+  - title: 🚀 Plugins features
+    labels:
+      - plugin-feature
+  - title: 🐛 Bug Fixes
+    labels:
+      - bug
+  - title: 🛠 Maintenance
+    labels:
+      - chore
+      - refactor
+change-template: '- {{pullRequest.title}} (#{{pullRequest.number}} by @{{pullRequest.author}})'
+template: |
+  ## What's Changed
+
+  {{CHANGELOG}}
+
+
+  ## Credits
+
+  {{CONTRIBUTORS}}

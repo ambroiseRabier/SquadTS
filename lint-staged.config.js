@@ -15,5 +15,7 @@ export default {
   // Since I am not using eslint --fix, I have not race condition to handle.
   // However, it is still better to run prettier first, to fix issue like double quote not being single quote that
   // eslint will error onto.
-  '*': [prettier, 'eslint --max-warnings=0'],
+  // --max-warnings=0 will make eslint fail for any warning
+  // --no-warn-ignored will make eslint NOT fail because some file are ignored. That's why there is an ignore file in the first place.
+  '*': [prettier, 'eslint --max-warnings=0 --no-warn-ignored'],
 };

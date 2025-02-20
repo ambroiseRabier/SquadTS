@@ -3,7 +3,6 @@
   // Available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
   loggerVerbosity: 'info',
-  requireConnectors: [],
   // Call to switch to the opposite team.
   command: '!switch',
   // How long it will try to switch player to the opposite team.

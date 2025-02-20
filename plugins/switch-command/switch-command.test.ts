@@ -73,7 +73,6 @@ const mockLogger = createMockLogger();
 const mockOptions: SwitchCommandConfig = {
   enabled: true,
   loggerVerbosity: 'info',
-  requireConnectors: [],
   command: '!switch',
   cooldown: 2, // 2sec cooldown or test will last forever !
   watchDuration: 300,

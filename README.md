@@ -3,7 +3,7 @@
 <img src="assets/squadts-logo-white.png#gh-dark-mode-only" alt="Logo" width="500"/>
 <img src="assets/squadts-logo.png#gh-light-mode-only" alt="Logo" width="500"/>
 
-#### SquadJS
+#### SquadTS
 
 [![GitHub release](https://img.shields.io/github/release/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/releases)
 [![GitHub contributors](https://img.shields.io/github/contributors/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/graphs/contributors)
@@ -93,11 +93,9 @@ If you have some more knowledge, I recommend these steps:
 2. NodeJS 22 LTS, recommended with NVM (node version manager).
 3. Clone the project with git.
 4. Use git bash and install node dependencies.
+5. Finish reading \*_dev_ section.
 
-5. `npm i`
-6. `npm run watch`
-
-To test on a squad server, you may host yourself (but it will be a hassle):
+To test on a live squad server, you may host yourself (but it will be a hassle):
 
 - https://squad.fandom.com/wiki/Server_Installation
 - https://hub.docker.com/r/cm2network/squad/
@@ -132,7 +130,29 @@ npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-p
 
 ## SquadTS vs SquadJS
 
-SquadTS offer several advantages for plugin developers:
+SquadTS offer several advantages for server owner and plugins developpers:
+
+For everyone:
+
+- SquadTS configs are separated in multiple files for increased readability.
+- Plugins configs are separated in multiple files for increased readability.
+- SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
+- SquadTS and plugin config is validated before usage, if your config is wrong you will know right away.
+- Some performance improvements:
+  - It does not download 15mb JSON from github at each startup when the file has not changed.
+  - It does not call FTP dozens of time a second for the log file, by default it calls one time a second.
+- Revisited plugins.
+- New plugins supported by default:
+  - heli-crash-broadcast
+  - knife-broadcast
+  - max-player-in-squad
+  - auto-rejoin-team
+  - ...
+- Properly clean up RCON and FTP connection when process is killed (CTRL+C)
+
+This makes it easier to develop and maintain plugins.
+
+For plugin developers:
 
 - Type safety.
 - Revisited API.
@@ -176,23 +196,6 @@ server.events.teamKill.subscribe(async info => {
   );
 });
 ```
-
-For everyone:
-
-- SquadTS configs are separated in multiple files for increased readability.
-- Plugins configs are separated in multiple files for increased readability.
-- SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
-- SquadTS and plugin config is validated before usage.
-- Some performance improvements like not downloading 15mb JSON from github at each startup when the file has not changed.
-- Some performance improvements like not downloading FTP file dozens of time a second (todo: re-confirm)
-- Controls over how often RCON is pinged for player, squad list, serverinfo, and how often new logs are downloaded.
-  Default values are set to have a low response time of plugins functionnalities, but in case of performance issues
-  You may change theses values in config.
-- Revisited plugins like switch command (does anyone still use !bug command ?)
-- New plugins like heli-crash-broadcast, knife-broadcast, max-player-in-squad, auto-rejoin-team...
-- Properly clean up RCON and FTP connection when process is killed (CTRL+C)
-
-This makes it easier to develop and maintain plugins.
 
 Cons:
 
