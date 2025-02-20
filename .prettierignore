@@ -1,0 +1,3 @@
+# Ignore config folder, as create constant change because config generation get changed by prettier
+# (for some small things line line break at the end of an extra space at the end)
+/config

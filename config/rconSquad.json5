@@ -1,5 +1,5 @@
 {
-  // If true, no RCON command THAT IMPACT THE GAME (like warn or kick) will be sent to the server.
+  // If true, no RCON command THAT IMPACT THE GAME (like warn or kick) will be sent to the server. 
   // Any data gathering like getting server info or player list will work.
   // You may use that to test out your RCON plugin without actually impacting the game.
   dryRun: false,

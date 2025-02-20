@@ -12,6 +12,7 @@ npm run generate-config -- --force
 if [ -n "$(git diff --name-only)" ]; then
   echo "⚠️  Unstaged changes in tracked files detected! Please stage these changes before committing."
   echo "⚠️  Run 'git add <files>' to stage, and then try committing again."
+  echo "Please review the changes in the config before commiting again."
   exit 1
 fi
 
@@ -19,6 +20,7 @@ fi
 if [ -n "$(git ls-files --others --exclude-standard)" ]; then
   echo "⚠️  Untracked files detected! Please stage new files before committing."
   echo "⚠️  Run 'git add <files>' to stage, and then try committing again."
+  echo "Please review the changes in the config before commiting again."
   exit 1
 fi
 

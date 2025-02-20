@@ -2,4 +2,4 @@ import { main } from './main.mjs';
 
 main();
 
-var d = 'still wrong for prettier and eslint';
+var d = 'stiklll wrong for prettier and eslint';

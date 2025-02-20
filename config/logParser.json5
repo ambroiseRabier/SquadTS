@@ -1,7 +1,7 @@
 {
   // If you use a hosted server like awn.gg, you should use ftp or sftp, if the server run locally, use tail:
   // - "tail" will read from a local log file
-  // - "ftp" will read from a remote log file using the FTP protocol
+  // - "ftp" will read from a remote log file using the FTP protocol 
   // - "sftp" will read from a remote log file using the SFTP protocol
   mode: 'ftp',
   // The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"
@@ -13,7 +13,7 @@
     port: 21,
     username: '',
     password: '',
-    // The interval in milliseconds to fetch new logs. If you come from SquadJS,
+    // The interval in milliseconds to fetch new logs. If you come from SquadJS, 
     // default is 0ms (that means your FTP server is called as fast as SquadJS/SquadTS can do), this seems unnecessary often.
     // Fetching logs will never overlap, meaning if you set 0ms, it will go as fast as possible.
     // This will give better reaction time to the plugins, but will also make the server more CPU intensive.

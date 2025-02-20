@@ -9,7 +9,9 @@
   // The messages to send to the server when someone gets knifed,
   // %attacker% and %victim% are replaced by the attacker and victim names.
   // Up to you to be creative and funny.
-  messages: ['%victim% just got knifed by %attacker%'],
+  messages: [
+    '%victim% just got knifed by %attacker%',
+  ],
   // How many seconds to wait before broadcasting.
   delay: 5,
 }

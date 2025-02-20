@@ -107,6 +107,8 @@ and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-conf
 
 Pre-commit hook will override everything inside config folder. Be warned.
 
+Prettier is runned in pre-commit hook, modifying your files.
+
 ### (Utility) Get output of a single RCON command
 
 Running this will cause Squad server to disconnect others RCON connection from the same IP,
