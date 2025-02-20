@@ -5,8 +5,7 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordSquadCreatedConfig } from './discord-squad-created.config';
 
-// todo prq majuscule ici et pas ailleurs
-const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
+const discordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
   server,
   connectors,
   logger,
@@ -53,7 +52,7 @@ const DiscordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
   });
 };
 
-export default DiscordSquadCreated;
+export default discordSquadCreated;
 
 // If set, the plugin will only be loaded if the connectors are available.
 // This means you won't have to deal with missing connectors errors.

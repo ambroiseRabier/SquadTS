@@ -3,7 +3,7 @@ import { DiscordAdminBroadcastEnabledOptions } from './discord-admin-broadcast.c
 import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 
-const DiscordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> = async (
+const discordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> = async (
   server,
   connectors,
   logger,
@@ -29,4 +29,4 @@ const DiscordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> 
 };
 
 // noinspection JSUnusedGlobalSymbols
-export default DiscordAdminBroadcast;
+export default discordAdminBroadcast;

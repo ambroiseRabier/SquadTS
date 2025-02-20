@@ -3,7 +3,7 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordKillfeedOptions } from './discord-killfeed.config';
 
-const DiscordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
+const discordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
   server,
   connectors,
   logger,
@@ -64,4 +64,4 @@ const DiscordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
   });
 };
 
-export default DiscordKillfeed;
+export default discordKillfeed;

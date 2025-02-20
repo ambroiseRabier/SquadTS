@@ -4,7 +4,7 @@ import { APIEmbed } from 'discord.js';
 import { DiscordServerStatusOptions } from './discord-server-status.config';
 import { exhaustMap, interval } from 'rxjs';
 
-const DiscordServerStatus: SquadTSPlugin<DiscordServerStatusOptions> = async (
+const discordServerStatus: SquadTSPlugin<DiscordServerStatusOptions> = async (
   server,
   connectors,
   logger,
@@ -68,4 +68,4 @@ const DiscordServerStatus: SquadTSPlugin<DiscordServerStatusOptions> = async (
     .subscribe();
 };
 
-export default DiscordServerStatus;
+export default discordServerStatus;

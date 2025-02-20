@@ -3,7 +3,7 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordAdminCamLogsEnabledOptions } from './discord-cam-logs.config';
 
-const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = async (
+const discordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = async (
   server,
   connectors,
   logger,
@@ -70,4 +70,4 @@ const DiscordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
   });
 };
 
-export default DiscordAdminCamLogs;
+export default discordAdminCamLogs;

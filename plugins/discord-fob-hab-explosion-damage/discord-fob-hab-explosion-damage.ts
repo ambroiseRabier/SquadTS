@@ -3,7 +3,7 @@ import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordFOBExplosionEnabledOptions } from './discord-fob-hab-explosion-damage.config';
 
-const DiscordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOptions> = async (
+const discordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOptions> = async (
   server,
   connectors,
   logger,
@@ -52,4 +52,4 @@ const DiscordFOBHABExplosionDamage: SquadTSPlugin<DiscordFOBExplosionEnabledOpti
   });
 };
 
-export default DiscordFOBHABExplosionDamage;
+export default discordFOBHABExplosionDamage;
