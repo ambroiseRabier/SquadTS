@@ -17,5 +17,5 @@ const prettier =
 
 export default {
   '!(*.{ts, mts})': prettier,
-  '*.{ts, mts}': [prettier, 'eslint'], // eslint alone won't do anything, eslint --fix yes, but I don't want that.
+  '*.{ts, mts}': [prettier, 'eslint --max-warnings=0'],
 };
