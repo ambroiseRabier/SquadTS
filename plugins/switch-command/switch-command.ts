@@ -1,9 +1,9 @@
 import { SwitchCommandConfig } from './switch-command.config';
-import { concatMap, debounceTime, filter, map, tap } from 'rxjs';
+import { concatMap, filter, map, tap } from 'rxjs';
 import { balanceIncreaseSwitch, SwitchRequest, unbalanceSwitch } from './src/switch-helpers';
 import { trackBalanceChange } from './src/track-balance-change';
 import { sortRequests } from './src/sort-requests';
-import { Player, AdminPerms, SquadTSPlugin } from '../../src/exports';
+import { AdminPerms, Player, SquadTSPlugin } from '../../src/exports';
 
 const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
   server,
@@ -118,8 +118,6 @@ const switchCommand: SquadTSPlugin<SwitchCommandConfig> = async (
   trackBalanceChange(server.players$)
     .pipe(
       filter(() => switchRequestToTeam1.length > 0 || switchRequestToTeam2.length > 0),
-      // Small debounce time to avoid spam at end/start of the game
-      debounceTime(1000),
       tap(newBalance => {
         const reqNb = switchRequestToTeam1.length + switchRequestToTeam2.length;
         logger.info(

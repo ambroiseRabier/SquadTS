@@ -130,7 +130,7 @@ const addPlayerToGame = async (
   server.players$.next([...server.players$.getValue(), player]);
 
   // No need to re-emit switch, player is tracked.
-  await wait(1100); // wait debounce time + margin
+  await wait(0); // let observable trigger any update...
 };
 
 describe('switchCommand', () => {
@@ -239,7 +239,7 @@ describe('switchCommand', () => {
     });
 
     // No need to re-emit switch, player is tracked.
-    await wait(1100); // wait debounce time + margin
+    await wait(0); // let observable trigger any update...
 
     expect(server.rcon.forceTeamChange).toHaveBeenCalledWith('eos1');
   });
@@ -497,7 +497,7 @@ describe('switchCommand', () => {
       },
     ]);
 
-    await wait(1100); // wait debounce + margin
+    await wait(0); // let observable trigger any update...
 
     // all good ? no errors ?
     // then proceed to add 2 new players
@@ -516,7 +516,7 @@ describe('switchCommand', () => {
       },
     ]);
 
-    await wait(1100); // wait debounce + margin
+    await wait(0); // let observable trigger any update...
 
     // Balance allow switch, but player that asked is disconnected
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalled();
@@ -548,7 +548,7 @@ describe('switchCommand', () => {
       },
     ]);
 
-    await wait(1100); // debounce + margin
+    await wait(0); // let observable trigger any update...
 
     // unbalance in favor of team 1
     server.players$.next([
@@ -574,7 +574,7 @@ describe('switchCommand', () => {
       },
     ]);
 
-    await wait(1100); // debounce + margin
+    await wait(0); // let observable trigger any update...
 
     expect(server.rcon.forceTeamChange).not.toHaveBeenCalledWith('eos1');
   });

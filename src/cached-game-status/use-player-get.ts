@@ -120,7 +120,6 @@ export function usePlayerGet(getPlayers: () => Player[]) {
 
   /**
    * SteamID is dependant on RCON update loop. Logs will not provide SteamID.
-   * @param eosID
    */
   function getPlayerBySteamID(steamID: string) {
     // Guard against plugin dev mistakes
