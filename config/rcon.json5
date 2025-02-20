@@ -6,6 +6,8 @@
   // The RCON password of the server.
   password: '',
   autoReconnectDelay: 5000,
-  // If true, will not show ListPlayers and ListSquads log if theses have not changed.
+  // If true, will not show ListPlayers / ListSquads / ShowServerInfo RCON response log (debug level) if theses have not changed.
   debugCondenseLogs: true,
+  // If true, exclusive change in `Since Disconnect: 03m.14s` will not be displayed.
+  debugCondenseLogsIgnoreSinceDisconnect: true,
 }

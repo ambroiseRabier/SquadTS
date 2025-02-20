@@ -17,6 +17,7 @@
 [![Discord](https://img.shields.io/discord/266210223406972928.svg?style=flat-square&logo=discord)](https://discord.gg/9F2Ng5C)
 
 <br><br>
+
 </div>
 
 ## About
@@ -104,9 +105,11 @@ To test on a squad server, you may host yourself (but it will be a hassle):
 To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
 and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
 
+Pre-commit hook will override everything inside config folder. Be warned.
+
 ### (Utility) Get output of a single RCON command
 
-Running this will cause Squad server to disconnect others RCON connection from the same IP, 
+Running this will cause Squad server to disconnect others RCON connection from the same IP,
 effectively closing SquadTS server if opened.
 
 ```shell

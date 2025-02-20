@@ -4,6 +4,8 @@
   verboseness: {
     SquadServer: 'info',
     LogParser: 'info',
+    // Set to debug to view every response made, trace to view every RCON call made.
+    // You may use debugCondenseLogs in rcon config to reduce verboseness of some responses.
     RCON: 'info',
     RCONSquad: 'info',
     CachedGameStatus: 'info',
@@ -37,6 +39,7 @@
       '^LogRCONServer: \\d+:FRCONSocket::CloseConnection\\(\\):',
       '^LogRCONServer: \\d+:FRCONSocket::Run\\(\\):',
       '^LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.',
+      '^LogEOSAntiCheat: Verbose:',
     ],
   },
 }
