@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { Subject } from 'rxjs';
 import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
+import { obtainEnteringPlayer } from './cached-game-status/obtain-entering-player';
 
 interface Props {
   /**
@@ -122,6 +123,7 @@ export async function main(props?: Props) {
   const serverInfo = await rconSquad.showServerInfo();
   const players = await rconSquad.getListPlayers();
   const squads = await rconSquad.getSquads();
+  const addPlayer$ = obtainEnteringPlayer(logParser.events, config.logParser, logger);
 
   const cachedGameStatus = useCachedGameStatus({
     initialPlayers: players,
@@ -130,9 +132,8 @@ export async function main(props?: Props) {
     rconSquad,
     logParser,
     config: config.cacheGameStatus,
-    logParserConfig: config.logParser,
-    logger: cachedGameStatusLogger,
     manualRCONUpdateForTest: props?.mocks.manualRCONUpdateForTest,
+    addPlayer$,
   });
 
   const refinedLogEvents = useRefinedLogEvents({

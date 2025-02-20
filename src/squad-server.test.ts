@@ -1,4 +1,5 @@
 import { SquadServer } from './squad-server';
+import { it } from 'vitest';
 
 // This test is a bit special.
 // We are just making sure fields are available to plugins developer.
@@ -17,4 +18,11 @@ async function toBeNeverCalled(server: SquadServer) {
   server.events.adminBroadcast.subscribe(broad => {
     broad.message.charAt(0); // is string...
   });
+
+  server.players.forEach(() => {/* no-op */})
+  console.log(server.info.teamOne);
 }
+
+it('return a well defined API', () => {
+  // no-op
+});

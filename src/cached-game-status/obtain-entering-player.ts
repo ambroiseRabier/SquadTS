@@ -3,6 +3,10 @@ import { LogParser } from '../log-parser/use-log-parser';
 import { LogParserConfig } from '../log-parser/log-parser.config';
 import { Logger } from 'pino';
 
+/**
+ * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+ * It is based on 5 consecutive logs
+ */
 export function obtainEnteringPlayer(
   events: LogParser['events'],
   logParserConfig: LogParserConfig,

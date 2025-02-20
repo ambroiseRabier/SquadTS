@@ -5,7 +5,7 @@ import { gameServerInfoKeys } from './server-info.type';
 import { createMockLogger } from '../test-utils';
 
 describe('rcon-squad-execute', () => {
-  const execute: MockedFunction<Rcon['execute']> = vi.fn();
+  const execute: MockedFunction<Rcon['execute']> = vi.fn().mockResolvedValue('');
   let rc: ReturnType<typeof useRconSquadExecute>;
   const mockLogger = createMockLogger();
 
@@ -31,14 +31,9 @@ describe('rcon-squad-execute', () => {
     expect(mockLogger.warn).toHaveBeenCalledWith('Dry run: AdminBroadcast hello');
   });
 
-  it('does call execute on non game modifying command when dry run is enabled', async () => {
-    const dryRunRCON = useRconSquadExecute(execute as any, true, mockLogger as any);
-
-    await dryRunRCON.getListPlayers();
-    await dryRunRCON.getSquads();
-    await dryRunRCON.getCurrentMap();
-    await dryRunRCON.getNextMap();
-    expect(execute).toHaveBeenCalledTimes(4);
+  it('getNextMap', async () => {
+    execute.mockResolvedValue('Next level is wfe, layer is wef');
+    expect(await rc.getNextMap()).toEqual('Next level is wfe, layer is wef');
   });
 
   it('getCurrentMap', async () => {

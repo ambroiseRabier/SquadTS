@@ -132,6 +132,11 @@ export function useLogParser(
         map(([eventName, lineObj, metadata]) => ({
           ...lineObj,
           ...metadata,
+        })),
+        map(data => ({
+          ...data,
+          damage: parseFloat(data.damage),
+          healthRemaining: parseFloat(data.healthRemaining)
         }))
       ),
       loginRequest: events.pipe(
@@ -195,7 +200,8 @@ export function useLogParser(
           ...metadata,
         })),
         map(data => ({
-          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag']),
+          ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag', 'damage']),
+          damage: parseFloat(data.damage),
           attacker: {
             ...extractIDs(data.attackerIDs),
             controller: data.attackerController,

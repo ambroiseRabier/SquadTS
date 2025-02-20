@@ -3,8 +3,6 @@ import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParser } from '../log-parser/use-log-parser';
-import { LogParserConfig } from '../log-parser/log-parser.config';
-import { Logger } from 'pino';
 import { findSquadChanges } from './find-squad-changes';
 import { obtainEnteringPlayer } from './obtain-entering-player';
 import { intervalPlayersSquads, intervalServerInfo } from './rcon-updates';
@@ -55,12 +53,11 @@ interface Props {
   initialPlayers: Player[];
   initialSquads: Squad[];
   initialServerInfo: Awaited<ReturnType<RconSquad['showServerInfo']>>;
-  logParserConfig: LogParserConfig;
   logParser: LogParser;
-  logger: Logger;
   config: CachedGameStatusOptions;
   rconSquad: RconSquad;
   manualRCONUpdateForTest?: Subject<void>;
+  addPlayer$: ReturnType<typeof obtainEnteringPlayer>;
 }
 
 export type CachedGameStatus = ReturnType<typeof useCachedGameStatus>;
@@ -72,12 +69,11 @@ export function useCachedGameStatus({
   initialPlayers,
   initialServerInfo,
   initialSquads,
-  logParserConfig,
   logParser,
-  logger,
   config,
   rconSquad,
   manualRCONUpdateForTest,
+  addPlayer$,
 }: Props) {
   const players$ = new BehaviorSubject<Player[]>(initialPlayers);
   const squads$ = new BehaviorSubject<Squad[]>(initialSquads);
@@ -90,12 +86,6 @@ export function useCachedGameStatus({
   // todo: squad created event (depuis RCON et depuis logs) ?
   // todo: squad change lead event (depuis RCON seulement) ?
   // todo suivre diconnected player pdt un moment ?
-
-  /**
-   * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
-   * It is based on 5 consecutive logs
-   */
-  const addPlayer$ = obtainEnteringPlayer(logParser.events, logParserConfig, logger);
 
   const sub: Subscription[] = [];
 

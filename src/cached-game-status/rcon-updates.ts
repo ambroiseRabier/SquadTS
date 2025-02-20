@@ -10,7 +10,7 @@ export function intervalPlayersSquads(
   // I don't know why, but wrapping into a ternary condition for DRY make typescript unhappy with exhaustMap.
   if (manualRCONUpdateForTest) {
     return manualRCONUpdateForTest.pipe(
-      exhaustMap(() => from(obtainRCONPlayersAndSquads(rconSquad)))
+      exhaustMap(async () => await obtainRCONPlayersAndSquads(rconSquad))
     );
   } else {
     return interval(updateInterval.playersAndSquads * 1000).pipe(
@@ -22,7 +22,7 @@ export function intervalPlayersSquads(
       // exhaustMap: Ensures that if a request is already in progress, new emissions are ignored until
       // the current request completes. This is particularly useful for ensuring no queuing happens at all.
       // exhaustMap is almost correct, we may have 2x the interval waiting time if request take 1.01x the interval
-      exhaustMap(() => from(obtainRCONPlayersAndSquads(rconSquad)))
+      exhaustMap(async () => await obtainRCONPlayersAndSquads(rconSquad))
     );
   }
 }

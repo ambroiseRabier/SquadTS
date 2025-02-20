@@ -126,11 +126,11 @@ describe('Log Parser events', () => {
     // Better IDE support if using ToEqual instead of toHaveBeenCalledWith
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '461',
-      damage: '350.00',
+      damage: 350,
       damageType: 'BP_Fragmentation_DamageType',
       date: expect.any(Date),
       deployable: 'BP_I_Sandbag_2',
-      healthRemaining: '214.57',
+      healthRemaining: 214.57,
       attackerName: 'Mooz',
       weapon: 'BP_Mortarround4',
     });
@@ -241,7 +241,7 @@ describe('Log Parser events', () => {
         eosID: '0002eca389864a629f1a11e2722df6be',
         steamID: '76561199394112551',
       },
-      damage: '300.000000',
+      damage: 300,
       victim: {
         nameWithClanTag: '  UFFD',
       },

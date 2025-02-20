@@ -9,6 +9,8 @@ describe('parseConfig', () => {
         host: '127.0.0.1',
         port: 25575,
         password: 'examplePassword',
+        debugCondenseLogs: false,
+        debugCondenseLogsIgnoreSinceDisconnect: false,
       },
       logger: {
         verboseness: {

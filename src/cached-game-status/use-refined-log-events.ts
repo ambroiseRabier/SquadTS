@@ -16,8 +16,8 @@ interface Props {
 export type RefinedLogEvents = ReturnType<typeof useRefinedLogEvents>;
 
 export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
-  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID, tryGetPlayerByName } = usePlayerGet(() =>
-    cachedGameStatus.players$.getValue()
+  const { tryGetPlayerByNameWithClanTag, getPlayerByEOSID, tryGetPlayerByName } = usePlayerGet(
+    () => cachedGameStatus.players$.getValue()
   );
 
   return {
@@ -46,6 +46,7 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
         return merge({ attacker, victim }, data);
       })
     ),
+
     playerDied: logParser.events.playerDied.pipe(
       filter(data => !!tryGetPlayerByNameWithClanTag(data.victim.nameWithClanTag)),
       map(data => {
@@ -60,6 +61,7 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
         return merge({ attacker, victim }, data);
       })
     ),
+
     deployableDamaged: logParser.events.deployableDamaged.pipe(
       filter(data => !!tryGetPlayerByName(data.attackerName)),
       map(data => {
@@ -67,7 +69,7 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
         const attacker = tryGetPlayerByName(data.attackerName)!;
 
         return {
-          ...data,
+          ...omit(data, ['attackerName']),
           attacker,
         };
       })
@@ -77,6 +79,8 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
       map(data => ({
         ...omit(data, ['controller', 'ip', 'eosID']),
         player: {
+          // Even if we don't have player connected event it is
+          // safe to do, since we got RCON player data at the startup.
           ...getPlayerByEOSID(data.eosID)!,
           // Make sure we use latest info here
           controller: data.controller,

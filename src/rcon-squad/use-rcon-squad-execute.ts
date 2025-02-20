@@ -40,12 +40,18 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
     },
 
     getNextMap: async () => {
+      logger.warn('getNextMap is not implemented, use showNextMap instead');
       const response = await execute('ShowNextMap');
-      const match = response.match(/^Next level is ([^,]*), layer is ([^,]*)/);
-      return {
-        level: match ? (match[1] !== '' ? match[1] : null) : null,
-        layer: match ? (match[2] !== 'To be voted' ? match[2] : null) : null,
-      };
+      // In map vote this is what I get, but can't tell for the rest...
+      const match = response.match(/^Next map is not defined/);
+      return response;
+      // const match = response.match(/^Next level is ([^,]*), layer is ([^,]*)/);
+      // return {
+      //   // Not sure if this is correct.
+      //   toBeVoted: match2 !== null,// || (match && match[2] !== 'To be voted'),
+      //   level: match && match[1],
+      //   layer: match && match[2],
+      // };
     },
 
     // Note: It appears that Webstorm is showing ids as return type, but autocompletion is not.
