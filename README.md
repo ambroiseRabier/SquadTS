@@ -84,6 +84,8 @@ You can regenerate the config with `npm run generate-config`, this will overwrit
 
 ## Dev
 
+### Setup
+
 If you are a beginner coder, following "Install and Run" steps and using an IDE like **Webstorm** (recommended) or **VSCode**
 is enough to get your started. Everything is written in TypeScript, which is a superset of JavaScript.
 
@@ -93,31 +95,32 @@ If you have some more knowledge, I recommend these steps:
 2. NodeJS 22 LTS, recommended with NVM (node version manager).
 3. Clone the project with git.
 4. Use git bash and install node dependencies.
-5. Finish reading \*_dev_ section.
+5. Use an IDE like Webstorm (free) or VSCode (free)
+6. Finish reading \*_dev_ section.
 
-To test on a live squad server, you may host yourself (but it will be a hassle):
+### Tests
 
-- https://squad.fandom.com/wiki/Server_Installation
-- https://hub.docker.com/r/cm2network/squad/
+The project uses Vitest, Vitest does not typecheck which greatly enhance speed of running test.
+When developing, you should make use of your IDE, and may also confirm typing with `npm run typecheck`.
+Since Vitest does not typecheck, you may run into strange issues if your typing is wrong and you run tests.
+Vitest has almost the same API as the more popular Jest, keep that in mind if you need to learn vitest.
 
-To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
-and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+You have two type of tests available, unit test, and e2e (end-to-end) test.
+For example `switch-command` plugin showcase the plugin tested with unit test, mocking every dependencies
+of the plugin. While `heli-crash-broadcast` showcase e2e test, creating a real SquadTS server but with log reader (ftp)
+and rcon mocked.
 
-Pre-commit hook will override everything inside config folder. Be warned.
+It is likely easier to use e2e tests for your plugins, in any case, if your plugin is complicated, you may split it
+in multiples files and make unit test on smaller parts to help with developement.
 
-Prettier is executed in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
-You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
-`// prettier-ignore` on a statement like in `check-unbalance-switchability.test.ts`.
+#### Get test data
 
-We only run prettier, and not `eslint --fix`. Since there are too many occasions where there is disagreement with eslint --fix.
-It also give devs the occasion to learn from their mistake, and re-evaluate code, like is that non-null-assertion really safe
-and documented ?
-However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
-eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
+Best is to get real data from a live server, just run SquadTS with the appropriate logger configuration.
 
-For making your own tests, you have example logs and RCON responses in tests files.
+You also have examples logs and RCON responses in tests files.
 
-Be careful when modifying logs about small stuff like space. For example
+But be careful when modifying logs. Small stuff like an extra space may break your expected plugin output,
+and be hard to detect, for example:
 
 ```
 // This one is incorrect !
@@ -129,6 +132,39 @@ Be careful when modifying logs about small stuff like space. For example
 
 Have you seen the difference? In the real log, there is no space between `"Player:"` and the player name with clan tag `"-TWS Yuca"`. Others logs may have a space.
 This will not fail, as `" -TWS Yuca"` is a valid player name with clan tag.
+
+#### Test on live server
+
+Most likely, if you are here, you already have access to a squad server, you may host yourself (but it will be a hassle):
+
+- https://squad.fandom.com/wiki/Server_Installation
+- https://hub.docker.com/r/cm2network/squad/
+
+## Configuration
+
+To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
+and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+
+Pre-commit hook will override everything inside config folder. Be warned.
+
+## Pre-commit hook explained
+
+Will test:
+
+- Typescript typing (tsx used to run the server, by default does not check it)
+- Prettier and eslint, eslint will abort commit if there is any issue, it is up to you to properly fix it.
+- Generate up-to-date config, if there is any difference, commit is aborted and you should review change before re-commiting.
+- Run all the tests.
+
+Prettier is executed in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
+You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
+`// prettier-ignore` on a statement like in `check-unbalance-switchability.test.ts`.
+
+We only run prettier, and not `eslint --fix`. Since there are too many occasions where there is disagreement with eslint --fix.
+It also give devs the occasion to learn from their mistake, and re-evaluate code, like is that non-null-assertion really safe
+and documented ?
+However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
+eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
 
 ### (Utility) Get output of a single RCON command
 
