@@ -72,7 +72,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
         RCON: 'info', // not used because of the mock
         SquadServer: 'info',
         PluginLoader: 'info',
-        RCONSquad: 'info',
+        RCONSquad: 'debug',
         AdminList: 'info',
         LogReader: 'info', // not used because of the mock
         GithubInfo: 'info',

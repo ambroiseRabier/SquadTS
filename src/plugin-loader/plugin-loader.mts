@@ -277,13 +277,6 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     let plugin, configSchema;
 
     try {
-      // work a day, not another...
-      // register("ts-node/esm", pathToFileURL(pluginPath))
-      // plugin = (await import(pathToFileURL(pluginPath).href)).default;
-
-      // plugin = await import(pathToFileURL(pluginPath).href); // .replace(/\\/g, '/')
-      // plugin = require(pluginPath); // .replace(/\\/g, '/')
-      // plugin = await import(pluginPath);
       plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
       // eslint-disable-next-line
     } catch (e: any) {
@@ -292,13 +285,6 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     }
 
     try {
-      // work a day, not another...
-      // register("ts-node/esm", pathToFileURL(configSchemaPath))
-      // configSchema = (await import(pathToFileURL(configSchemaPath).href)).default;
-
-      // configSchema = await import(pathToFileURL(configSchemaPath).href);
-      // configSchema = require(configSchemaPath);
-      // configSchema = await import(configSchemaPath);
       configSchema = await tsImport(
         pathToFileURL(configSchemaPath).href,
         fileURLToPath(import.meta.url)

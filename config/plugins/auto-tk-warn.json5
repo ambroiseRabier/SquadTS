@@ -10,4 +10,6 @@
   attackerMessage: 'Please apologise for ALL TKs in ALL chat!',
   // The message that will be sent to the victim. null value means no message sent.
   victimMessage: '%attackerName% team killed you.',
+  attackerMessageDelay: 5,
+  victimMessageDelay: 5,
 }

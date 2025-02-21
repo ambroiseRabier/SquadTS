@@ -20,7 +20,6 @@ export function useLogParser(
   // Note: If you ever use a `new Date()`, be aware that server time may be offset by a few minutes :/
   // Also squad server time most likely is GMT+0, but you have to double check
   const queue = new Subject<string>();
-  let skipOnceIfNoDate = true;
 
   logReader.line$.subscribe((line: string) => {
     queue.next(line);
@@ -37,23 +36,23 @@ export function useLogParser(
       }
     }),
     map(line => {
+      if (line[0] === '"' || line[0] === "'") {
+        logger.warn('If this is a test, you most likely forgot to remove quotes from the log !');
+      }
+
       const regex = /^\[(?<date>[0-9.:-]+)]\[ *(?<chainID>[ 0-9]*)](?<data>.*)/;
       const matchDate = regex.exec(line);
 
       // On startup, we may not start reading the server log file at a line start. Ending up with an incomplete line.
       // Just ignore it and start processing from second line.
       if (!matchDate) {
-        if (skipOnceIfNoDate) {
-          skipOnceIfNoDate = false;
-        } else {
-          // Happens:
-          // - at startup of the server.
-          // - Seemingly when others RCON send commands ?
-          // - Once at the start of logReader, as the first log is incomplete.
-          logger.trace(
-            `Log with no date (will be ignored) ${line.length === 0 ? '(log is empty)' : ''}: ${line}`
-          );
-        }
+        // Happens:
+        // - at startup of the server.
+        // - Seemingly when others RCON send commands ?
+        // - Once at the start of logReader, as the first log is incomplete.
+        logger.trace(
+          `Log with no date (will be ignored) ${line.length === 0 ? '(log is empty)' : ''}: ${line}`
+        );
         return null;
       }
 
@@ -83,8 +82,11 @@ export function useLogParser(
         if (verbosenessLimiter) {
           logger.warn(`No match on line: ${lineObj.raw}`);
         } // else don't log anything to limit verboseness.
-      } else if (debugLogMatching.showMatching) {
-        logger.debug(`Match on line: ${lineObj.data}`);
+      }
+
+      if (debugLogMatching.showMatching && obj) {
+        const eventName = obj[0];
+        logger.debug(`Match on line (${eventName}): ${lineObj.data}`);
       }
 
       // return [obj, {

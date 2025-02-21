@@ -78,30 +78,30 @@ export async function main(props?: Props) {
   );
   const adminList = useAdminList(adminListLogger, config.adminList);
 
+  const earlyCleanup = async () => {
+    console.info('Shutdown signal received. Cleaning up...');
+    try {
+      await rcon.disconnect();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+    try {
+      await logReader.unwatch();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+    // Wait a bit for remaining logs to be displayed, especially useful for tests that are very fast.
+    await new Promise<void>((resolve, reject) => {
+      logger.flush(err => (err ? reject(err) : resolve()));
+    });
+    console.info('Early cleanup completed.');
+  };
+
   // Handle process signals for cleanup
-  process.on('SIGINT', async () => {
-    // Avoid using logger, if cleanup is fast enough it won't have time to log. todo confirm
-    console.info('Shutdown signal received. Cleaning up...');
-    try {
-      await rcon.disconnect();
-      await logReader.unwatch();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-    console.info('Cleanup completed. A');
-  }); // e.g., Ctrl+C
-  process.on('SIGTERM', async () => {
-    console.info('Shutdown signal received. Cleaning up...');
-    try {
-      await rcon.disconnect();
-      await logReader.unwatch();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-    console.info('Cleanup completed. B');
-  }); // e.g., Process kill
+  process.on('SIGINT', earlyCleanup); // e.g., Ctrl+C
+  process.on('SIGTERM', earlyCleanup); // e.g., Process kill
 
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
   await rconSquad.connect();
@@ -181,15 +181,14 @@ export async function main(props?: Props) {
   // Override and add server.unwatch() (will also stop rcon update from cached game status.
   // Handle process signals for cleanup
   process.on('SIGINT', async () => {
-    // Note that: if unwatch is really fast, logger won't have time to log.
     console.info('Shutdown signal received. Cleaning up...');
     await server.unwatch();
-    console.info('Cleanup completed. C');
+    console.info('Cleanup completed.');
   }); // e.g., Ctrl+C
   process.on('SIGTERM', async () => {
     console.info('Shutdown signal received. Cleaning up...');
     await server.unwatch();
-    console.info('Cleanup completed. D');
+    console.info('Cleanup completed.');
   }); // e.g., Process kill
 
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.

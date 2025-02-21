@@ -403,3 +403,7 @@ Et faut le coder.
 Mieux ?
 Les code erreurs de retours si ban/kick, mais player deco ou existe pas.
 soit je renvoie un code erreur, soit je throw...
+
+---
+
+pouvoir rejouer des logs,rcon,chatEvents, avec vrai timing ou acceleré

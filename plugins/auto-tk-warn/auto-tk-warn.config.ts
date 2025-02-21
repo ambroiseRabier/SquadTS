@@ -11,10 +11,14 @@ const schema = pluginBaseOptionsSchema
       .default('Please apologise for ALL TKs in ALL chat!')
       .describe('The message to warn attacking players with.'),
 
+    // Is there any good reason to make this optional? It would just favorise unexcused TK.
     victimMessage: z
       .string()
       .default('%attackerName% team killed you.')
       .describe('The message that will be sent to the victim. null value means no message sent.'),
+
+    attackerMessageDelay: z.number().int().min(0).default(5),
+    victimMessageDelay: z.number().int().min(0).default(5),
   })
   .describe('Warn attacker/victim when they team kill.');
 

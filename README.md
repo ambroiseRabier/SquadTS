@@ -115,6 +115,21 @@ and documented ?
 However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
 eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
 
+For making your own tests, you have example logs and RCON responses in tests files.
+
+Be careful when modifying logs about small stuff like space. For example
+
+```
+// This one is incorrect !
+'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player: -TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
+
+// This one is correct !
+'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player:-TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
+```
+
+Have you seen the difference? In the real log, there is no space between `"Player:"` and the player name with clan tag `"-TWS Yuca"`. Others logs may have a space.
+This will not fail, as `" -TWS Yuca"` is a valid player name with clan tag.
+
 ### (Utility) Get output of a single RCON command
 
 Running this will cause Squad server to disconnect others RCON connection from the same IP,
