@@ -144,7 +144,12 @@ export function useSquadServer({
       cachedGameStatus.unwatch();
       await rconSquad.disconnect();
       await logParser.unwatch();
-      logger.info('SquadTS server is shut down');
+      logger.info('Flushing logs...');
+      // Wait a bit for remaining logs to be displayed, especially useful for tests that are very fast.
+      await new Promise<void>((resolve, reject) => {
+        logger.flush(err => (err ? reject(err) : resolve()));
+      });
+      console.info('SquadTS server is shut down');
     },
   } as const;
 }

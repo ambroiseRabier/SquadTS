@@ -34,7 +34,7 @@ export function intervalServerInfo(
   return interval(updateInterval.serverInfo * 1000).pipe(exhaustMap(rconSquad.showServerInfo));
 }
 
-async function obtainRCONPlayersAndSquads(rconSquad: RconSquad) {
+export async function obtainRCONPlayersAndSquads(rconSquad: RconSquad) {
   const squads = await rconSquad.getSquads();
   const players = await rconSquad.getListPlayers();
 

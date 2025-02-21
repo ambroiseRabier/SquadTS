@@ -15,9 +15,17 @@
       maxPlayers: 4,
     },
   ],
-  // Message sent to the squad leader and entering squad member when max player count is exceeded.
-  // Available variables: %warn_count%, %squadType%, %max%
-  message: 'Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.',
+  messages: {
+    // Message sent to the squad leader and entering squad member when max player count is exceeded.
+    // Available variables: %warn_count%, %squadType%, %max%
+    warn: 'Warning (%warn_count%) - Squad size of type %squadType% is too big, max is %max%.',
+    // Message sent to the whole squad when squad has exceeded max warnings, right before disband.
+    // Available variables: %squadName%
+    disband: 'The squad %squadName% has exceeded the allowed warnings and will now be disbanded.',
+    // Message sent to the whole server when squad has exceeded max warnings, at disband. Use this to spread knowledge.
+    // Available variables: %teamNumber%, %squadIndex%, %squadName%, %maxPlayerInSquad%, %squadType%
+    disbandBroadcast: 'Team %teamNumber% Squad %squadIndex% "%squadName%" has been disbanded because it exceed maximum player count (%maxPlayerInSquad%) for squad type (%squadType%).',
+  },
   // In seconds, how often you want to warn the squad leader
   warnRate: 60,
   // How many times the squad leader can be warned before disbanding

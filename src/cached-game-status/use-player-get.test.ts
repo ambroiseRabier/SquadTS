@@ -159,6 +159,32 @@ describe('use-player-get', () => {
     expect(pg.tryGetPlayerByNameWithClanTag('-TWS- Yuca')).toEqual(undefined);
   });
 
+  it('throw if you pass nullish parameter', () => {
+    // We want error to be displayed as soon as possible for plugin devs,
+    // and not further in the program.
+
+    // no data
+    const pg = usePlayerGet(() => [] as any);
+    expect(() => {
+      pg.getPlayersByName(undefined as any);
+    }).toThrow();
+    expect(() => {
+      pg.getPlayerByEOSID(undefined as any);
+    }).toThrow();
+    expect(() => {
+      pg.tryGetPlayerByName(undefined as any);
+    }).toThrow();
+    expect(() => {
+      pg.tryGetPlayerByNameWithClanTag(undefined as any);
+    }).toThrow();
+    expect(() => {
+      pg.getPlayersByNameWithClanTag(undefined as any);
+    }).toThrow();
+    expect(() => {
+      pg.getPlayerBySteamID(undefined as any);
+    }).toThrow();
+  });
+
   // name match another nameWithClanTag
   // {
   //   name: '[FR]Yuca',

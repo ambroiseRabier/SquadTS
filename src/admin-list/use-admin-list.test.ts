@@ -12,6 +12,7 @@ import {
   MockedFunction,
 } from 'vitest';
 import { useAdminList } from './use-admin-list';
+import { AdminPerms } from './permissions';
 
 const validResponse = `
 Group=Admin:balance,ban,chat
@@ -204,5 +205,33 @@ Admin=76561198814495531:Moderator
     await fetch();
 
     expect(logger.error).toHaveBeenCalledWith('Failed to parse admin.cfg! No groups found.');
+  });
+
+  it('getAdminsWithPermissions', async () => {
+    const mockOptions = {
+      remote: ['http://example.com/admin.cfg'],
+    };
+
+    const { fetch, getAdminsWithPermissions } = useAdminList(logger, mockOptions);
+
+    // Simulate fetch returning a valid response
+    (global.fetch as MockedFunction<typeof global.fetch>).mockResolvedValueOnce({
+      ok: true,
+      text: vi.fn<() => Promise<string>>().mockResolvedValueOnce(validResponse),
+    } as Partial<Response> as any);
+
+    // Update cached admin list.
+    await fetch();
+
+    expect(getAdminsWithPermissions([AdminPerms.Ban])).toEqual([
+      ['76561198814495511', ['balance', 'ban', 'chat']],
+      ['76561198814495512', ['balance', 'ban', 'chat']],
+    ]);
+    expect(getAdminsWithPermissions([AdminPerms.Balance])).toEqual([
+      ['76561198814495511', ['balance', 'ban', 'chat']],
+      ['76561198814495512', ['balance', 'ban', 'chat']],
+      ['76561198814495521', ['balance', 'kick']],
+      ['76561198814495522', ['balance', 'kick']],
+    ]);
   });
 });

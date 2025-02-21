@@ -295,16 +295,6 @@ opti:
 
 ---
 
-ListPermittedCommands 1 -> extraire donnée
-les mettres en "rcon.extra" ? (bof sur la longue)
-ListCommands 1
-
----
-
-log ds file, et aussi chatEvents separement?
-
----
-
 faut un moyen de recup les logs du server facilement, si bug, donc en continue, et sur demande
 
 ---
@@ -389,10 +379,6 @@ fetch admin list depuis FTP. (en vrai, prq une liste par http ? étrange non, le
 
 ---
 
-roll 0-100 plugin
-
----
-
 faire admin vote ?
 
 ---
@@ -417,16 +403,3 @@ Et faut le coder.
 Mieux ?
 Les code erreurs de retours si ban/kick, mais player deco ou existe pas.
 soit je renvoie un code erreur, soit je throw...
-
----
-
-ce serait pas mal...
-
-    // todo: rename squadID squadIndex everywhere :)
-    // todo: rename teamID TeamNumber everywhere (like the game does)
-
-comme ds la description des commandes
-
-```
-AdminDisbandSquad <TeamNumber = [1|2]> <SquadIndex> (Disbands the specified Squad)
-```

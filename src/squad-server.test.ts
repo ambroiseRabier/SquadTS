@@ -28,6 +28,6 @@ async function toBeNeverCalled(server: SquadServer) {
   await server.rcon.execute('ShowServerInfo');
 }
 
-it('return a well defined API', () => {
+it.skip('return a well defined API', () => {
   // no-op
 });

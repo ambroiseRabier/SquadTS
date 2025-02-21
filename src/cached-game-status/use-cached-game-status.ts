@@ -20,6 +20,8 @@ export interface Player {
   // (provided by rcon)
   steamID: string;
 
+  // Note: teamNumber is used by squad game, but teamID seems fine in opposition to
+  //       squadIndex, it will always refer to the same thing.
   // (provided by log/rcon)
   teamID: '1' | '2';
 

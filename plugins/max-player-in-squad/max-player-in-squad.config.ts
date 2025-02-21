@@ -29,15 +29,35 @@ const schema = pluginBaseOptionsSchema
         },
       ])
       .describe('List of squad types for which we limit player count'),
-    message: z
-      .string()
-      .default(
-        'Warning (%warn_count%) - Taille de la squad %squadType% trop grande, le max est %max%.'
-      )
-      .describe(
-        'Message sent to the squad leader and entering squad member when max player count is exceeded.\n' +
-          'Available variables: %warn_count%, %squadType%, %max%'
-      ),
+    messages: z.object({
+      warn: z
+        .string()
+        .default(
+          'Warning (%warn_count%) - Squad size of type %squadType% is too big, max is %max%.'
+        )
+        .describe(
+          'Message sent to the squad leader and entering squad member when max player count is exceeded.\n' +
+            'Available variables: %warn_count%, %squadType%, %max%'
+        ),
+      disband: z
+        .string()
+        .default(
+          'The squad %squadName% has exceeded the allowed warnings and will now be disbanded.'
+        )
+        .describe(
+          'Message sent to the whole squad when squad has exceeded max warnings, right before disband.\n' +
+            'Available variables: %squadName%'
+        ),
+      disbandBroadcast: z
+        .string()
+        .default(
+          'Team %teamNumber% Squad %squadIndex% "%squadName%" has been disbanded because it exceed maximum player count (%maxPlayerInSquad%) for squad type (%squadType%).'
+        )
+        .describe(
+          'Message sent to the whole server when squad has exceeded max warnings, at disband. Use this to spread knowledge.\n' +
+            'Available variables: %teamNumber%, %squadIndex%, %squadName%, %maxPlayerInSquad%, %squadType%'
+        ),
+    }),
     warnRate: z
       .number()
       .int()

@@ -169,7 +169,6 @@ Team ID: 2 (Manticore Security Task Force)
       } as GameServerInfo),
     });
     await testBed.triggerRCONUpdate();
-    // wait for server to fetch rcon player list
 
     //testBed.rcon.chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
 

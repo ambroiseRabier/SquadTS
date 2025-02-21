@@ -18,6 +18,7 @@ import { Subject } from 'rxjs';
 import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 import { obtainEnteringPlayer } from './cached-game-status/obtain-entering-player';
+import { obtainRCONPlayersAndSquads } from './cached-game-status/rcon-updates';
 
 interface Props {
   /**
@@ -79,21 +80,28 @@ export async function main(props?: Props) {
 
   // Handle process signals for cleanup
   process.on('SIGINT', async () => {
-    console.log('SIGINT');
-    logger.info('Shutdown signal received. Cleaning up...');
-    await rcon.disconnect();
-    await logReader.unwatch();
+    // Avoid using logger, if cleanup is fast enough it won't have time to log. todo confirm
+    console.info('Shutdown signal received. Cleaning up...');
+    try {
+      await rcon.disconnect();
+      await logReader.unwatch();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+    console.info('Cleanup completed. A');
   }); // e.g., Ctrl+C
   process.on('SIGTERM', async () => {
-    console.log('SIGTERM');
-    logger.info('Shutdown signal received. Cleaning up...');
-    await rcon.disconnect();
-    await logReader.unwatch();
+    console.info('Shutdown signal received. Cleaning up...');
+    try {
+      await rcon.disconnect();
+      await logReader.unwatch();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+    console.info('Cleanup completed. B');
   }); // e.g., Process kill
-  process.on('disconnect', () => {
-    logger.info('Disconnect signal received. Cleaning up...');
-    console.log('disconnect');
-  });
 
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
   await rconSquad.connect();
@@ -118,8 +126,8 @@ export async function main(props?: Props) {
 
   // Retrieve initial
   const serverInfo = await rconSquad.showServerInfo();
-  const players = await rconSquad.getListPlayers();
-  const squads = await rconSquad.getSquads();
+  // This is more correct, since it will fill players with squad object !
+  const { squads, players } = await obtainRCONPlayersAndSquads(rconSquad);
   const addPlayer$ = obtainEnteringPlayer(logParser.events, config.logParser, logger);
 
   const cachedGameStatus = useCachedGameStatus({
@@ -174,12 +182,14 @@ export async function main(props?: Props) {
   // Handle process signals for cleanup
   process.on('SIGINT', async () => {
     // Note that: if unwatch is really fast, logger won't have time to log.
-    logger.info('Shutdown signal received. Cleaning up...');
+    console.info('Shutdown signal received. Cleaning up...');
     await server.unwatch();
+    console.info('Cleanup completed. C');
   }); // e.g., Ctrl+C
   process.on('SIGTERM', async () => {
-    logger.info('Shutdown signal received. Cleaning up...');
+    console.info('Shutdown signal received. Cleaning up...');
     await server.unwatch();
+    console.info('Cleanup completed. D');
   }); // e.g., Process kill
 
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.

@@ -2,10 +2,13 @@ import { main } from '../main.mjs';
 import { LogReader } from '../log-parser/use-log-reader';
 import { Subject } from 'rxjs';
 import { Rcon } from '../rcon/rcon';
-import { IncludesRCONCommand } from '../rcon-squad/rcon-commands';
+import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 import { Options } from '../config/config.schema';
 import { merge } from 'lodash-es';
 import { DeepPartial } from '../utils';
+import { MockedFunction } from 'vitest';
+import { GameServerInfo } from '../rcon-squad/server-info.type';
+import { wait } from '../test-utils';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 
@@ -85,7 +88,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
     // log parser config is mostly ignored as we mock log reader
     logParser: {
-      logFile: 'C:/servers/squad_server/SquadGame/Saved/Logs',
+      logFile: 'C:/fake/path/logParser/is/mocked',
       ftp: {
         host: '127.0.0.1',
         port: 21,
@@ -165,4 +168,103 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
   };
 }
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Note that SquadList is fetched at the same time as PlayerList.
+ * ListPlayers, ListSquads and ShowServerInfo are fetched at startup.
+ * This function will provide empty default for ListPlayers and ListSquads.
+ * ShowServerInfo will use correct data, but if your code depends on:
+ * - server.helpers.getTeamName()
+ * - server.info
+ * you likely want to provide your own response.
+ */
+export function setRconMock(
+  rconExec: MockedFunction<Rcon['execute']>,
+  resolvedValues: Partial<{
+    ShowServerInfo: string;
+    ListPlayers: string;
+    ListSquads: string;
+  }> &
+    Record<string, string>
+) {
+  // @ts-expect-error No idea how to solve that :/, underlying type is still a string so no big issue here.
+  rconExec.mockImplementation((command: string) => {
+    for (const commandID in resolvedValues as Record<string, string>) {
+      if (command.match(new RegExp(`^${commandID}`))) {
+        if (typeof resolvedValues[commandID] === 'string') {
+          return Promise.resolve(resolvedValues[commandID]);
+        } else {
+          throw new Error(
+            `Rcon exec called with ${command}, but mocked value was not a string ! (${JSON.stringify(resolvedValues[commandID])})`
+          );
+        }
+        break;
+      }
+    }
+
+    // SquadTS itself does not critically depend on this data.
+    // It is used for:
+    // - server.helpers.getTeamName()
+    // - server.info
+    // So having a default instead of providing it in every test is really convenient.
+    // Note that team faction is not matching the one in squad list.
+    if (command.match(new RegExp(`^${RCONCommand.ShowServerInfo}`))) {
+      console.warn(
+        '⚠️ Returning default data for ShowServerInfo command, if you are using server.info in your tests, provide your own data !'
+      );
+      return Promise.resolve(
+        JSON.stringify({
+          MaxPlayers: 24,
+          GameMode_s: 'Skirmish',
+          MapName_s: 'Skorpo_Skirmish_v1',
+          SEARCHKEYWORDS_s: 'squadtstestserver,skorposkirmishv1,skirmish',
+          GameVersion_s: 'v8.2.1.369429.845',
+          LICENSEDSERVER_b: false,
+          PLAYTIME_I: '5616',
+          Flags_I: '7',
+          MATCHHOPPER_s: 'TeamDeathmatch',
+          MatchTimeout_d: 120,
+          SESSIONTEMPLATENAME_s: 'GameSession',
+          Password_b: false,
+          PlayerCount_I: '0',
+          ServerName_s: 'SquadTS Test Server',
+          CurrentModLoadedCount_I: '0',
+          AllModsWhitelisted_b: false,
+          TeamTwo_s: 'USA_S_CombinedArms',
+          TeamOne_s: 'IMF_S_CombinedArms',
+          NextLayer_s: 'Al Basrah RAAS v1',
+          'eu-central-1_I': '14',
+          'eu-west-2_I': '15',
+          'eu-north-1_I': '50',
+          'us-east-1_I': '84',
+          'me-central-1_I': '79',
+          'us-west-1_I': '152',
+          'ap-east-1_I': '238',
+          'ap-southeast-2_I': '289',
+          'ap-southeast-1_I': '17',
+          Region_s: 'eu-central-1',
+          PlayerReserveCount_I: '0',
+          PublicQueueLimit_I: '25',
+          PublicQueue_I: '0',
+          ReservedQueue_I: '0',
+          BeaconPort_I: '15003',
+        } as GameServerInfo)
+      );
+    }
+
+    // Provide an empty player list as default.
+    if (command.match(new RegExp(`^${RCONCommand.ListPlayers}`))) {
+      return Promise.resolve(`----- Active Players -----
+----- Recently Disconnected Players [Max of 15] -----
+`);
+    }
+
+    // Provide an empty player squad as default.
+    // Note that team faction is not matching default serverInfo.
+    if (command.match(new RegExp(`^${RCONCommand.ListSquads}`))) {
+      return Promise.resolve(`----- Active Squads -----
+Team ID: 1 (Irregular Battle Group)
+Team ID: 2 (Manticore Security Task Force)
+`);
+    }
+  });
+}

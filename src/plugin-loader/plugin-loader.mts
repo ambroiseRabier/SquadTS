@@ -27,11 +27,13 @@ export function usePluginLoader(
      */
     load: async (pluginOptionOverride?: Record<string, unknown>) => {
       if (pluginOptionOverride) {
-        logger.warn('pluginOptionOverride enabled, use this only for testing purposes.');
+        logger.warn(
+          chalk.red.bold('pluginOptionOverride enabled, use this only for testing purposes.')
+        );
       }
 
       logger.info('Loading plugins...');
-      const pluginsPair = await loadPlugins(logger);
+      const pluginsPair = await loadPlugins(logger, pluginOptionOverride);
 
       // Inform there is no plugins loaded if user put them in wrong folder
       logger.info(`${pluginsPair.length} plugins discovered and imported.`);
@@ -104,7 +106,12 @@ export function usePluginLoader(
         }
 
         logger.debug(`${pair.name}: Validating config...`);
-        const parsed = await pair.configSchema.default.safeParseAsync(json5);
+        // __skipValidation is a hack for tests
+        // true as const, avoid treating success as a bool, and make TS aware that
+        // !parsed.success will never happen when this hack is in effect.
+        const parsed = json5.__skipValidation
+          ? { success: true as const, data: json5 }
+          : await pair.configSchema.default.safeParseAsync(json5);
 
         if (!parsed.success) {
           const errorMessages = parsed.error.issues
@@ -215,7 +222,7 @@ function findFilesMatchingParentDirectory(fileList: string[]): string[] {
   });
 }
 
-async function loadPlugins(logger: Logger) {
+async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string, unknown>) {
   // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
   // ts-node at runtime.
   const pluginsDirectory = PLUGINS_ROOT;
@@ -237,7 +244,14 @@ async function loadPlugins(logger: Logger) {
   const configFolder = PLUGINS_CONFIG_ROOT;
   logger.info(`Loading plugins configurations from ${configFolder}...`);
 
-  for (const file of pluginMainFiles) {
+  const mainFileFilteredForTest = !pluginOptionOverride
+    ? pluginMainFiles
+    : pluginMainFiles.filter(
+        pluginMainFile =>
+          pluginOptionOverride && !!pluginOptionOverride[basename(pluginMainFile, '.ts')]
+      );
+
+  for (const file of mainFileFilteredForTest) {
     // Skip config files initially
     if (file.endsWith('.config.ts')) {
       continue;

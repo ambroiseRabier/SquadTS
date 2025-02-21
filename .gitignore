@@ -27,3 +27,5 @@ yarn-error.log*
 
 # Logs dir of SquadTS
 /logs
+
+/coverage

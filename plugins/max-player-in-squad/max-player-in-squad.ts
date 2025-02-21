@@ -1,8 +1,10 @@
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import { Player, PlayerSL, SquadTSPlugin } from '../../src/exports';
+import { Player, PlayerSL, Squad, SquadTSPlugin } from '../../src/exports';
 import { exhaustMap, filter, interval, map } from 'rxjs';
+import { formatDuration, intervalToDuration } from 'date-fns';
 
 interface TransgressorDetails {
+  nameWithClanTag: string;
   squadIndex: string;
   teamID: string;
   squadName: string;
@@ -12,10 +14,6 @@ interface TransgressorDetails {
   containWord: string;
 }
 
-const SQUAD_TYPE_KEY = '%squadType%';
-const MAX_KEY = '%max%';
-const WARN_COUNT_KEY = '%warn_count%';
-
 const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
   server,
   connectors,
@@ -23,6 +21,12 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
   options
 ) => {
   const transgressors = new Map<string, TransgressorDetails>();
+
+  const allSL = server.players.filter(p => server.helpers.isSL(p));
+
+  for (const sl of allSL) {
+    await checkSquadPlayerNumber(sl.squad);
+  }
 
   interval(options.warnRate * 1000)
     .pipe(exhaustMap(updateTrackingList))
@@ -42,66 +46,81 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     )
     .subscribe(async playerWithSquad => {
       for (const player of playerWithSquad) {
-        // Selon la squad name, récupérer le bon maximum
-        // On fait une recherche case insensitive
-        const configForThisSquad = options.squadTypes.find(
-          squad => player.squad.name.search(new RegExp(squad.containWord, 'i')) !== -1
-        );
-
-        // No limit found, do nothing.
-        if (!configForThisSquad) {
-          continue;
-        }
-
-        const maxPlayerInSquad = configForThisSquad.maxPlayers;
-
-        // Récup l'ensemble des joueurs dans la squad ID.
-        const playersInSquad = server.players.filter(
-          p => p.squadIndex === player.squadIndex && p.teamID === player.teamID
-        );
-        // There is always a lead in a squad
-        const playerSquadLead = playersInSquad.find(p => p.isLeader) as Player;
-
-        // Trop de joueur
-        if (playersInSquad.length > maxPlayerInSquad) {
-          // Alors first warn
-          const message = options.message
-            .replace('%squadType%', player.squad.name)
-            .replace('%max%', maxPlayerInSquad.toString())
-            .replace('%warn_count%', `1/${options.maxWarnBeforeDisband}`);
-
-          // si premier warn, on enregistre l'id du SL et on le warn
-          if (!transgressors.has(playerSquadLead.eosID)) {
-            logger.info(
-              `Tracking SL: ${playerSquadLead.name} ${playersInSquad.length}/${maxPlayerInSquad}.
-            Le max pour ${configForThisSquad.containWord} est ${maxPlayerInSquad}`
-            );
-            transgressors.set(playerSquadLead.eosID, {
-              // We are iterating playerWithSquad...
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              squadIndex: player.squadIndex!, // same as playerSquadLead.squadIndex
-              teamID: player.teamID,
-              squadName: player.squad.name,
-              firstWarn: Date.now(),
-              maxPlayerInSquad: maxPlayerInSquad,
-              warnCount: 2,
-              containWord: configForThisSquad.containWord,
-            });
-
-            // Warn SL.
-            await server.rcon.warn(playerSquadLead.eosID, message);
-          }
-
-          // Warn joueur entrant dans tout les cas
-          await server.rcon.warn(player.eosID, message);
-        }
+        await checkSquadPlayerNumber(player.squad, player);
       }
     });
+
+  async function checkSquadPlayerNumber(squad: Squad, enteringPlayer?: Player) {
+    // Selon la squad name, récupérer le bon maximum
+    // On fait une recherche case insensitive
+    const configForThisSquad = options.squadTypes.find(
+      squadType => squad.name.search(new RegExp(squadType.containWord, 'i')) !== -1
+    );
+
+    // No limit found, do nothing.
+    if (!configForThisSquad) {
+      return;
+    }
+
+    const maxPlayerInSquad = configForThisSquad.maxPlayers;
+
+    // Récup l'ensemble des joueurs dans la squad ID.
+    const playersInSquad = server.players.filter(
+      p => p.squadIndex === squad.squadIndex && p.teamID === squad.teamID
+    );
+    // There is always a lead in a squad
+    const playerSquadLead = playersInSquad.find(p => p.isLeader) as Player;
+
+    // Too many players
+    if (playersInSquad.length > maxPlayerInSquad) {
+      // Track sl and warn
+      if (!transgressors.has(playerSquadLead.eosID)) {
+        logger.info(
+          `Tracking SL: ${playerSquadLead.nameWithClanTag} ${playersInSquad.length}/${maxPlayerInSquad}.
+            Le max pour ${configForThisSquad.containWord} est ${maxPlayerInSquad}`
+        );
+        const transgressorDetails = {
+          nameWithClanTag: playerSquadLead.nameWithClanTag ?? 'Unknown', // Should never be undef, since playerSquadChange event is based on RCON.
+          squadIndex: squad.squadIndex,
+          teamID: squad.teamID,
+          squadName: squad.name,
+          firstWarn: Date.now(),
+          maxPlayerInSquad: maxPlayerInSquad,
+          warnCount: 2,
+          containWord: configForThisSquad.containWord,
+        };
+        transgressors.set(playerSquadLead.eosID, transgressorDetails);
+
+        // Warn SL, (first warn)
+        await warn(
+          playerSquadLead,
+          { ...transgressorDetails, warnCount: 1 },
+          playersInSquad.length
+        );
+      }
+
+      // Since we check squads both at startup and when a player change squad, in the first
+      // case, there is not "entering" player.
+      if (enteringPlayer) {
+        // Warn entering player.
+        // We just checked above if that key exists, and have set it.
+
+        await warn(
+          enteringPlayer,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          transgressors.get(playerSquadLead.eosID)!,
+          playersInSquad.length
+        );
+      }
+    }
+  }
 
   async function updateTrackingList() {
     for (const [squadLead_eosID, transgressorDetails] of transgressors) {
       const sl = server.helpers.getPlayerByEOSID(squadLead_eosID);
-      logger.info(`Checking tracked SL: ${squadLead_eosID} ${JSON.stringify(transgressorDetails)}`);
+      logger.info(
+        `Checking tracked SL: ${transgressorDetails.nameWithClanTag} (eosID: ${squadLead_eosID})} | squadName: ${transgressorDetails.squadName} | warnCount: ${transgressorDetails.warnCount}`
+      );
 
       // Not connected or not SL anymore
       if (!sl || !server.helpers.isSL(sl)) {
@@ -164,20 +183,23 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     }
   }
 
+  /**
+   * Example "Warning (%warn_count%) - Squad size of %squadType% is too big, max is %max%."
+   */
   async function warn(
-    squadLeader: PlayerSL,
+    player: Player,
     transgressorDetails: TransgressorDetails,
     playersInSquadLength: number
   ) {
-    const message = options.message
-      .replace(SQUAD_TYPE_KEY, transgressorDetails.squadName)
-      .replace(MAX_KEY, transgressorDetails.maxPlayerInSquad.toString())
-      .replace(WARN_COUNT_KEY, `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`);
+    const message = options.messages.warn
+      .replace('%squadType%', transgressorDetails.squadName)
+      .replace('%max%', transgressorDetails.maxPlayerInSquad.toString())
+      .replace('%warn_count%', `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`);
 
     // Resend the warning to the squad leader
-    await server.rcon.warn(squadLeader.eosID, message);
+    await server.rcon.warn(player.eosID, message);
     logger.info(
-      `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband} Warning SL: ${squadLeader.name} - ${playersInSquadLength}/${transgressorDetails.maxPlayerInSquad} joueurs.`
+      `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband} Warning player (SL: ${player.isLeader ? 'yes' : 'no'}): ${player.nameWithClanTag} - ${playersInSquadLength}/${transgressorDetails.maxPlayerInSquad} players.`
     );
   }
 
@@ -188,7 +210,10 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     playersInSquadLength: number,
     otherPlayersInSquad: Player[]
   ) {
-    const disbandMessage = `The squad ${transgressorDetails.squadName} has exceeded the allowed warnings and will now be disbanded.`;
+    const disbandMessage = options.messages.disband.replace(
+      '%squadName%',
+      transgressorDetails.squadName
+    );
 
     // Notify squad leader about the disbanding
     await server.rcon.warn(squadLeader.eosID, disbandMessage);
@@ -200,12 +225,20 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
 
     // Disband the squad
     await server.rcon.disbandSquad(squadLeader.teamID, squadLeader.squadIndex);
-    await server.rcon.broadcast(
-      `Team ${transgressorDetails.teamID} Squad ${transgressorDetails.squadIndex} "${transgressorDetails.squadName}" has been disbanded because it exceed maximum player count (${transgressorDetails.maxPlayerInSquad}) for squad type (${transgressorDetails.containWord}).`
-    );
+    const disbandBroadcastMessage = options.messages.disbandBroadcast
+      .replace('%teamNumber%', transgressorDetails.teamID)
+      .replace('%squadIndex%', transgressorDetails.squadIndex)
+      .replace('%squadName%', transgressorDetails.squadName)
+      .replace('%maxPlayerInSquad%', transgressorDetails.maxPlayerInSquad.toString())
+      .replace('%squadType%', transgressorDetails.containWord);
+    await server.rcon.broadcast(disbandBroadcastMessage);
 
+    const warnStr = `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband} warns`;
+    const squadSizeStr = `${playersInSquadLength}/${transgressorDetails.maxPlayerInSquad} players`;
+    // If less than a second, empty string is returned, that's not a bug, but appear so in tests.
+    const durationStr = `No action since: ${formatDuration(intervalToDuration({ start: transgressorDetails.firstWarn, end: Date.now() })) || 'Instant (ms interval)!'}`;
     logger.info(
-      `Disbanding SL squad: ${squadLeader.name} - ${playersInSquadLength}/${transgressorDetails.maxPlayerInSquad} joueurs - ${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband} warns`
+      `Disbanding SL squad: ${squadLeader.nameWithClanTag} - ${squadSizeStr} - ${warnStr} - ${durationStr}`
     );
   }
 };
