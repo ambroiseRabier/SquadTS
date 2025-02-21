@@ -78,9 +78,33 @@ Everything is detailed in comments insides each `json5` config file.
 
 You can regenerate the config with `npm run generate-config`, this will overwrite everything inside config folder.
 
-## Docker
+## Docker ( has yet to be confirmed ok :) )
 
-...
+If you are using docker, there is a `.dockerfile` you can use without downloading anything else.
+
+```shell
+# Say the directory you want logs/config/plugins is C:\SquadTS or /c/SquadTS
+# Make sure to use forward slashes `/` and not `\`
+# Assume you are running this command from the same folder as where you downloaded .dockerfile,
+# if not update the path.
+# Tag container SquadTS
+docker run -f .dockerfile -t SquadTS \
+  # Choose between release candidate main branch (latest change, but less stable) or release:
+  # - release candidate: 'https://github.com/AmbroiseRabier/SquadTS/archive/refs/heads/main.zip'
+  # - release: 'https://github.com/AmbroiseRabier/SquadTS/archive/refs/tags/v1.0.0.zip'
+  # If you use release, make sure to update version number `v1.0.0` to the latest version.
+  -e ZIP_URL="https://github.com/AmbroiseRabier/SquadTS/archive/refs/heads/main.zip"
+  -e SQUAD_TS_CONFIG_PATH="./my-config" # relative path
+  -v "C:/SquadTS/logs:/app/SquadTS/logs"
+  -v "C:/SquadTS/my-config:/app/SquadTS/my-config"
+  -v "C:/SquadTS/plugins:/app/SquadTS/plugins" # If you add any plugin, make sure it is compatible with SquadTS version
+```
+
+```shell
+# If you add or update an external plugin not shipped by default with SquadTS
+# It is recommended to at least check if it pass type check.
+docker run SquadTS npm run typecheck
+```
 
 ## Dev
 
