@@ -80,6 +80,8 @@ You can regenerate the config with `npm run generate-config`, this will overwrit
 
 ## Docker ( has yet to be confirmed ok :) )
 
+Running SquadTS in docker is for advanced user.
+
 If you are using docker, there is a `.dockerfile` you can use without downloading anything else.
 
 ```shell
@@ -211,6 +213,7 @@ For everyone:
 
 - SquadTS configs are separated in multiple files for increased readability.
 - Plugins configs are separated in multiple files for increased readability.
+- (WIP) AdminList is fetched from RemoteAdminListHosts.cfg and Admins.cfg automatically.
 - SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
 - SquadTS and plugin config is validated before usage, if your config is wrong you will know right away.
 - Some performance improvements:
