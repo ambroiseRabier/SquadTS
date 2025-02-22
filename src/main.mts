@@ -99,9 +99,23 @@ export async function main(props?: Props) {
     console.info('Early cleanup completed.');
   };
 
+  const earlyException = async (error: Error) => {
+    logger.fatal('UncaughtException, see the error trace below.', { error });
+    console.error(error);
+    try {
+      await earlyCleanup();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.info(`Failed to early cleanup: ${error?.message}`);
+      console.error(error);
+    }
+    process.exit(1);
+  };
+
   // Handle process signals for cleanup
   process.on('SIGINT', earlyCleanup); // e.g., Ctrl+C
   process.on('SIGTERM', earlyCleanup); // e.g., Process kill
+  process.on('uncaughtException', earlyException);
 
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
   await rconSquad.connect();
@@ -178,7 +192,10 @@ export async function main(props?: Props) {
 
   await pluginLoader.load(props?.mocks.pluginOptionOverride);
 
-  // Override and add server.unwatch() (will also stop rcon update from cached game status.
+  process.removeListener('SIGINT', earlyCleanup);
+  process.removeListener('SIGTERM', earlyCleanup);
+  process.removeListener('uncaughtException', earlyException);
+
   // Handle process signals for cleanup
   process.on('SIGINT', async () => {
     console.info('Shutdown signal received. Cleaning up...');
@@ -190,6 +207,18 @@ export async function main(props?: Props) {
     await server.unwatch();
     console.info('Cleanup completed.');
   }); // e.g., Process kill
+  process.on('uncaughtException', async error => {
+    logger.fatal('UncaughtException, see the error trace below.', { error });
+    console.error(error);
+    try {
+      await server.unwatch();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.info('Failed to unwatch server.');
+      console.error(error);
+    }
+    process.exit(1);
+  });
 
   // Only start sending events when all plugins are ready. Plugins are likely independent of each other.
   // But having logs all over the place is bad.

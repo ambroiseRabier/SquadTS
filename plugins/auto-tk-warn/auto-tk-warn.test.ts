@@ -5,7 +5,7 @@ import {
   useTestServer,
 } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
-import { wait } from '../../src/test-utils';
+import { wait } from '../../src/utils';
 import { AutoTKWarnOptions } from './auto-tk-warn.config';
 
 // test intended to run in order with one time executed initial startup

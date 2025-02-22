@@ -201,6 +201,8 @@ export function useLogParser(
           ...lineObj,
           ...metadata,
         })),
+        // filter out bots
+        filter(data => data.attackerController !== 'nullptr'),
         map(data => ({
           ...omit(data, ['attackerIDs', 'attackerController', 'victimNameWithClanTag', 'damage']),
           damage: parseFloat(data.damage),

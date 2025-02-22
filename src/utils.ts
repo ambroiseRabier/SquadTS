@@ -11,3 +11,5 @@ export type DeepPartial<T> = {
  * Work the same as Awaited but for Observable
  */
 export type ObservableValue<T> = T extends Observable<infer V> ? V : never;
+
+export const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

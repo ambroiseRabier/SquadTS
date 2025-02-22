@@ -248,6 +248,15 @@ describe('Log Parser events', () => {
     });
   });
 
+  it('playerDied by bot is ignored', () => {
+    const mockEvent = vi.fn();
+    logParser.events.playerDied.subscribe(mockEvent);
+    mockedLogReader.line$.next(
+      '[2025.01.27-22.05.10:229][600]LogSquadTrace: Match on line (playerDied): LogSquadTrace: [DedicatedServer]ASQSoldier::Die(): Player:-TWS-  Yuca KillingDamage=-300.000000 from nullptr (Online IDs: INVALID | Contoller ID: None) caused by BP_Soldier_USMC_Rifleman1_C_2143572153'
+    );
+    expect(mockEvent).not.toHaveBeenCalled();
+  });
+
   it('playerDisconnected', () => {
     const mockEvent = vi.fn();
     logParser.events.playerDisconnected.subscribe(mockEvent);

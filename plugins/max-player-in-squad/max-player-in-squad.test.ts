@@ -6,7 +6,7 @@ import {
 } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import { wait } from '../../src/test-utils';
+import { wait } from '../../src/utils';
 
 // test intended to run in order with one time executed initial startup
 describe('Max player in squad', () => {

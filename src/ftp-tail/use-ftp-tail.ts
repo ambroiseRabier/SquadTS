@@ -9,6 +9,7 @@ import fs from 'fs';
 import readline from 'node:readline';
 import { createReadStream } from 'node:fs';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
+import { TMP_DIR } from '../config/path-constants.mjs';
 
 type Props = {
   timeout?: number;
@@ -107,7 +108,8 @@ export function useFtpTail(logger: Logger, options: Props) {
   };
 
   const tmpFilePath = path.join(
-    process.cwd(),
+    TMP_DIR, // Use fixed dir instead of relative to process.pwd()
+    // Dunno why SquadJS used a hash here.
     crypto
       .createHash('md5')
       .update(`${ftpOptions.host}:${ftpOptions.port}:${options.filepath}`)
@@ -178,6 +180,15 @@ export function useFtpTail(logger: Logger, options: Props) {
       logger.debug('File has not changed.');
       return false;
     }
+
+    if (!fs.existsSync(TMP_DIR)) {
+      await fs.promises.mkdir(TMP_DIR).catch(e => {
+        logger.error(`Error creating ./tmp dir: ${e?.message}`);
+        throw e;
+      });
+    }
+
+    await fs.promises.mkdir(TMP_DIR, { recursive: true });
 
     // Download the file to the temporary file.
     logger.debug(`Downloading file with offset ${lastByteReceived}...`);

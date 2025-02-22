@@ -11,5 +11,3 @@ export const createMockLogger = () => ({
   error: vi.fn().mockImplementation(console.error),
   fatal: vi.fn().mockImplementation(console.error),
 });
-
-export const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

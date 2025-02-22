@@ -2,7 +2,7 @@ import { AutoTKWarnOptions } from './auto-tk-warn.config';
 import { SquadServer } from '../../src/squad-server';
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { Logger } from 'pino';
-import { wait } from '../../src/test-utils';
+import { wait } from '../../src/utils';
 
 const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
   server: SquadServer,

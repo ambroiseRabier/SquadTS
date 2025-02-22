@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
 import { merge, omit } from 'lodash-es';
 import { DeepPartial } from '../utils';
-import { wait } from '../test-utils';
+import { wait } from '../utils';
 import { UnassignedPlayer } from './use-helpers';
 
 // We use Required, to make sure we have both RCON and logs data, let the test refine the data if needed.

@@ -8,7 +8,7 @@ import { merge } from 'lodash-es';
 import { DeepPartial } from '../utils';
 import { MockedFunction } from 'vitest';
 import { GameServerInfo } from '../rcon-squad/server-info.type';
-import { wait } from '../test-utils';
+import { wait } from '../utils';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 

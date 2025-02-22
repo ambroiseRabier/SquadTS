@@ -40,6 +40,8 @@ Me semble que je l'ai zappé, pour `!status`
 - autobalance, sur vote, place les gens de la meme team ensemble en option
 - Bot kill count in seed (pour mieux patienter...) (voir score) (pendant 5min faire max de kill avec tell arme)
   Note: les bot logs sont actualement ignoré car nullptr
+  J'ai que ce log :(, c pas assez, je peux pas limiter l'arme ni même être certain que il est mort (ou alors je prends sur 1sec ?) (peut pas limiter l'arme, trop dommage)
+  : `No match on line: [2025.02.22-16.20.18:430][512]LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.`
 
 ## Refine plus d'events et chatEvents
 
@@ -90,6 +92,7 @@ Par contre, peut être utile pour download les logs de squad pour aider a debut 
 - .share à tt les events ? side effects ? mesuré ?
 - repartir sur le temps de l'interval les events pour réduire les pics de CPU ?
 - mesure la perf. demande cpu, ram
+- ⚠ Do not import plugin that are enabled false to speed up startup
 
 ## Extra events
 
