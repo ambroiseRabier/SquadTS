@@ -19,7 +19,6 @@ export const loggerOptionsSchema = z.object({
         ),
       RCONSquad: pinoLevelSchema.default('info'),
       PluginLoader: pinoLevelSchema.default('info'),
-      AdminList: pinoLevelSchema.default('info'),
       LogReader: pinoLevelSchema
         .default('info')
         .describe('Will also be used for FTP/SFTP debug logs if enabled.'),

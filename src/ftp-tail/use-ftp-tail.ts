@@ -10,9 +10,14 @@ import readline from 'node:readline';
 import { createReadStream } from 'node:fs';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 import { TMP_DIR } from '../config/path-constants.mjs';
+import { joinSafeSubPath } from '../utils';
+import * as os from 'node:os';
 
 type Props = {
   timeout?: number;
+
+  // config folder of squad on server
+  configDir: string;
 
   // file to tail on server
   filepath: string;
@@ -38,6 +43,54 @@ function useClient(options: Props) {
   let sftpClient: SFTPClient & { sftp: any };
 
   return {
+    /**
+     * Good for small files, do not use for big files.
+     * @param filepath
+     */
+    async readFile(filepath: string) {
+      const tmpDir = os.tmpdir(); // Use the operating system's temp directory
+      const localTempFile = path.join(tmpDir, path.basename(filepath));
+
+      if (options.protocol === 'ftp') {
+        try {
+          // Download the remote file to a temporary local file
+          await client.downloadTo(localTempFile, filepath);
+          return await fs.promises.readFile(localTempFile, 'utf8');
+        } catch (err) {
+          console.error('Error fetching file:', err);
+          throw err;
+        } finally {
+          // Close the FTP connection
+          client.close();
+          // Clean up: Delete the temp file
+          try {
+            await fs.promises.unlink(localTempFile);
+          } catch (cleanupErr) {
+            console.warn('Could not delete temp file:', cleanupErr);
+          }
+        }
+      } else {
+        // sftp
+        try {
+          // Download the remote file to a temporary local file
+          await sftpClient.fastGet(filepath, localTempFile);
+          return await fs.promises.readFile(localTempFile, 'utf8');
+        } catch (err) {
+          console.error('Error fetching SFTP file:', err);
+          throw err;
+        } finally {
+          // Close the SFTP connection
+          await sftpClient.end();
+
+          // Cleanup: Delete the temporary file
+          try {
+            await fs.promises.unlink(localTempFile);
+          } catch (cleanupErr) {
+            console.warn('Could not delete temp file:', cleanupErr);
+          }
+        }
+      }
+    },
     async connect() {
       return options.protocol === 'ftp'
         ? client.access(options.ftp)
@@ -338,6 +391,10 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   return {
+    readFile: async (subPath: string) => {
+      const configFile = joinSafeSubPath(options.configDir, subPath);
+      return client.readFile(configFile);
+    },
     connect: async () => {
       const address =
         (options.protocol === 'ftp' ? options.ftp.host : options.sftp.host) +

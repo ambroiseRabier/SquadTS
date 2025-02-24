@@ -214,6 +214,7 @@ For everyone:
 - SquadTS configs are separated in multiple files for increased readability.
 - Plugins configs are separated in multiple files for increased readability.
 - (WIP) AdminList is fetched from RemoteAdminListHosts.cfg and Admins.cfg automatically.
+- (WIP) API to fetch server config. Typed.
 - SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
 - SquadTS and plugin config is validated before usage, if your config is wrong you will know right away.
 - Some performance improvements:

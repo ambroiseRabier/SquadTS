@@ -4,7 +4,6 @@ import { Rcon } from './rcon/rcon';
 import { useRconSquad } from './rcon-squad/use-rcon-squad';
 import { LogReader, useLogReader } from './log-parser/use-log-reader';
 import { useLogParser } from './log-parser/use-log-parser';
-import { useAdminList } from './admin-list/use-admin-list';
 import { retrieveGithubInfo } from './github-info/use-retrieve-github-info';
 import path from 'node:path';
 import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
@@ -19,6 +18,8 @@ import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 import { obtainEnteringPlayer } from './cached-game-status/obtain-entering-player';
 import { obtainRCONPlayersAndSquads } from './cached-game-status/rcon-updates';
+import { useSquadConfig } from './squad-config/use-squad-config';
+import { useAdminList } from './admin-list/use-admin-list';
 
 interface Props {
   /**
@@ -63,7 +64,6 @@ export async function main(props?: Props) {
     logParserLogger,
     rconSquadLogger,
     pluginLoaderLogger,
-    adminListLogger,
     logReaderLogger,
     githubInfoLogger,
   } = useSubLogger(logger, config.logger.verbosity);
@@ -76,7 +76,8 @@ export async function main(props?: Props) {
     config.logParser,
     config.logger.debugLogMatching
   );
-  const adminList = useAdminList(adminListLogger, config.adminList);
+  const squadConfig = useSquadConfig(logReader.readFile.bind(logReader), logger);
+  const adminList = useAdminList(squadConfig);
 
   const earlyCleanup = async () => {
     console.info('Shutdown signal received. Cleaning up...');
@@ -121,6 +122,9 @@ export async function main(props?: Props) {
   await rconSquad.connect();
   await logReader.connect();
 
+  // Fetch admin lists from server config and cache it.
+  await adminList.update();
+
   // Get extra info from squad wiki github. Only if file ETag changed.
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
@@ -129,13 +133,10 @@ export async function main(props?: Props) {
     githubInfoLogger
   );
 
-  // Update admin list once at startup.
-  await adminList.fetch();
-
   // Update the admin list once at game start.
-  // I believe admin role change is taken in account by squad only when changing layer.
+  // I believe admin role changes are taken in account by squad only when changing layer.
   logParser.events.newGame.subscribe(async () => {
-    await adminList.fetch();
+    await adminList.update();
   });
 
   // Retrieve initial
@@ -165,7 +166,7 @@ export async function main(props?: Props) {
     cachedGameStatus,
   });
 
-  // Finally build the server that will be exposed to plugins.
+  // Finally, build the server that will be exposed to plugins.
   const server = useSquadServer({
     logger: squadServerLogger,
     rconSquad,

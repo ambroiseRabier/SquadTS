@@ -11,6 +11,14 @@ const isValidLocalFilePath = (filePath: string) => {
   }
 };
 
+const isValidLocalDirectory = (dirPath: string) => {
+  try {
+    return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+  } catch {
+    return false;
+  }
+};
+
 const fetchIntervalSchema = z
   .number()
   .int()
@@ -35,7 +43,15 @@ const logFileSchema = z
   .string()
   .nonempty()
   .describe(
-    'The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"'
+    'The file where your Squad logs are saved. e.g., "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"'
+  );
+
+// config dirin log parser :/ code smell
+const configDirSchema = z
+  .string()
+  .nonempty()
+  .describe(
+    'Path to the squad server config folder. e.g., "C:/servers/squad_server/SquadGame/ServerConfig"'
   );
 
 const ftpSchema = z
@@ -60,15 +76,21 @@ export const logParserOptionsSchema = z.discriminatedUnion('mode', [
 - "ftp" will read from a remote log file using the FTP protocol 
 - "sftp" will read from a remote log file using the SFTP protocol`),
     logFile: logFileSchema,
+    configDir: configDirSchema,
     ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
   }),
   z.object({
     mode: z.literal('sftp'),
     logFile: logFileSchema,
+    configDir: configDirSchema,
     ftp: ftpSchema, // FTP required when mode is "ftp" or "sftp"
   }),
   z.object({
     mode: z.literal('tail'),
+    configDir: configDirSchema.refine(
+      isValidLocalDirectory,
+      'Invalid local directory path. Directory should exist.'
+    ),
     logFile: logFileSchema.refine(
       isValidLocalFilePath,
       'Invalid local file path. File should exist in "tail" mode.'

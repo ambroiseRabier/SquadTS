@@ -14,6 +14,7 @@ describe('Log Parser events', () => {
   // note: Any missing function will just make the test fail without any information.
   const fakeLogger = createMockLogger();
   const logParserConfig: LogParserConfig = {
+    configDir: 'not-used config dir',
     logFile: 'mock.log',
     ftp: {
       host: 'localhost',

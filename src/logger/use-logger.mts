@@ -101,10 +101,6 @@ export function useSubLogger(logger: Logger, verbosity: Options['logger']['verbo
       msgPrefix: chalk.magenta('[PluginLoader] '),
       level: verbosity.PluginLoader,
     }),
-    adminListLogger: logger.child({}, {
-      msgPrefix: chalk.greenBright('[AdminList] '),
-      level: verbosity.AdminList,
-    }),
     logReaderLogger: logger.child({}, {
       msgPrefix: chalk.green('[LogReader] '),
       level: verbosity.LogReader,

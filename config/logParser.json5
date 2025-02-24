@@ -4,8 +4,10 @@
   // - "ftp" will read from a remote log file using the FTP protocol 
   // - "sftp" will read from a remote log file using the SFTP protocol
   mode: 'ftp',
-  // The file where your Squad logs are saved. e.g "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"
+  // The file where your Squad logs are saved. e.g., "C:/servers/squad_server/SquadGame/Saved/Logs/SquadGame.log" or "/SquadGame/Saved/Logs/SquadGame.log"
   logFile: '',
+  // Path to the squad server config folder. e.g., "C:/servers/squad_server/SquadGame/ServerConfig"
+  configDir: '',
   // FTP or SFTP configuration for reading logs remotely.
   ftp: {
     host: '',

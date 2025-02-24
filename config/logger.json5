@@ -9,7 +9,6 @@
     RCON: 'info',
     RCONSquad: 'info',
     PluginLoader: 'info',
-    AdminList: 'info',
     // Will also be used for FTP/SFTP debug logs if enabled.
     LogReader: 'info',
     GithubInfo: 'info',

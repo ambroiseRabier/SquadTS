@@ -107,3 +107,7 @@ export enum AdminPerms {
    */
   CanSeeAdminChat = 'canseeadminchat',
 }
+
+export type AdminPermsValues = AdminPerms[keyof AdminPerms];
+
+// Note: I feel like mixing string enum with his value, is somewhat smelly.

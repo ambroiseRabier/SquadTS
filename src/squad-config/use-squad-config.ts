@@ -1,6 +1,7 @@
-import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
+import { parseAdminList } from './parse-admin-list';
+import { Logger } from 'pino';
 
-enum ServerConfigFile {
+export enum ServerConfigFile {
   Admins = 'Admins',
   CustomOptions = 'CustomOptions',
   ExcludedLayers = 'ExcludedLayers',
@@ -22,6 +23,8 @@ enum ServerConfigFile {
   VoteConfig = 'VoteConfig',
 }
 
+export type SquadConfig = ReturnType<typeof useSquadConfig>;
+
 /**
  * Fetch up your squad config.
  * Currently incomplete.
@@ -29,7 +32,10 @@ enum ServerConfigFile {
  * Note that RCON info likely wrong
  * as your server provider is likely to be using a proxy.
  */
-export function useSquadConfig(fetcher: (file: ServerConfigFile) => Promise<string>) {
+export function useSquadConfig(
+  fetcher: (file: ServerConfigFile) => Promise<string>,
+  logger: Logger
+) {
   // Setters are somewhat troublesome, hard to keep order of lines, comments, and more intact without quite
   // a bit of code.
   // Also, any setter will need to call ReloadServerConfig, and some stuff may take effect
@@ -38,48 +44,26 @@ export function useSquadConfig(fetcher: (file: ServerConfigFile) => Promise<stri
   return {
     fetch: {
       admins: async () => {
-        const str = await fetcher(ServerConfigFile.Admins);
-        const perLine = str
-          .split('\n')
-          .map(line => line.trim())
-          .filter(line => !line.match(/^\/\//)); // ignore comments
-
-        return {
-          admins: perLine
-            .map(line => {
-              const adminLine =
-                '^Admin=(?<steamID>\\d+)+:(?<role>.\\w+)(:?\\ *\\/\\/\\ *)?(?<comment>.*)$';
-              const matchAdmin = line.match(adminLine);
-
-              if (matchAdmin) {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                return matchAdmin.groups! as ObjectFromRegexStr<typeof adminLine>;
-              } else {
-                return null;
-              }
-            })
-            .filter((obj): obj is NonNullable<typeof obj> => !!obj),
-          groups: perLine
-            .map(line => {
-              // Praying group role is properly formatted in server config .-.
-              const groupLine = '^Group=(?<role>\\w+)+:(?<rights>[\\w,]+)';
-              const matchGroup = line.match(groupLine);
-
-              if (matchGroup) {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                const obj = matchGroup.groups! as ObjectFromRegexStr<typeof groupLine>;
-                return {
-                  ...obj,
-                  rights: obj.rights.split(','),
-                };
-              }
-            })
-            .filter((obj): obj is NonNullable<typeof obj> => !!obj),
-        };
+        return parseAdminList(await fetcher(ServerConfigFile.Admins));
       },
 
       remoteAdminListHosts: async () => {
-        return (await fetcher(ServerConfigFile.RemoteAdminListHosts)).split('\n');
+        const urls = (await fetcher(ServerConfigFile.RemoteAdminListHosts)).split('\n');
+
+        const extraStr = await Promise.all(
+          urls.map(url =>
+            fetch(url)
+              .then(res => res.text())
+              .catch(e => {
+                logger.error(
+                  `Error fetching admin list from ${url} (this admin list will be ignored): ${e?.message}`
+                );
+                return '';
+              })
+          )
+        );
+
+        return extraStr.filter(a => a.length > 0).map(a => parseAdminList(a));
       },
     },
   };

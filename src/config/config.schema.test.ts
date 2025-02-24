@@ -19,7 +19,6 @@ describe('parseConfig', () => {
           SquadServer: 'info',
           PluginLoader: 'info',
           RCONSquad: 'info',
-          AdminList: 'info',
           LogReader: 'info',
           GithubInfo: 'info',
         },
@@ -30,6 +29,7 @@ describe('parseConfig', () => {
         },
       },
       logParser: {
+        configDir: 'C:/servers/squad_server/SquadGame/ServerConfig',
         logFile: 'C:/servers/squad_server/SquadGame/Saved/Logs',
         ftp: {
           host: '127.0.0.1',
@@ -56,9 +56,6 @@ describe('parseConfig', () => {
           enabled: true,
           token: 'sdfsdf',
         },
-      },
-      adminList: {
-        remote: ['https://example.com/adminlist.txt'],
       },
     };
 

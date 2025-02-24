@@ -31,6 +31,10 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
 
   const mockLogReader: LogReader = {
     line$: new Subject<string>(),
+    readFile: async () => {
+      /* no-op */
+      return '';
+    },
     connect: async () => {
       /* no-op */
     },
@@ -73,7 +77,6 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
         SquadServer: 'info',
         PluginLoader: 'info',
         RCONSquad: 'debug',
-        AdminList: 'info',
         LogReader: 'info', // not used because of the mock
         GithubInfo: 'info',
       },
@@ -88,6 +91,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
     // log parser config is mostly ignored as we mock log reader
     logParser: {
+      configDir: 'unused config dir',
       logFile: 'C:/fake/path/logParser/is/mocked',
       ftp: {
         host: '127.0.0.1',
@@ -117,9 +121,6 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
         enabled: false,
         token: '', // ignored when enabled is false
       },
-    },
-    adminList: {
-      remote: [],
     },
   };
 

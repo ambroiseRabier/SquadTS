@@ -4,13 +4,13 @@ import { LogParser } from './log-parser/use-log-parser';
 import { filter } from 'rxjs';
 import { CachedGameStatus, Player } from './cached-game-status/use-cached-game-status';
 import { omit } from 'lodash-es';
-import { AdminList } from './admin-list/use-admin-list';
 import { AdminPerms } from './admin-list/permissions';
 import { RefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useHelpers } from './cached-game-status/use-helpers';
 import { RefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 import { GithubWikiWeapon } from './github-info/github-weapons.type';
 import { GithubWiki } from './github-info/github-layer.type';
+import { AdminList } from './admin-list/use-admin-list';
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
