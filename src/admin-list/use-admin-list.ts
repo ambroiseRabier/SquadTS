@@ -1,7 +1,7 @@
 import { AdminPerms } from './permissions';
 import { SquadConfig } from '../squad-config/use-squad-config';
-import { toAdmin2Perms } from './to-admin2perms';
 import { getAdminsWithPermissions } from './get-admin-with-permissions';
+import { mergeAdminLists } from './merge-admin-lists';
 
 export type AdminList = ReturnType<typeof useAdminList>;
 
@@ -19,10 +19,7 @@ export function useAdminList(squadConfig: SquadConfig) {
     update: async () => {
       const base = await squadConfig.fetch.admins();
       const remoteAdminLists = await squadConfig.fetch.remoteAdminListHosts();
-
-      // Do not directly set admins (let) or we lose reference
-      // Update: well, using a getter is the better solutino
-      admins = toAdmin2Perms([base, ...remoteAdminLists]);
+      admins = mergeAdminLists([base, ...remoteAdminLists]);
     },
   };
 }

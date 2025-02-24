@@ -1,44 +1,45 @@
-import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';
-import { AdminPermsValues } from '../admin-list/permissions';
+import { AdminPerms } from '../admin-list/permissions';
 
 export type AdminList = ReturnType<typeof parseAdminList>;
 
 export function parseAdminList(str: string) {
-  const perLine = str
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => !line.startsWith('//')); // ignore comments
+  const groups = parseGroupPermissions(str);
+  return parseAdmins(str, groups);
+}
 
-  return {
-    admins: perLine
-      .map(line => {
-        const adminLine =
-          '^Admin=(?<steamID>\\d+)+:(?<role>.\\w+)(:?\\ *\\/\\/\\ *)?(?<comment>.*)$';
-        const matchAdmin = line.match(adminLine);
+function parseGroupPermissions(configText: string): Map<string, AdminPerms[]> {
+  // Trim start and ignore comments.
+  const groupRgx = /^ *(?<!\/\/)Group=(?<role>\w+):(?<permissions>[\w,]+).*$/gm;
+  const groups = new Map<string, AdminPerms[]>();
 
-        if (matchAdmin) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          return matchAdmin.groups! as ObjectFromRegexStr<typeof adminLine>;
-        } else {
-          return null;
-        }
-      })
-      .filter((obj): obj is NonNullable<typeof obj> => !!obj),
-    groups: perLine
-      .map(line => {
-        // Praying group role is properly formatted in server config .-.
-        const groupLine = '^Group=(?<role>\\w+)+:(?<permissions>[\\w,]+)';
-        const matchGroup = line.match(groupLine);
+  for (const match of configText.matchAll(groupRgx)) {
+    const role = match.groups?.role;
+    const permissions = match.groups?.permissions;
+    if (role && permissions) {
+      groups.set(role, permissions.split(',') as AdminPerms[]);
+    }
+  }
 
-        if (matchGroup) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const obj = matchGroup.groups! as ObjectFromRegexStr<typeof groupLine>;
-          return {
-            ...obj,
-            permissions: obj.permissions.split(',') as AdminPermsValues[],
-          };
-        }
-      })
-      .filter((obj): obj is NonNullable<typeof obj> => !!obj),
-  };
+  return groups;
+}
+
+function parseAdmins(configText: string, groups: Map<string, AdminPerms[]>) {
+  // I can extract comment, but is this of any use ?
+  // We usually only care about online admin, and online admin name can be retrieved through their steamID.
+  const adminRgx = /^ *(?<!\/\/)Admin=(?<steamID>\d+):(?<role>\w+)(:? *\/\/ *)?(?<comment>.*)$/gm;
+  const admins = new Map<string, AdminPerms[]>();
+
+  for (const match of configText.matchAll(adminRgx)) {
+    const steamID = match.groups?.steamID;
+    const role = match.groups?.role;
+    // If properly formated Admin declaration
+    if (steamID && role) {
+      const permissions = groups.get(role);
+      if (permissions) {
+        admins.set(steamID, permissions);
+      } // If the role is missing in the group, ignore that admin.
+    }
+  }
+
+  return admins;
 }

@@ -1,9 +1,0 @@
-/**
- * Where to get the list of admins. Format should follow Admins.cfg file:
- * https://squad.fandom.com/wiki/Server_Configuration#Admins.cfg
- */
-{
-  // List of URLs that will return a properly formatted text on GET request.
-  // e.g http://www.example-my-squad-server.fr/whitelist
-  remote: [],
-}

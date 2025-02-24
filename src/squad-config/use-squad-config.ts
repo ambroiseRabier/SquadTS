@@ -63,7 +63,7 @@ export function useSquadConfig(
           )
         );
 
-        return extraStr.filter(a => a.length > 0).map(a => parseAdminList(a));
+        return extraStr.map(a => parseAdminList(a));
       },
     },
   };
