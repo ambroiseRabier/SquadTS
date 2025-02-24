@@ -38,7 +38,7 @@ Team ID: 2 (Manticore Security Task Force)
         attackerMessage: 'Please apologise for ALL TKs in ALL chat!',
         attackerMessageDelay: 0.1,
         victimMessage: '%attackerName% team killed you.',
-        victimMessageDelay: 0.3,
+        victimMessageDelay: 0.5,
       };
 
       testBed = await useTestServer({
@@ -55,19 +55,26 @@ Team ID: 2 (Manticore Security Task Force)
         '[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player:-TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
       );
 
-      // Based on options above, with margin 50%
-      await wait(0.15 * 1000);
-      expect(rconExec).toHaveBeenCalledWith(
+      expect(rconExec).not.toHaveBeenCalledWith(
         'AdminWarn "0002a10186d9414496bf20d22d3860b2" Please apologise for ALL TKs in ALL chat!'
       );
 
-      await wait((0.4 - 0.15) * 1000);
+      // Based on options above, with margin 400 ms (this test may fail if your CPU is slowed down :/, a fix is welcome)
+      await wait(0.4 * 1000);
+      expect(rconExec).toHaveBeenCalledWith(
+        'AdminWarn "0002a10186d9414496bf20d22d3860b2" Please apologise for ALL TKs in ALL chat!'
+      );
+      expect(rconExec).not.toHaveBeenCalledWith(
+        'AdminWarn "0002a10186d9414496bf20d22d3860ba" Stef team killed you.'
+      );
+
+      await wait((0.9 - 0.4) * 1000);
       expect(rconExec).toHaveBeenCalledWith(
         'AdminWarn "0002a10186d9414496bf20d22d3860ba" Stef team killed you.'
       );
     },
     {
-      timeout: 50000,
+      timeout: 10000,
     }
   );
 });

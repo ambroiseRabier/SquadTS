@@ -170,8 +170,6 @@ Team ID: 2 (Manticore Security Task Force)
     });
     await testBed.triggerRCONUpdate();
 
-    //testBed.rcon.chatPacketEvent.next("[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has possessed admin camera.");
-
     // Real logs (dates and chainID have been recreated for matching logs, as they were missing when I took them)
     testBed.emitLogs(`
       [2025.02.13-19.13.17:867][363]LogSquadTrace: [DedicatedServer]ASQVehicleSeat::TraceAndMessageClient(): SQVehicleSeat::TakeDamage[GenericDamage] BP_MI8_C_2146067116 for 1000.000000 damage (type=SQDamageType_Collision)

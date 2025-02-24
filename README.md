@@ -124,6 +124,13 @@ If you have some more knowledge, I recommend these steps:
 5. Use an IDE like Webstorm (free) or VSCode (free)
 6. Finish reading \*_dev_ section.
 
+### Generate a plugin base
+
+Get started fast and avoid boilerplate code with:
+`npm run generate-plugin auto-kick-unassigned` will generate `auto-kick-unassigned` base files inside `"plugins"` folder.
+
+The generated files will include documentation and examples.
+
 ### Tests
 
 The project uses Vitest, Vitest does not typecheck which greatly enhance speed of running test.

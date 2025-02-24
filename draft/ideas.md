@@ -128,3 +128,7 @@ je me plante, je foue en l'ai sa BDD si il a pas bien protégé.
 
 https://github.com/iamalone98/SquadJS (60% TS, bien correct ?)
 et Pull request sur SquadJS
+
+## Revoir les connectors, discord, voir awn et autres...
+
+## Cleanup des plugins à faire.
