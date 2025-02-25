@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { pluginBaseOptionsSchema } from '../../src/plugin-loader/plugin-base.config';
 
-const schema = pluginBaseOptionsSchema
+const enabledSchema = pluginBaseOptionsSchema
   .extend({
     squadTypes: z
       .array(
@@ -74,14 +74,21 @@ const schema = pluginBaseOptionsSchema
       .boolean()
       .default(false)
       .describe("You most likely don't want this enabled in seed, unless for testing purposes."),
-  })
+  });
+
+const schema = z.discriminatedUnion('enabled', [
+  enabledSchema,
+  pluginBaseOptionsSchema.extend({
+    enabled: z.literal(false),
+  }),
+])
   .describe(
     'Warn (then disband) squad leader, when player count is too high in his squad, based on squad name.\n' +
-      'For example, most MBT (tank) squads are 4 players max, since tanks can only be manned by 4 players max.\n' +
-      'Usually a MBT squad with more than 4 players means a bad squad lead (likely a new player) and infantry that will not play as a squad.'
+    'For example, most MBT (tank) squads are 4 players max, since tanks can only be manned by 4 players max.\n' +
+    'Usually a MBT squad with more than 4 players means a bad squad lead (likely a new player) and infantry that will not play as a squad.'
   );
 
-export type MaxPlayerInSquadOptions = z.infer<typeof schema>;
+export type MaxPlayerInSquadOptions = z.infer<typeof enabledSchema>;
 
 export default schema;
 

@@ -128,7 +128,7 @@ export function usePluginLoader(
         const parsedConfig = parsed.data as PluginBaseOptions;
 
         if (!parsedConfig.enabled) {
-          logger.info(`${pair.name}: ${chalk.yellow.bold('disabled')}.`);
+          logger.info(`${pair.name}: ${chalk.yellow.bold('Disabled')}`);
           continue;
         }
 
@@ -265,7 +265,7 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     const configSchemaPath = path.join(pluginsDirectory, configSchemaFileName);
 
     // Inform which plugin has been seen and will be loaded.
-    logger.info(`Plugin discovered: ${file}`);
+    logger.debug(`Plugin discovered: ${file}`);
 
     if (!allTSFiles.includes(configSchemaFileName)) {
       logger.error(

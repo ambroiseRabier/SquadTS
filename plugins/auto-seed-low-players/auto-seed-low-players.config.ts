@@ -19,6 +19,11 @@ const schema = pluginBaseOptionsSchema
         .string()
         .default(
           'Player count is bellow %playerThreshold% players, map will change in %duration% minutes.'
+        ).describe(
+          'Message broadcasted when player count goes bellow threshold.\n' +
+          'Variables:\n' +
+          '- %playerThreshold% (e.g., "30")\n' +
+          '- %duration% (e.g., "5")'
         ),
       beforeChangeMap: z
         .string()

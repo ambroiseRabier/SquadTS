@@ -112,7 +112,7 @@ docker run SquadTS npm run typecheck
 
 ### Setup
 
-If you are a beginner coder, following "Install and Run" steps and using an IDE like **Webstorm** (recommended) or **VSCode**
+If you are a beginner coder, following "Install and Run" steps and using an IDE like **Webstorm** or **VSCode**
 is enough to get your started. Everything is written in TypeScript, which is a superset of JavaScript.
 
 If you have some more knowledge, I recommend these steps:

@@ -77,19 +77,19 @@ const enabledSchema = pluginBaseOptionsSchema
           'Message to send to the player when switching is not possible immediately, due to cooldown.'
         ),
     }),
-  })
-  .describe(
-    "Allow to switch to the opposite team with '!switch' command.\n" +
-      'Quite useful since most players are not aware you can change team using the game UI...\n' +
-      "It is also fire and forget, meaning you don't have to watch team balance yourself.\n"
-  );
+  });
 
 const schema = z.discriminatedUnion('enabled', [
   enabledSchema,
   pluginBaseOptionsSchema.extend({
     enabled: z.literal(false),
   }),
-]);
+])
+  .describe(
+    "Allow to switch to the opposite team with '!switch' command.\n" +
+    'Quite useful since most players are not aware you can change team using the game UI...\n' +
+    "It is also fire and forget, meaning you don't have to watch team balance yourself.\n"
+  );
 
 export type SwitchCommandConfig = z.infer<typeof enabledSchema>;
 

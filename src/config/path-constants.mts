@@ -58,4 +58,5 @@ export const PLUGINS_CONFIG_ROOT = path.join(CONFIGS_ROOT, 'plugins');
 
 export const LOG_FILE = path.join(PROJECT_ROOT, 'logs', 'SquadTS.log');
 
+// todo: path.join(os.tmpdir(), 'SquadTS') ?
 export const TMP_DIR = path.join(PROJECT_ROOT, 'tmp');

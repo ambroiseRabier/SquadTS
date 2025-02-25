@@ -284,7 +284,7 @@ export class Rcon {
       this.client.once('close', onClose);
       this.client.once('error', onError);
 
-      // prevent any auto reconnection happening
+      // prevent any auto reconnection from happening
       this.autoReconnect = false;
 
       this.client.end();
