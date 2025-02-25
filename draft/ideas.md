@@ -81,6 +81,8 @@ type readonly et .share si ce n'est plus ?
 Mettre un unmount, peut être une simple fc de cleanup renvoyé?
 ⚠❤❤❤sinon si il se connecte genre à BDD, bah ils peuvent pas disconnect.
 
+- vi.waitFor refactor plutôt que wait (plutot fake timer en fait)
+
 ## Utils
 
 Download file from FTP, ou juste la config entière du serveur. (jsuis pas un client ftp ?)

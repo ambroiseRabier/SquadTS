@@ -5,10 +5,10 @@ import { Rcon } from '../rcon/rcon';
 import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 import { Options } from '../config/config.schema';
 import { merge } from 'lodash-es';
-import { DeepPartial } from '../utils';
+import { DeepPartial, ObservableValue } from '../utils';
 import { MockedFunction } from 'vitest';
 import { GameServerInfo } from '../rcon-squad/server-info.type';
-import { wait } from '../utils';
+import { obtainEnteringPlayer } from '../cached-game-status/obtain-entering-player';
 
 export type TestServer = Awaited<ReturnType<typeof useTestServer>>;
 
@@ -139,32 +139,68 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
   });
 
+  /**
+   * Helper to emit logs.
+   * Ignore empty lines and remove front space to allow better code formatting on multiline strings.
+   * @param logs
+   */
+  function emitLogs(logs: string) {
+    logs
+      .split('\n')
+      .map(line => line.trimStart()) // trimStart allow indentation in test file
+      .filter(line => line.length > 0) // Remove possible empty line due to code formatting
+      .forEach(line => (mockLogReader.line$ as Subject<string>).next(line));
+  }
+
   console.info('Test server ready !');
 
   return {
     server,
     line$: mockLogReader.line$ as Subject<string>,
     rcon: mockRcon as Rcon,
+
     /**
      * Call this after update RCON ListPlayers return value.
+     * You need to call wait(0) or equivalent if using fake timer
+     * for callback to resolve before proceeding with your test.
      */
     triggerRCONUpdate: async () => {
       manualRCONUpdateForTest.next(); // todo: no need to close that to stop server ?
-      // Let observable do his job before proceeding.
-      await wait(0);
+      // Let one tick pass. Do not use a setTimeout as using fake timers will make it never resolve.
+      await Promise.resolve();
     },
 
+    emitLogs,
+
     /**
-     * Helper to emit logs.
-     * Ignore empty lines and remove front space to allow better code formatting on multiline strings.
-     * @param logs
+     * New players, except from startup, are exclusively obtained through logs.
+     * @param player
      */
-    emitLogs: (logs: string) => {
-      logs
-        .split('\n')
-        .map(line => line.trimStart()) // trimStart allow indentation in test file
-        .filter(line => line.length > 0) // Remove possible empty line due to code formatting
-        .forEach(line => (mockLogReader.line$ as Subject<string>).next(line));
+    emitNewPlayerLogs: (
+      player: Partial<ObservableValue<ReturnType<typeof obtainEnteringPlayer>>>
+    ) => {
+      const completePlayer: ObservableValue<ReturnType<typeof obtainEnteringPlayer>> = {
+        controller: 'BP_PlayerController_C_2147254333',
+        eosID: '0002716d3ecd4a4f9b9cdb11982275aa',
+        id: '1',
+        ip: '109.196.154.134',
+        isLeader: false,
+        name: 'default_player_name',
+        squad: undefined,
+        squadIndex: undefined,
+        steamID: '76561199181620211',
+        teamID: '1',
+      };
+      // Merge fields
+      const p = { ...completePlayer, ...player };
+
+      return emitLogs(`
+[2025.02.12-20.51.26:101][446]LogNet: Login request: ?Name=${p.name} userId: RedpointEOS:${p.eosID} platform: RedpointEOS
+[2025.02.12-20.51.26:102][446]LogSquad: PostLogin: NewPlayer: BP_PlayerController_C /Game/Maps/Sumari/Gameplay_Layers/Sumari_Seed_v1.Sumari_Seed_v1:PersistentLevel.${p.controller} (IP: ${p.ip} | Online IDs: EOS: ${p.eosID} steam: ${p.steamID})
+[2025.02.12-20.51.26:103][446]LogSquad: Player  ${p.name} has been added to Team ${p.teamID}
+[2025.02.12-20.51.26:104][446]LogGameMode: Initialized player ${p.name} with ${p.id}
+[2025.02.12-20.51.26:105][446]LogNet: Join succeeded: ${p.name}
+      `);
     },
   };
 }

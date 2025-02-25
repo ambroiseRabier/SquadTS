@@ -1,5 +1,5 @@
 import { Player } from './use-cached-game-status';
-import { merge } from 'lodash-es';
+import { mergeOldNewPlayer } from './merge-old-new-player';
 
 export function findSquadChanges(oldPlayerList: Player[], newPlayerList: Player[]) {
   const playerStillConnected = newPlayerList
@@ -8,7 +8,7 @@ export function findSquadChanges(oldPlayerList: Player[], newPlayerList: Player[
       (playerNow): playerNow is readonly [playerNow: Player, playerBefore: Player] => !!playerNow[1]
     );
 
-  // Check both for different squad ID, and also if the "id" is the same but he changed team.
+  // Check both for different squad ID, and also if the "id" is the same, but he changed team.
   const playersWithDifferentSquadID = playerStillConnected.filter(
     ([playerNow, playerBefore]) =>
       playerBefore.squadIndex !== playerNow.squadIndex ||
@@ -16,6 +16,6 @@ export function findSquadChanges(oldPlayerList: Player[], newPlayerList: Player[
   );
 
   return playersWithDifferentSquadID.map(([playerNow, playerBefore]) =>
-    merge(playerBefore, playerNow)
+    mergeOldNewPlayer(playerBefore, playerNow)
   );
 }

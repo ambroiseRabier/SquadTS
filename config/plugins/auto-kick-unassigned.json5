@@ -1,0 +1,23 @@
+/**
+ * Auto kick players unassigned to a squad after a chosen duration. This allows you to remove afk players and motivate new players to join a squad.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // Enable this plugin in seed (not recommended).
+  enabledInSeed: false,
+  // How many players are required for kicks to be enabled. Going bellow threshold will stop any timeout.
+  playerThreshold: 94,
+  // How many seconds to wait before kicking the player
+  unassignedTimeout: 310,
+  // How many seconds to wait before sending the warning message to the player.
+  warnMessageInterval: 60,
+  // Message to send to the player when warned.
+  // Variable: %remainingTime% (e.g., "30 seconds")
+  warnMessage: 'Please join a squad or you will be kicked in %remainingTime%.',
+  // Message to send to the player when kicked.
+  // Variable: %unassignedTimeout% (e.g., "5 minutes")
+  kickMessage: 'You have been kicked for not being assigned to a squad since %unassignedTimeout%.',
+}

@@ -6,6 +6,7 @@ import { LogParser } from '../log-parser/use-log-parser';
 import { findSquadChanges } from './find-squad-changes';
 import { obtainEnteringPlayer } from './obtain-entering-player';
 import { intervalPlayersSquads, intervalServerInfo } from './rcon-updates';
+import { mergeOldNewPlayer } from './merge-old-new-player';
 
 // todo use squad created log ?
 export type Squad = Awaited<ReturnType<RconSquad['getSquads']>>[number];
@@ -138,7 +139,7 @@ export function useCachedGameStatus({
                 // Find the corresponding player in updatedPlayers, and deep merge it.
                 // If no player is found, ignore, probably a disconnect, log parser will handle this
                 // override with the new player if there is any existing keys.
-                merge(
+                mergeOldNewPlayer(
                   players$.getValue().find(p => p.eosID === player.eosID),
                   player
                 )

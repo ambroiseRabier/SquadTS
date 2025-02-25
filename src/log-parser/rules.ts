@@ -25,7 +25,7 @@ export const logParserRules = [
   // Called before playerConnected and playerJoinSucceeded
   [
     'loginRequest',
-    '^LogNet: Login request: \\?Name=(?<name>.*) userId: RedpointEOS:(?<eosID>0002a10386d9114496bf20d22d3860ba) platform: RedpointEOS',
+    '^LogNet: Login request: \\?Name=(?<name>.*) userId: RedpointEOS:(?<eosID>\\w+) platform: RedpointEOS',
   ],
 
   // Called right before join succeeded and player initialize it seems
