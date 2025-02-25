@@ -5,7 +5,6 @@ import { Logger } from 'pino';
 import { Subject } from 'rxjs';
 import { omit } from 'lodash-es';
 import fs from 'fs';
-import { joinSafeSubPath } from '../utils';
 
 export type LogReader = ReturnType<typeof useLogReader>;
 
@@ -27,8 +26,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
       // return the same API as the others.
       return {
         readFile: async (subPath: string) => {
-          const configFile = joinSafeSubPath(options.configDir, subPath);
-          return await fs.promises.readFile(configFile, 'utf8');
+          return await fs.promises.readFile(subPath, 'utf8');
         },
         // There isn't a "connect" for reading a file, but this is to keep the same API as FTP and SFTP
         connect: async () => {

@@ -18,8 +18,9 @@ import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
 import { obtainEnteringPlayer } from './cached-game-status/obtain-entering-player';
 import { obtainRCONPlayersAndSquads } from './cached-game-status/rcon-updates';
-import { useSquadConfig } from './squad-config/use-squad-config';
+import { ServerConfigFile, useSquadConfig } from './squad-config/use-squad-config';
 import { useAdminList } from './admin-list/use-admin-list';
+import { joinSafeSubPath } from './utils';
 
 interface Props {
   /**
@@ -76,10 +77,13 @@ export async function main(props?: Props) {
     config.logParser,
     config.logger.debugLogMatching
   );
-  const squadConfig = useSquadConfig(logReader.readFile.bind(logReader), logger);
+  const squadConfig = useSquadConfig(async (file: ServerConfigFile) => {
+    const configFile = joinSafeSubPath(config.logParser.configDir, file + '.cfg');
+    return await logReader.readFile(configFile);
+  }, logger);
   const adminList = useAdminList(squadConfig);
 
-  const earlyCleanup = async () => {
+  const earlyCleanup = async (skipExit = false) => {
     console.info('Shutdown signal received. Cleaning up...');
     try {
       await rcon.disconnect();
@@ -98,13 +102,16 @@ export async function main(props?: Props) {
       logger.flush(err => (err ? reject(err) : resolve()));
     });
     console.info('Early cleanup completed.');
+    if (!skipExit) {
+      process.exit(0);
+    }
   };
 
   const earlyException = async (error: Error) => {
     logger.fatal('UncaughtException, see the error trace below.', { error });
     console.error(error);
     try {
-      await earlyCleanup();
+      await earlyCleanup(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.info(`Failed to early cleanup: ${error?.message}`);
@@ -197,27 +204,53 @@ export async function main(props?: Props) {
   process.removeListener('SIGTERM', earlyCleanup);
   process.removeListener('uncaughtException', earlyException);
 
-  // Handle process signals for cleanup
-  process.on('SIGINT', async () => {
-    console.info('Shutdown signal received. Cleaning up...');
-    await server.unwatch();
-    console.info('Cleanup completed.');
-  }); // e.g., Ctrl+C
-  process.on('SIGTERM', async () => {
-    console.info('Shutdown signal received. Cleaning up...');
-    await server.unwatch();
-    console.info('Cleanup completed.');
-  }); // e.g., Process kill
-  process.on('uncaughtException', async error => {
-    logger.fatal('UncaughtException, see the error trace below.', { error });
-    console.error(error);
+  // Note: Cannot remove "Terminate batch job (Y/N)?" --> https://superuser.com/questions/35698/how-to-supress-terminate-batch-job-y-n-confirmation
+  //       So user will have to double CTRL-C ...
+  // Note: avoid console log, although their timing is more correct,
+  //       it appears messy if mixed up with pino logger that is slightly behind.
+  const cleanupFCT = async () => {
     try {
       await server.unwatch();
+
+      if (discordConnector) {
+        logger.info('Removing discord connector.');
+        await discordConnector.destroy();
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.info('Failed to unwatch server.');
       console.error(error);
+      // process.exitCode = 1;
+      process.exit(1);
     }
+
+    // Quite useful if hanging! (3 handles is normal: stdout, stdin and pino)
+    // if you forgot to clean discord, it will appear.
+    // Debug what's keeping the process alive
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // console.log('Active handles:', process._getActiveHandles());
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // console.log('Active requests:', process._getActiveRequests());
+  };
+
+  // Handle process signals for cleanup
+  process.once('SIGINT', async () => {
+    logger.info('(SIGINT) Shutdown signal received. Cleaning up...');
+    await cleanupFCT();
+    process.exit(0);
+  }); // e.g., Ctrl+C
+  process.once('SIGTERM', async () => {
+    logger.info('(SIGTERM) Shutdown signal received. Cleaning up...');
+    await cleanupFCT();
+    process.exit(0);
+  }); // e.g., Process kill
+  process.once('uncaughtException', async error => {
+    logger.fatal('UncaughtException, see the error trace below.', { error });
+    console.error(error);
+    await cleanupFCT();
     process.exit(1);
   });
 

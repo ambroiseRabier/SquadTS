@@ -44,23 +44,32 @@ export function useSquadConfig(
   return {
     fetch: {
       admins: async () => {
+        logger.info(`Fetching ${ServerConfigFile.Admins}.cfg from server.`);
         return parseAdminList(await fetcher(ServerConfigFile.Admins));
       },
 
       remoteAdminListHosts: async () => {
-        const urls = (await fetcher(ServerConfigFile.RemoteAdminListHosts)).split('\n');
+        logger.info(`Fetching ${ServerConfigFile.RemoteAdminListHosts}.cfg from server.`);
+        const urls = (await fetcher(ServerConfigFile.RemoteAdminListHosts))
+          .split('\n')
+          .map(a => a.trim())
+          .filter(url => url.length > 0);
+
+        logger.info(`Found ${urls.length} remote admin list hosts.`);
 
         const extraStr = await Promise.all(
-          urls.map(url =>
-            fetch(url)
+          urls.map(url => {
+            logger.info(`Fetching admin list from "${url}".`);
+            return fetch(url)
               .then(res => res.text())
               .catch(e => {
                 logger.error(
-                  `Error fetching admin list from ${url} (this admin list will be ignored): ${e?.message}`
+                  `Error fetching admin list from "${url}" (this admin list will be ignored): ${e?.message}`,
+                  e
                 );
                 return '';
-              })
-          )
+              });
+          })
         );
 
         return extraStr.map(a => parseAdminList(a));

@@ -35,6 +35,11 @@ export function usePluginLoader(
       logger.info('Loading plugins...');
       const pluginsPair = await loadPlugins(logger, pluginOptionOverride);
 
+      if (pluginsPair.length === 0) {
+        logger.warn('No plugins found. Is plugins folder empty ?');
+        return;
+      }
+
       // Inform there is no plugins loaded if user put them in wrong folder
       logger.info(`${pluginsPair.length} plugins discovered and imported.`);
 

@@ -10,6 +10,10 @@
   // How long player count has to stay bellow threshold to trigger map change. In minutes.
   duration: 5,
   broadcastMessages: {
+    // Message to broadcast when player count goes bellow the threshold.
+    // Variables:
+    // - %playerThreshold% (e.g., "30")
+    // - %duration% (e.g., "5")
     bellowThreshold: 'Player count is bellow %playerThreshold% players, map will change in %duration% minutes.',
     // Will be called 10seconds before the map change. Each connected player will also be warned in addition of the broadcast.
     beforeChangeMap: 'The map will change to %nextLayer% because the player count is bellow %threshold% players in 10 seconds.',

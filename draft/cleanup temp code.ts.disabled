@@ -1,0 +1,59 @@
+// may be useful to keep some traces...
+
+
+
+// Ensure all console output is flushed
+await new Promise<void>((resolve) => {
+  // First flush stdout
+  if (process.stdout.writableLength) {
+    process.stdout.once('drain', resolve);
+  } else {
+    resolve();
+  }
+});
+
+await new Promise<void>((resolve) => {
+  // Then flush stderr
+  if (process.stderr.writableLength) {
+    process.stderr.once('drain', resolve);
+  } else {
+    resolve();
+  }
+});
+// // Ensure all logs are flushed before exit
+// await flushStreams();
+
+// Quite useful! (3 handles is normal: stdout, stdin and pino
+// Debug what's keeping the process alive
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// console.log('Active handles:', process._getActiveHandles());
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// console.log('Active requests:', process._getActiveRequests());
+
+
+async function flushStreams() {
+  const streams = [
+    process.stdout,
+    process.stderr,
+    // Add any pino transport streams if accessible
+  ];
+
+  await Promise.all(streams.map(stream => {
+    return new Promise<void>((resolve) => {
+      // If there's pending data
+      if (stream.writableLength) {
+        // Wait for drain event
+        stream.once('drain', resolve);
+        // Force flush
+        stream.write('', () => resolve());
+      } else {
+        resolve();
+      }
+    });
+  }));
+
+  // Additional delay to ensure log transport has time to process
+  await new Promise(resolve => setTimeout(resolve, 100));
+}

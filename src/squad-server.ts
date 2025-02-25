@@ -11,6 +11,7 @@ import { RefinedChatEvents } from './cached-game-status/use-refined-chat-events'
 import { GithubWikiWeapon } from './github-info/github-weapons.type';
 import { GithubWiki } from './github-info/github-layer.type';
 import { AdminList } from './admin-list/use-admin-list';
+import { promiseWithTimeout } from './utils';
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
@@ -144,12 +145,24 @@ export function useSquadServer({
       cachedGameStatus.unwatch();
       await rconSquad.disconnect();
       await logParser.unwatch();
-      logger.info('Flushing logs...');
+      logger.info('SquadTS server is shut down.');
       // Wait a bit for remaining logs to be displayed, especially useful for tests that are very fast.
-      await new Promise<void>((resolve, reject) => {
-        logger.flush(err => (err ? reject(err) : resolve()));
+      // Timeout of 1 sec, since logger.flush give unclear result when testing...
+
+      // We need to flush pino logger logs before it doesn't seem like waiting for flush callback is
+      // enough. And we end up with logs appearing after we process.exit(0)
+      // This appear for the user as if the process is hanging.
+      const flushPromise = new Promise<void>((resolve, reject) => {
+        logger.flush(err => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
       });
-      console.info('SquadTS server is shut down');
+      // For tests in pre-commit hook, 1000 doesn't seem enough :/ ?
+      await promiseWithTimeout(flushPromise, 2000, 'Flush timeout');
     },
   } as const;
 }

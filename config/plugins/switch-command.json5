@@ -1,3 +1,9 @@
+/**
+ * Allow switching to the opposite team with '!switch' command.
+ * Quite useful since most players are not aware you can change team using the game UI...
+ * It is also fire and forget, meaning you don't have to watch team balance yourself.
+ * 
+ */
 {
   enabled: false,
   // Available levels: trace, debug, info, warn, error, fatal.

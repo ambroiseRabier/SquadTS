@@ -10,8 +10,7 @@ import readline from 'node:readline';
 import { createReadStream } from 'node:fs';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 import { TMP_DIR } from '../config/path-constants.mjs';
-import { joinSafeSubPath } from '../utils';
-import * as os from 'node:os';
+import { promiseWithTimeout } from '../utils';
 
 type Props = {
   timeout?: number;
@@ -48,20 +47,20 @@ function useClient(options: Props) {
      * @param filepath
      */
     async readFile(filepath: string) {
-      const tmpDir = os.tmpdir(); // Use the operating system's temp directory
-      const localTempFile = path.join(tmpDir, path.basename(filepath));
+      const localTempFile = path.join(TMP_DIR, path.basename(filepath));
 
       if (options.protocol === 'ftp') {
         try {
+          // Ensure the directory exists
+          await fs.promises.mkdir(TMP_DIR, { recursive: true });
+
           // Download the remote file to a temporary local file
           await client.downloadTo(localTempFile, filepath);
           return await fs.promises.readFile(localTempFile, 'utf8');
         } catch (err) {
-          console.error('Error fetching file:', err);
+          console.error(`Error fetching file "${filepath}":`, err);
           throw err;
         } finally {
-          // Close the FTP connection
-          client.close();
           // Clean up: Delete the temp file
           try {
             await fs.promises.unlink(localTempFile);
@@ -79,9 +78,6 @@ function useClient(options: Props) {
           console.error('Error fetching SFTP file:', err);
           throw err;
         } finally {
-          // Close the SFTP connection
-          await sftpClient.end();
-
           // Cleanup: Delete the temporary file
           try {
             await fs.promises.unlink(localTempFile);
@@ -113,6 +109,8 @@ function useClient(options: Props) {
     async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
       if (options.protocol === 'ftp') {
         await client.downloadTo(
+          // Do not use a file path, as offset is also applied to file path. Our file will not be of the same size as the
+          // one on the server !
           fs.createWriteStream(toLocalPath, { flags: 'w' }),
           filepath,
           lastByteReceived
@@ -129,11 +127,11 @@ function useClient(options: Props) {
     init(logger: Logger) {
       if (options.protocol === 'ftp') {
         client = new Client(options.timeout);
-        client.ftp.log = logger.debug.bind(logger);
+        client.ftp.log = logger.trace.bind(logger);
       } else {
         // We slightly corrected SFTPClient type so we need to cast.
         sftpClient = new SFTPClient() as typeof sftpClient;
-        options.sftp.debug = logger.debug.bind(logger);
+        options.sftp.debug = logger.trace.bind(logger);
       }
     },
     isConnected() {
@@ -205,10 +203,20 @@ export function useFtpTail(logger: Logger, options: Props) {
       });
 
       rl.on('close', () => {
+        fileStream.close();
         resolve();
       });
 
       rl.on('error', error => {
+        rl.close();
+        fileStream.close();
+        reject(error);
+      });
+
+      // Handle file stream errors separately
+      fileStream.on('error', error => {
+        rl.close();
+        fileStream.close();
         reject(error);
       });
 
@@ -222,23 +230,16 @@ export function useFtpTail(logger: Logger, options: Props) {
     // SquadTS just launched
     if (lastByteReceived === null) {
       // Do not substract lastbytes. In case of repeating start and stop, with low log downloading interval,
-      // we could act twice on same log. Also, we may act initially on very old logs. It make no sense sending warning/kick
-      // on something that happened 5min, 1min, ago. Duration depend on how much action is happening in-game.
+      // we could act twice on the same log. Also, we may act initially on very old logs. It makes no sense sending warning/kick
+      // on something that happened 5min, 1min, ago. Duration depends on how much action is happening in-game.
       // lastByteReceived = Math.max(0, fileSize - options.tailLastBytes);
-      lastByteReceived = Math.max(0, fileSize);
+      lastByteReceived = fileSize;
     }
 
     // Skip fetching data if the file size hasn't changed.
     if (fileSize === lastByteReceived) {
       logger.debug('File has not changed.');
       return false;
-    }
-
-    if (!fs.existsSync(TMP_DIR)) {
-      await fs.promises.mkdir(TMP_DIR).catch(e => {
-        logger.error(`Error creating ./tmp dir: ${e?.message}`);
-        throw e;
-      });
     }
 
     await fs.promises.mkdir(TMP_DIR, { recursive: true });
@@ -289,8 +290,8 @@ export function useFtpTail(logger: Logger, options: Props) {
    * It never call fetchLoop concurrently.
    */
   async function executeFetchLoop() {
-    if (isFetchLoopActive) {
-      return; // Skip if already active
+    if (isFetchLoopActive || stopSignal) {
+      return; // Skip if already active or stop signal
     }
 
     isFetchLoopActive = true;
@@ -316,23 +317,21 @@ export function useFtpTail(logger: Logger, options: Props) {
 
       // If fetchLoop took less time than the interval, wait the remaining time
       const delay = Math.max(0, options.fetchIntervalMs - executionTime);
-      if (delay > 0) {
+      // Check the stop signal before waiting.
+      if (!stopSignal && delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     } catch (e) {
       logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
       hasError = true;
-      throw e; // stop looping at unhandled error. However, this will not stop the program if not awaited.
+      // Stop looping at unhandled error. main.mts will handle the cleanup on unhandled errors.
+      throw e;
     } finally {
       isFetchLoopActive = false; // Unlock once the loop is finished
-      // Only at hasError, since stopSignal is called by unwatch (in case of SIGTERM or SIGINT)
-      if (hasError) {
-        // Call unwatch but do not await it since unwatch also will await this current promise (no loop)
-        // noinspection ES6MissingAwait
-        unwatch(true);
-      }
-      // Do not await here
-      if (!hasError || !stopSignal) {
+
+      // When no error and no stop signal
+      if (!hasError && !stopSignal) {
+        // Do not await here
         // noinspection ES6MissingAwait
         currentFetchPromise = executeFetchLoop(); // Schedule the next iteration independently
       }
@@ -342,20 +341,20 @@ export function useFtpTail(logger: Logger, options: Props) {
   // Note: this is not designed to be recalled after unwatch.
   async function watch() {
     // Note: RXJS is not the most fit for the behavior we want. (unless you can find an elegant solution?)
-
     logger.info('Watching FTP server...');
-
-    // First execution, this one has huge chances to fail, wrong credentials will fail here.
     currentFetchPromise = executeFetchLoop();
-    await currentFetchPromise;
-
-    logger.info(
-      'Connect and first download went fine. (If you need more info on fetch loop, enable debug logs).'
-    );
   }
 
-  // Needs to be called in case the fetch loop error or when SIGINT or SIGTERM
-  async function unwatch(loopUnexpectedIssue = false) {
+  let isUnwatching = false;
+
+  // Let main.mts call unwatch in case of error of SIGINT, SIGTERM, do not call from this file.
+  async function unwatch() {
+    if (isUnwatching) {
+      throw new Error('Unwatch already in progress');
+    } else {
+      isUnwatching = true;
+    }
+
     logger.info('Cleanup initiated.');
     stopSignal = true;
     // It may be useful to keep the file for debug
@@ -367,33 +366,26 @@ export function useFtpTail(logger: Logger, options: Props) {
     try {
       // In case the promise is still running, we await it.
       // This case happens when SIGINT or SIGTERM is called.
-      await currentFetchPromise;
+      if (currentFetchPromise) {
+        logger.debug('Waiting for current fetch loop to finish.');
+        await promiseWithTimeout(
+          currentFetchPromise,
+          1000,
+          'currentFetchPromise was forcibly stopped.'
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      logger.error(`Error while waiting for currentFetchPromise to resolve: ${e?.message}`, e);
     } finally {
-      // Do not catch.
-      // Do nothing here, as we already handle error on that promise elsewhere.
-      // This case happens when the fetchLoop error, and unwatch is called to clean up
-      // Promise got rejected, we ignore it and call disconnect.
       await client.disconnect();
+      logger.debug('FTP tail disconnected');
     }
-
-    // If log terminated due to an error in the loop and not due to process SIGINT or SIGTERM
-    // Then send SIGINT so RCON can properly stop, and we don't continue
-    // running squadTS with log parser disabled.
-    // (Since the loop is running in a somewhat detached mode, the error won't propagate)
-    if (loopUnexpectedIssue) {
-      process.kill(process.pid, 'SIGINT');
-    }
-
-    // what about rcon connection, maybe it needs a cleanup too ?
-    // not sure process.exit(0) should be in this file...
-    // not sure about that, Don't want to force exit.
-    // process.exit(0);
   }
 
   return {
     readFile: async (subPath: string) => {
-      const configFile = joinSafeSubPath(options.configDir, subPath);
-      return client.readFile(configFile);
+      return client.readFile(subPath);
     },
     connect: async () => {
       const address =
