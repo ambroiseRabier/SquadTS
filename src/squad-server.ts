@@ -77,22 +77,53 @@ export function useSquadServer({
   };
 
   return {
+    /**
+     * Information extract from the Github squad wiki repository.
+     */
     githubInfo,
-    //githubLayer,
+
+    /**
+     * Parsed response of ShowServerInfo RCON command.
+     */
     info: cachedGameStatus.serverInfo$.getValue(),
+
+    /**
+     * List of players at time of the call.
+     */
     get players() {
       return cachedGameStatus.players$.getValue();
     },
-    players$: cachedGameStatus.players$,
+
     /**
-     * Far more valuable than `playerConnected`, as it provides significantly more detailed information.
+     * Squad observable, you may subscribe to watch every change in players.
+     */
+    players$: cachedGameStatus.players$,
+
+    /**
+     * Far more valuable than `playerConnected` event, as it provides significantly more detailed information.
      */
     addPlayer$: cachedGameStatus.addPlayer$,
+
+    /**
+     * Squad observable, you may subscribe to watch every change in squads.
+     */
     squad$: cachedGameStatus.squads$,
+
+    /**
+     * List of squads at time of the call.
+     */
     get squads() {
       return cachedGameStatus.squads$.getValue();
     },
+
+    /**
+     * Get a list of admins (and moderator, whitelist... anything inside Admins.cfg)
+     */
     admins,
+
+    /**
+     * Events that you can react to.
+     */
     events: {
       ...refinedLogEvents,
       teamKill,
@@ -100,8 +131,20 @@ export function useSquadServer({
       // Prevent accidentally using next by passing Subject as Observable.
       playersSquadChange: cachedGameStatus.playersSquadChange$.asObservable(),
     },
+
+    /**
+     * Chat events are provided by RCON.
+     */
     chatEvents: refinedChatEvents,
+
+    /**
+     * List of eosID currently in admin cam
+     */
     adminsInAdminCam: rconSquad.adminsInAdminCam,
+
+    /**
+     * Collection of helpers, re-usable logic.
+     */
     helpers: {
       ...helpers,
       getOnlineAdminsWithPermissions,
@@ -111,8 +154,16 @@ export function useSquadServer({
         );
       },
     },
+
     // Omit chatEvent as cachedGameStatus enrich them with player, and this one should be used by plugins.
+    /**
+     * RCON API
+     */
     rcon: omit(rconSquad, ['chatEvents', 'adminsInAdminCam']),
+
+    /**
+     *
+     */
     watch: async () => {
       // Helper so I know which server is using SquadTS, I may ask some questions about how it is going ;)
       logParser.events.playerConnected.subscribe(player => {

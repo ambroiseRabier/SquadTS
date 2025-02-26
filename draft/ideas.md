@@ -79,9 +79,6 @@ type readonly et .share si ce n'est plus ?
 
 ## Plugin bugs
 
-Mettre un unmount, peut être une simple fc de cleanup renvoyé?
-⚠❤❤❤sinon si il se connecte genre à BDD, bah ils peuvent pas disconnect.
-
 - vi.waitFor refactor plutôt que wait (plutot fake timer en fait)
 
 ## Utils
@@ -96,6 +93,8 @@ Par contre, peut être utile pour download les logs de squad pour aider a debut 
 - repartir sur le temps de l'interval les events pour réduire les pics de CPU ?
 - mesure la perf. demande cpu, ram
 - ⚠ Do not import plugin that are enabled false to speed up startup
+- compliqué si le serveur auquel j'ai accès, personne ne joue...
+  pouvoir rejouer des logs et rcon c pas mal, mais remplace pas l'ensemble avec rcon et ftp...
 
 ## Extra events
 

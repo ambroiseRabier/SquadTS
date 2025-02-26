@@ -27,6 +27,29 @@ For your convenience SquadJS comes shipped with multiple plugins.
 
 SquadTS is a modern rewrite of [SquadJS](https://github.com/Team-Silver-Sphere/SquadJS).
 
+## Embed plugins
+
+SquadTS comes with plugins ready to use:
+
+- Auto kick unassigned
+- Auto rejoin team
+- Auto seed low players
+- Auto tk warn
+- Discord admin broadcast
+- Discord admin request
+- Discord cam logs
+- Discord chat
+- Discord-fob-hab explosion damage
+- Discord killfeed
+- Discord server status
+- Discord squad created
+- Heli crash broadcast
+- Knife broadcast
+- Max player in squad
+- Switch command
+
+Go into [./config/plugins](./config/plugins) folder to discover them.
+
 ## Install and Run
 
 1. Download and install [NodeJS 22 LTS](https://nodejs.org/en/download) (will come with NPM)
@@ -219,14 +242,13 @@ SquadTS offer several advantages for server owner and plugins developpers:
 For everyone:
 
 - SquadTS configs are separated in multiple files for increased readability.
-- Plugins configs are separated in multiple files for increased readability.
-- (WIP) AdminList is fetched from RemoteAdminListHosts.cfg and Admins.cfg automatically.
-- (WIP) API to fetch server config. Typed.
-- SquadTS configs are commented, no more jumping between README.md and your configs files, JSON5 is used instead of JSON.
-- SquadTS and plugin config is validated before usage, if your config is wrong you will know right away.
+- Plugin configs are separated in multiple files for increased readability.
+- AdminList is fetched from RemoteAdminListHosts.cfg and Admins.cfg automatically.
+- SquadTS configs are commented, no more jumping between README.md and your config files, JSON5 is used instead of JSON.
+- SquadTS and plugin config is validated before usage, if your config is wrong, you will know right away.
 - Some performance improvements:
   - It does not download 15mb JSON from github at each startup when the file has not changed.
-  - It does not call FTP dozens of time a second for the log file, by default it calls one time a second.
+  - It does not call FTP dozens of time a second for the log file, by default, it calls one time a second.
 - Revisited plugins.
 - New plugins supported by default:
   - heli-crash-broadcast
@@ -257,12 +279,29 @@ For plugin developers:
 No more `if` to check if options have been provided since config is validated ahead. And typing actually tells you which fields will be present:
 
 ```js
-async function onTeamkill(info) {
-  if (info.attacker && this.options.attackerMessage) {
-    this.server.rcon.warn(info.attacker.eosID, this.options.attackerMessage);
+export default class AutoTKWarn extends BasePlugin {
+  // options ignored for comparison...
+
+  constructor(server, options, connectors) {
+    super(server, options, connectors);
+    this.onTeamkill = this.onTeamkill.bind(this);
   }
-  if (info.victim && this.options.victimMessage) {
-    this.server.rcon.warn(info.victim.eosID, this.options.victimMessage);
+
+  async mount() {
+    this.server.on('TEAMKILL', this.onTeamkill);
+  }
+
+  async unmount() {
+    this.server.removeEventListener('TEAMKILL', this.onTeamkill);
+  }
+
+  async onTeamkill(info) {
+    if (info.attacker && this.options.attackerMessage) {
+      this.server.rcon.warn(info.attacker.eosID, this.options.attackerMessage);
+    }
+    if (info.victim && this.options.victimMessage) {
+      this.server.rcon.warn(info.victim.eosID, this.options.victimMessage);
+    }
   }
 }
 ```
@@ -270,26 +309,49 @@ async function onTeamkill(info) {
 becomes
 
 ```ts
-server.events.teamKill.subscribe(async info => {
-  const attackerName = info.attacker.nameWithClanTag ?? info.attacker.name ?? 'Unknown';
-  logger.info(`TK Warn: ${attackerName} (eosID: ${info.attacker.eosID})`);
-  // Guaranteed info.attacker and options.attackerMessage
-  await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
-  // Guaranteed info.victim and options.victimMessage
-  await server.rcon.warn(
-    info.victim.eosID,
-    options.victimMessage.replace('%attacker%', attackerName)
-  );
-});
+// A function instead of a class, no inheritance to watch for.
+// Options are in a different file
+const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
+  server: SquadServer,
+  connectors,
+  logger: Logger,
+  options: AutoTKWarnOptions
+) => {
+  // Mount is the body of the function
+
+  // RXJS observable is used instead of a callback
+  // info is fully typed
+  server.events.teamKill.subscribe(async info => {
+    const attackerName = server.helpers.getPlayerDisplayName(info.attacker);
+
+    // Use a pino logger
+    logger.info(`TK Warn: ${attackerName} (eosID: ${info.attacker.eosID})`);
+
+    // Guaranteed info.attacker and options.attackerMessage
+    await server.rcon.warn(info.attacker.eosID, options.attackerMessage);
+
+    // Guaranteed info.victim and options.victimMessage
+    await server.rcon.warn(
+      info.victim.eosID,
+      options.victimMessage.replace('%attacker%', attackerName)
+    );
+  });
+
+  // An optional unmount can be defined in return statement
+  // return async () => {/*Cleanup*/};
+};
+export default autoTKWarn;
 ```
 
 Cons:
 
-- Less live tested because it is new.
-- SquadJS plugins are incompatible and need to be rewritten. Many have been rewritten partially or totally in
+- Lacking live test because it is new.
+- SquadJS plugins are incompatible and need to be rewritten. Many have been rewritten partially or totally in the
   plugins folder.
-- Likely some missing feature, if there is anything you use and might be useful for others too, feel free to make a feature request.
-- No Websocket plugin yet (if this interest you, please open a feature request)
+- Some features still need testing, like using a local Squad server or using SFTP.
+- Likely some missing feature I haven't paid attention to. If there is anything you use and you think may be useful for others too, feel free to make a feature request.
+- No websocket API plugin yet (if this interest you, please open a feature request)
+- No database connector (if this interest you, please open a feature request)
 
 ## Statement on accuracy
 

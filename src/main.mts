@@ -210,6 +210,7 @@ export async function main(props?: Props) {
   //       it appears messy if mixed up with pino logger that is slightly behind.
   const cleanupFCT = async () => {
     try {
+      await pluginLoader.unloadAll();
       await server.unwatch();
 
       if (discordConnector) {

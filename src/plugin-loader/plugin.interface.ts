@@ -3,6 +3,9 @@ import { PluginBaseOptions } from './plugin-base.config';
 import { Logger } from 'pino';
 import { DiscordConnector } from '../connectors/use-discord.connector';
 
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+type EmptyOrCleanup = void | (() => Promise<void>);
+
 /**
  * Base type main function of each plugin should extend.
  * Return is an optional cleanup function.
@@ -16,5 +19,4 @@ export type SquadTSPlugin<PluginOptions extends PluginBaseOptions> = (
   logger: Logger,
   options: Omit<PluginOptions, 'enabled' | 'loggerVerbosity'>
   // In this case, it is valid.
-  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-) => Promise<void | (() => void)>; // may or may not have a cleanup function
+) => Promise<EmptyOrCleanup>; // may or may not have a cleanup function

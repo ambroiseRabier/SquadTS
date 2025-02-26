@@ -20,7 +20,14 @@ export function usePluginLoader(
   logger: Logger,
   mainLogger: Logger
 ) {
+  const pluginCleanupFC: (() => Promise<void>)[] = [];
   return {
+    unloadAll: async () => {
+      logger.info(
+        `Unloading plugins, ${pluginCleanupFC.length} plugins with a cleanup function...`
+      );
+      await Promise.allSettled(pluginCleanupFC.map(fc => fc()));
+    },
     /**
      *
      * @param pluginOptionOverride Reserved for test server, allow to choose which plugin to enable and also the config.
@@ -148,7 +155,7 @@ export function usePluginLoader(
 
         // Note, we don't want to run them in parallel, it would be hard to debug from the console
         // if logs are mixed between plugins.
-        await pair.plugin
+        const cleanUpFC = await pair.plugin
           .default(
             server,
             // this typing is correct, as long as the plugin correctly fill requireConnectors field...
@@ -170,6 +177,10 @@ export function usePluginLoader(
               error
             );
           });
+
+        if (cleanUpFC) {
+          pluginCleanupFC.push(cleanUpFC);
+        }
 
         logger.info(`${pair.name}: ${chalk.green.bold('Started')}`);
       }
