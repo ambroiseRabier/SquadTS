@@ -1,6 +1,5 @@
 import { BehaviorSubject, exhaustMap, Subject, Subscription } from 'rxjs';
 import { RconSquad } from '../rcon-squad/use-rcon-squad';
-import { merge } from 'lodash-es';
 import { CachedGameStatusOptions } from './use-cached-game-status.config';
 import { LogParser } from '../log-parser/use-log-parser';
 import { findSquadChanges } from './find-squad-changes';
@@ -124,7 +123,7 @@ export function useCachedGameStatus({
           // Emit the updated player list.
           players$.next([
             ...players$.getValue().filter(player => player.eosID !== newPlayer.eosID),
-            merge(existingPlayer, newPlayer),
+            mergeOldNewPlayer(existingPlayer, newPlayer),
           ]);
         }),
 

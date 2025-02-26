@@ -1,7 +1,12 @@
 import { Player } from './use-cached-game-status';
 import { merge } from 'lodash-es';
 
-// Allow old to be undefined for convenience, perfecty supported by lodash merge.
+// Note:Allow old to be undefined for convenience, perfectly supported by lodash merge.
+/**
+ * Deep merge an old and new player, if the new player has no squad, resulting player will not have squad.
+ * @param old
+ * @param newPlayer
+ */
 export function mergeOldNewPlayer(old: Player | undefined, newPlayer: Player) {
   return {
     ...merge(old, newPlayer),
