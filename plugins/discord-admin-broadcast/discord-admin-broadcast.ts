@@ -17,6 +17,10 @@ const discordAdminBroadcast: SquadTSPlugin<DiscordAdminBroadcastEnabledOptions> 
       title: 'Admin Broadcast',
       color: 16761867,
       fields: [
+        // {
+        //   name: 'From',
+        //   value: data.from, // Do not use from, it gives garbage data.
+        // },
         {
           name: 'Message',
           value: data.message,

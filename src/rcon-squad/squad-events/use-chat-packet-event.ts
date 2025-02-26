@@ -60,7 +60,7 @@ export function useChatPacketEvent(logger: Logger, chatPacketEvent: Subject<stri
       map(body =>
         matchWithRegex(
           body,
-          '\\[Online Ids:(?<ids>[^\\]]+)\\] (?<nameWithoutClanTag>.+) has unpossessed admin camera\\.'
+          '\\[Online IDs:(?<ids>[^\\]]+)\\] (?<nameWithoutClanTag>.+) has unpossessed admin camera\\.'
         )
       ),
       filter((obj): obj is NonNullable<typeof obj> => !!obj),

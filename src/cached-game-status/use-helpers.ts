@@ -89,6 +89,16 @@ export function useHelpers(p: Props) {
     return teamID === '1' ? p.serverInfo().teamOne : p.serverInfo().teamTwo;
   }
 
+  /**
+   * nameWithClanTag is obtained through RCON, almost always set.
+   * name is obtained through logs when the player connect, if the player
+   * is already connected when SquadTS starts, it won't be set.
+   * Default to "Unknown" if not found (this should actually never happen...)
+   */
+  function getPlayerDisplayName(player: Player) {
+    return player.nameWithClanTag ?? player.name ?? 'Unknown';
+  }
+
   return {
     isSL,
     isUnassigned,
@@ -96,6 +106,7 @@ export function useHelpers(p: Props) {
     getPlayerSquad,
     getPlayersInSquad,
     getTeamName,
+    getPlayerDisplayName,
     ...playerGet,
   };
 }

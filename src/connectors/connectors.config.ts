@@ -7,7 +7,10 @@ export const connectorsOptionsSchema = z
       z.object({
         enabled: z.literal(false),
         // we could skip the field here, but we specify it for the default config generation.
-        token: z.string().optional(),
+        token: z
+          .string()
+          .optional()
+          .describe('Discord token. Get at https://discord.com/developers/applications'),
       }),
       z.object({
         enabled: z.literal(true),

@@ -4,10 +4,10 @@ import switchCommand from './switch-command';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { SwitchCommandConfig } from './switch-command.config';
 import { SquadServer } from '../../src/squad-server';
-import { Player } from '../../src/cached-game-status/use-cached-game-status';
 import { AdminPerms } from '../../src/admin-list/permissions';
 import { ObservableValue } from '../../src/utils';
 import { createMockLogger } from '../../src/test-utils';
+import { Player } from '../../src/cached-game-status/use-cached-game-status';
 
 // todo: maybe make a helpers to mock the server ?
 // jest.mock('../../src/squad-server', () => {

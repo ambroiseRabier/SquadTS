@@ -1,5 +1,5 @@
-import { Player } from '../../../src/cached-game-status/use-cached-game-status';
 import { filter, map, tap, Observable } from 'rxjs';
+import { Player } from '../../../src/cached-game-status/use-cached-game-status';
 
 export function trackBalanceChange(stream: Observable<Player[]>) {
   let previousBalance = '0v0';

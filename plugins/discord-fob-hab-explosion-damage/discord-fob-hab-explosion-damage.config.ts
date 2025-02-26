@@ -9,7 +9,8 @@ const enabledSchema = pluginBaseOptionsSchema
     channelID: z.string().nonempty(),
   })
   .describe(
-    'Logs damage done to FOBs and HABs by explosions to help identify engineers blowing up friendly FOBs and HABs.'
+    'Logs damage done to FOBs and HABs by explosions to help identify engineers blowing up friendly FOBs and HABs.\n' +
+      'It is up to you to distinguish if the attacker is in the same team as the FOB/HAB he attacked.'
   );
 
 const schema = z.discriminatedUnion('enabled', [

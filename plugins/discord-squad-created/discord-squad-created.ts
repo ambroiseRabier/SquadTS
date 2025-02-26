@@ -14,40 +14,34 @@ const discordSquadCreated: SquadTSPlugin<DiscordSquadCreatedConfig> = async (
   const { channelID } = options;
   const channel = await useDiscordChannel(connectors.discord, channelID);
 
-  server.events.playersSquadChange.subscribe(async players => {
-    for (const player of players) {
-      const teamName = server.helpers.getTeamName(player.teamID);
-      const squadName = server.helpers.getPlayerSquad(player.eosID)?.name ?? 'Unknown';
-      if (options.useEmbed) {
-        const embed: APIEmbed = {
-          title: 'Squad Created',
-          color: 16761867,
-          fields: [
-            {
-              name: 'Player',
-              value: player.name ?? 'Unknown',
-              inline: true,
-            },
-            {
-              name: 'Team',
-              value: teamName,
-              inline: true,
-            },
-            {
-              name: 'Squad Number & Squad Name',
-              value: `${player.squadIndex} : ${squadName}`,
-            },
-          ],
-          // We do not have a squad change event in logs, so the squad change date is depending
-          // on how often rcon get players.
-          timestamp: new Date().toISOString(),
-        };
-        await channel.send({ embeds: [embed] });
-      } else {
-        await channel.send(
-          ` \`\`\`Player: ${player.name}\n created Squad ${player.squadIndex} : ${squadName}\n on ${teamName}\`\`\` `
-        );
-      }
+  server.chatEvents.squadCreated.subscribe(async data => {
+    if (options.useEmbed) {
+      const embed: APIEmbed = {
+        title: 'Squad Created',
+        color: 16761867,
+        fields: [
+          {
+            name: 'Player',
+            value: server.helpers.getPlayerDisplayName(data.creator),
+            inline: true,
+          },
+          {
+            name: 'Team',
+            value: data.teamName,
+            inline: true,
+          },
+          {
+            name: 'Squad Number & Squad Name',
+            value: `${data.squadIndex} : ${data.squadName}`,
+          },
+        ],
+        timestamp: new Date().toISOString(),
+      };
+      await channel.send({ embeds: [embed] });
+    } else {
+      await channel.send(
+        ` \`\`\`Player: ${server.helpers.getPlayerDisplayName(data.creator)}\n created Squad ${data.squadIndex} : ${data.squadName}\n on ${data.teamName}\`\`\` `
+      );
     }
   });
 };

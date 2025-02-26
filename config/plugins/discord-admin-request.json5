@@ -5,7 +5,7 @@
   loggerVerbosity: 'info',
   channelID: '',
   // The command that calls an admin.
-  command: 'admin',
+  command: '!admin',
   messages: {
     noMessage: 'Please specify what you would like help with when requesting an admin.',
     noInGameAdminNotification: 'There are no in-game admins, however, an admin has been notified via Discord. Please wait for us to get back to you.',

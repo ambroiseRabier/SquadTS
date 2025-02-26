@@ -1,7 +1,9 @@
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import { Player, PlayerSL, Squad, SquadTSPlugin } from '../../src/exports';
 import { exhaustMap, filter, interval, map } from 'rxjs';
 import { formatDuration, intervalToDuration } from 'date-fns';
+import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
+import { Player, Squad } from '../../src/cached-game-status/use-cached-game-status';
+import { PlayerSL } from '../../src/cached-game-status/use-helpers';
 
 interface TransgressorDetails {
   nameWithClanTag: string;

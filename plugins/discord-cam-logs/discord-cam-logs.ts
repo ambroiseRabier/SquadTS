@@ -2,6 +2,7 @@ import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { useDiscordChannel } from '../discord-chat/use-discord-channel';
 import { APIEmbed } from 'discord.js';
 import { DiscordAdminCamLogsEnabledOptions } from './discord-cam-logs.config';
+import { formatDuration } from 'date-fns';
 
 const discordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = async (
   server,
@@ -18,17 +19,17 @@ const discordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
       color: 16761867,
       fields: [
         {
-          name: "Admin's Name",
-          value: data.name ?? 'Unknown',
+          name: 'Name',
+          value: server.helpers.getPlayerDisplayName(data),
           inline: true,
         },
         {
-          name: "Admin's SteamID",
+          name: 'SteamID',
           value: `[${data.steamID}](https://steamcommunity.com/profiles/${data.steamID})`,
           inline: true,
         },
         {
-          name: "Admin's EosID",
+          name: 'EosID',
           value: data.eosID,
           inline: true,
         },
@@ -45,23 +46,23 @@ const discordAdminCamLogs: SquadTSPlugin<DiscordAdminCamLogsEnabledOptions> = as
       color: 16761867,
       fields: [
         {
-          name: "Admin's Name",
-          value: data.name ?? 'Unknown',
+          name: 'Name',
+          value: server.helpers.getPlayerDisplayName(data),
           inline: true,
         },
         {
-          name: "Admin's SteamID",
+          name: 'SteamID',
           value: `[${data.steamID}](https://steamcommunity.com/profiles/${data.steamID})`,
           inline: true,
         },
         {
-          name: "Admin's EosID",
+          name: 'EosID',
           value: data.eosID,
           inline: true,
         },
         {
-          name: 'Time in Admin Camera',
-          value: `${Math.round(data.duration / 60000)} mins`,
+          name: 'Duration',
+          value: `${formatDuration({ seconds: data.duration / 1000 })}`,
         },
       ],
       timestamp: data.date.toISOString(),

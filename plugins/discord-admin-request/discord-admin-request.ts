@@ -29,19 +29,21 @@ const discordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = as
     .subscribe(async data => {
       const admins = server.helpers.getOnlineAdminsWithPermissions([AdminPerms.CanSeeAdminChat]);
 
+      const callerName = server.helpers.getPlayerDisplayName(data.player);
+
       let adminNotified = 0;
       for (const admin of admins) {
-        await server.rcon.warn(admin.player.eosID, `[${data.player.name}] - ${data.message}`);
+        await server.rcon.warn(admin.player.eosID, `[${callerName}] - ${data.message}`);
         adminNotified++;
       }
 
       const embed: APIEmbed = {
-        title: `${data.player.name} has requested admin support!`,
+        title: `${callerName} has requested admin support!`,
         color: 16761867,
         fields: [
           {
-            name: 'Player',
-            value: data.player.name ?? 'Unknown',
+            name: 'Caller',
+            value: callerName,
             inline: true,
           },
           {
@@ -50,7 +52,7 @@ const discordAdminRequest: SquadTSPlugin<DiscordAdminRequestEnabledOptions> = as
             inline: true,
           },
           {
-            name: "Player's EosID",
+            name: 'EOSID',
             value: data.player.eosID,
             inline: true,
           },

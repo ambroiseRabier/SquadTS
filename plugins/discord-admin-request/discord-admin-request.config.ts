@@ -7,7 +7,11 @@ const enabledSchema = pluginBaseOptionsSchema
   .extend({
     enabled: z.literal(true),
     channelID: z.string().nonempty(),
-    command: z.string().default('admin').describe('The command that calls an admin.'),
+    command: z
+      .string()
+      .startsWith('!', 'Command must start with !')
+      .default('!admin')
+      .describe('The command that calls an admin.'),
     messages: z.object({
       noMessage: z
         .string()

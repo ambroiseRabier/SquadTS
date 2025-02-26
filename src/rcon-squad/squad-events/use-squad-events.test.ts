@@ -53,7 +53,7 @@ describe('rcon-squad-events', () => {
 
   it('unPossessedAdminCamera', async () => {
     chatPacketEvent.next(
-      '[Online Ids:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has unpossessed admin camera.'
+      '[Online IDs:EOS: 0002a10186d9424436bf50d22d3860ba steam: 71531192016942077] Yuca has unpossessed admin camera.'
     );
     expect(await firstValueFrom(events.chatEvents.unPossessedAdminCamera)).toEqual({
       duration: 0,

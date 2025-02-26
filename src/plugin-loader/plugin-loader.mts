@@ -285,7 +285,8 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
       plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
       // eslint-disable-next-line
     } catch (e: any) {
-      logger.error(`Failed to import plugin files: ${file}. Error: ${e.message}`, e);
+      logger.error(`${file}: Failed to import plugin files, error: ${e?.message}`, e);
+      console.error(e); // better format...
       continue;
     }
 

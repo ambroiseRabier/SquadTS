@@ -11,7 +11,7 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
   options
 ) => {
   server.events.teamKill.subscribe(async info => {
-    const attackerName = info.attacker.nameWithClanTag ?? info.attacker.name ?? 'Unknown';
+    const attackerName = server.helpers.getPlayerDisplayName(info.attacker);
     logger.info(`TK Warn: ${attackerName} (eosID: ${info.attacker.eosID})`);
 
     await Promise.all([

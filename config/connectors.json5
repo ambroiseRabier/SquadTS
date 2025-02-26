@@ -5,6 +5,7 @@
 {
   discord: {
     enabled: false,
+    // Discord token. Get at https://discord.com/developers/applications
     token: '',
   },
 }

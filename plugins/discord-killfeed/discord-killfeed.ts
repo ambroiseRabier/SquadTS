@@ -14,12 +14,12 @@ const discordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
 
   server.events.playerWounded.subscribe(async data => {
     const embed: APIEmbed = {
-      title: `KillFeed: ${data.attacker.name}`,
+      title: `KillFeed: ${server.helpers.getPlayerDisplayName(data.attacker)}`,
       color: 16761867,
       fields: [
         {
           name: "Attacker's Name",
-          value: data.attacker.name ?? 'Unknown',
+          value: server.helpers.getPlayerDisplayName(data.attacker),
           inline: true,
         },
         {
@@ -38,19 +38,17 @@ const discordKillfeed: SquadTSPlugin<DiscordKillfeedOptions> = async (
         },
         {
           name: "Victim's Name",
-          value: data.victim?.name ?? 'Unknown',
+          value: server.helpers.getPlayerDisplayName(data.victim),
           inline: true,
         },
         {
           name: "Victim's SteamID",
-          value: data.victim
-            ? `[${data.victim.steamID}](https://steamcommunity.com/profiles/${data.victim.steamID})`
-            : 'Unknown',
+          value: `[${data.victim.steamID}](https://steamcommunity.com/profiles/${data.victim.steamID})`,
           inline: true,
         },
         {
           name: "Victim's EosID",
-          value: data.victim ? data.victim.eosID : 'Unknown',
+          value: data.victim.eosID,
           inline: true,
         },
         {

@@ -75,8 +75,8 @@ const knifeBroadCast: SquadTSPlugin<KnifeBroadCastOptions> = async (
 
       await server.rcon.broadcast(
         message
-          .replace('%attacker%', data.attacker.nameWithClanTag ?? data.attacker.name ?? 'Unknown')
-          .replace('%victim%', data.victim.nameWithClanTag ?? data.victim.name ?? 'Unknown')
+          .replace('%attacker%', server.helpers.getPlayerDisplayName(data.attacker))
+          .replace('%victim%', server.helpers.getPlayerDisplayName(data.victim))
       );
     });
 };
