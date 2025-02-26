@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it, MockedFunction, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
 import {
   setRconMock,
   TestServer,
@@ -6,7 +6,6 @@ import {
 } from '../../src/plugin-test-helper/plugin-test-helper';
 import { Rcon } from '../../src/rcon/rcon';
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
-import { wait } from '../../src/utils';
 
 // test intended to run in order with one time executed initial startup
 describe('Max player in squad', () => {
@@ -15,6 +14,16 @@ describe('Max player in squad', () => {
 
   afterAll(async () => {
     await testBed.server.unwatch();
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it(
@@ -71,18 +80,18 @@ Team ID: 2 (Manticore Security Task Force)
       //await testBed.triggerRCONUpdate();
 
       // offset 50%, only once, or too much offset will skip... and we end up with two warns.
-      await wait(pluginConfig.warnRate * 1000 * 1.5);
+      await vi.advanceTimersByTimeAsync(pluginConfig.warnRate * 1000 * 1.5);
       // start at 4, since 1,2,3 is used by ListPlayers and more
       expect(rconExec).toHaveBeenNthCalledWith(
         4,
         'AdminWarn "0002a10186d9414496bf20d22d3860ba" Warning (1/2) - Taille de la squad FiveManMBT trop grande, le max est 4.'
       );
-      await wait(pluginConfig.warnRate * 1000);
+      await vi.advanceTimersByTimeAsync(pluginConfig.warnRate * 1000);
       expect(rconExec).toHaveBeenNthCalledWith(
         5,
         'AdminWarn "0002a10186d9414496bf20d22d3860ba" Warning (2/2) - Taille de la squad FiveManMBT trop grande, le max est 4.'
       );
-      await wait(pluginConfig.warnRate * 1000);
+      await vi.advanceTimersByTimeAsync(pluginConfig.warnRate * 1000);
       expect(rconExec).toHaveBeenNthCalledWith(
         6,
         'AdminWarn "0002a10186d9414496bf20d22d3860ba" The squad FiveManMBT has exceeded the allowed warnings and will now be disbanded.'
