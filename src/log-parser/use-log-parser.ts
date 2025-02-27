@@ -150,6 +150,8 @@ export function useLogParser(
       ),
       newGame: events.pipe(
         filter(obj => isEvent(obj, 'newGame')),
+        // Ignore "transition map" when game end.
+        filter(([eventName, lineObj, metadata]) => lineObj.layerClassname !== 'TransitionMap'),
         map(([eventName, lineObj, metadata]) => ({
           ...lineObj,
           ...metadata,

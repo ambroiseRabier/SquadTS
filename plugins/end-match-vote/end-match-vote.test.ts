@@ -108,7 +108,7 @@ ID: 2 | Online IDs: EOS: player3 steam: 76561198016942033 | Name: Player3 | Team
 
       // Simulate map change (new game event)
       testBed.emitLogs(
-        '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Game/Maps/TransitionMap.TransitionMap up for play (max tick rate 40) at 2025.01.27-13.50.48'
+        '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Game/Maps/Sumari/Gameplay_Layers/Sumari_Seed_v1.Sumari_Seed_v1 up for play (max tick rate 50) at 2025.02.27-14.50.08'
       );
 
       // Should allow a new vote after the map change

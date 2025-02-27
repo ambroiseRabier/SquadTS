@@ -25,14 +25,10 @@ Me semble que je l'ai zappé, pour `!status`
 
 ## Plugin idea
 
-- AdminVote (surtout pour endmatch (skipmap), ou demote commander), voter la carte plus besoin,
-  possible inspi: https://github.com/fantinodavide/squad-js-map-vote
-  https://github.com/ar1ocker/SquadJS-Commander-Vote
 - Seed reward auto whitelist
 - !whitelist <player> <reason> <duration> (ex: les FUR)
 - !canGiveWhitelist <player> <reason> <duration> (ex: les FUR)
 - un méga-plugin pour équilibré les parties sur un elo rating ?
-- kick unassigned: avec player threshold et enabled in seed= false.
 - discord RCON (peut etre utile)
 - altchecker
 - roulette russe (kick du serv ?) (avec deathroll?) ("I agree that losing a deathroll will get me kicked from the server")
@@ -42,6 +38,12 @@ Me semble que je l'ai zappé, pour `!status`
   J'ai que ce log :(, c pas assez, je peux pas limiter l'arme ni même être certain que il est mort (ou alors je prends sur 1sec ?) (peut pas limiter l'arme, trop dommage)
   : `No match on line: [2025.02.22-16.20.18:430][512]LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.`
 - Squad claim (indique qui a la prio, si ce n'est option de kick le joueur ds un truc qui n'a pas la prio... ?)
+
+## Plugin pas à refaire
+
+Map vote existe dans le jeu, commander vote aussi.
+https://github.com/fantinodavide/squad-js-map-vote
+https://github.com/ar1ocker/SquadJS-Commander-Vote
 
 ## Refine plus d'events et chatEvents
 

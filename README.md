@@ -16,8 +16,8 @@
 [![GitHub issues](https://img.shields.io/github/stars/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/stargazers)
 
 <!--
-This one is SquadJS discord, would be nice to use it, as this is where SquadTS will find most users. In meantime, there is
-a discord I created.
+This one is SquadJS discord, would be nice to use it, as this is where SquadTS will find most users.
+In the meantime, there is a discord I created.
 [![Discord](https://img.shields.io/discord/266210223406972928.svg?style=flat-square&logo=discord)](https://discord.gg/9F2Ng5C)
 -->
 
@@ -65,7 +65,8 @@ Go into [./config/plugins](./config/plugins) folder to discover them.
 3. Open the unzipped folder in your terminal (e.g., cmd.exe, git bash).
 4. Install node dependencies with `npm install`.
 5. Customize the config in `.json5` files inside `config` folder`.
-6. Start SquadTS by running `npm run start`.
+6. BY DEFAULT, EVERY PLUGIN IS DISABLED, enable the one you need in `config/plugins` folder.
+7. Start SquadTS by running `npm run start`.
 
 ## Config folder
 

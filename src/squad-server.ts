@@ -85,7 +85,15 @@ export function useSquadServer({
     /**
      * Parsed response of ShowServerInfo RCON command.
      */
-    info: cachedGameStatus.serverInfo$.getValue(),
+    get info() {
+      // Note important to make a getter, or it will return stale data!
+      return cachedGameStatus.serverInfo$.getValue();
+    },
+
+    /**
+     * Observable, you may subscribe to it to watch for change in server.info.
+     */
+    info$: cachedGameStatus.serverInfo$,
 
     /**
      * List of players at time of the call.
@@ -140,7 +148,11 @@ export function useSquadServer({
     /**
      * List of eosID currently in admin cam
      */
-    adminsInAdminCam: rconSquad.adminsInAdminCam,
+    get adminsInAdminCam() {
+      // A getter is probably unnecessary here, I believe the referene does not change.
+      // But it is safer :)
+      return rconSquad.adminsInAdminCam;
+    },
 
     /**
      * Collection of helpers, re-usable logic.

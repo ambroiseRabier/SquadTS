@@ -29,9 +29,14 @@ export function intervalPlayersSquads(
 
 export function intervalServerInfo(
   updateInterval: CachedGameStatusOptions['updateInterval'],
-  rconSquad: RconSquad
+  rconSquad: RconSquad,
+  manualRCONUpdateForTest?: Subject<void>
 ) {
-  return interval(updateInterval.serverInfo * 1000).pipe(exhaustMap(rconSquad.showServerInfo));
+  if (manualRCONUpdateForTest) {
+    return manualRCONUpdateForTest.pipe(exhaustMap(rconSquad.showServerInfo));
+  } else {
+    return interval(updateInterval.serverInfo * 1000).pipe(exhaustMap(rconSquad.showServerInfo));
+  }
 }
 
 export async function obtainRCONPlayersAndSquads(rconSquad: RconSquad) {

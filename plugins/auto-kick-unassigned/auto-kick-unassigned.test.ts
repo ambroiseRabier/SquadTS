@@ -86,19 +86,20 @@ Team ID: 1 (United States Army)
 ID: 1 | Name: Squad 1 | Size: 1 | Locked: False | Creator Name: SquadPlayer | Creator Online IDs: EOS: squad456 steam: 76561198000000002
 Team ID: 2 (Manticore Security Task Force)`,
       });
+      rconExec.mockClear();
       await testBed.triggerRCONUpdate();
 
       await vi.advanceTimersByTimeAsync(pluginConfig.warnMessageInterval * 1000 + 10);
       // No second warning since he joined a squad.
       expect(rconExec).not.toHaveBeenNthCalledWith(
-        7,
+        4,
         expect.stringMatching(
           /AdminWarn "unassigned123" Join a squad! Time remaining: \d+ seconds?/
         )
       );
       // First warning for squad456
       expect(rconExec).toHaveBeenNthCalledWith(
-        7,
+        4,
         expect.stringMatching(/AdminWarn "squad456" Join a squad! Time remaining: \d+ seconds?/)
       );
 
@@ -114,6 +115,7 @@ Team ID: 1 (United States Army)
 ID: 1 | Name: Squad 1 | Size: 1 | Locked: False | Creator Name: SquadPlayer | Creator Online IDs: EOS: squad456 steam: 76561198000000002
 Team ID: 2 (Manticore Security Task Force)`,
       });
+      rconExec.mockClear();
       await testBed.triggerRCONUpdate();
 
       // Wait for kick timeout and verify:
@@ -131,6 +133,7 @@ Team ID: 2 (Manticore Security Task Force)`,
 ID: 2 | Online IDs: EOS: new789 steam: 76561198000000004 | Name: NewPlayer | Team ID: 1 | Squad ID: N/A | Is Leader: False | Role: USA_Rifleman_01
 ----- Recently Disconnected Players [Max of 15] -----`,
       });
+      rconExec.mockClear();
       await testBed.triggerRCONUpdate();
       testBed.emitNewPlayerLogs({
         controller: 'BP_PlayerController_C_2147254333',
@@ -148,17 +151,17 @@ ID: 2 | Online IDs: EOS: new789 steam: 76561198000000004 | Name: NewPlayer | Tea
       // Wait for warning and kick of new player
       await vi.advanceTimersByTimeAsync(pluginConfig.warnMessageInterval * 1000 + 10);
       expect(rconExec).toHaveBeenNthCalledWith(
-        12,
+        4,
         expect.stringMatching(/AdminWarn "new789" Join a squad! Time remaining: \d+ seconds?/)
       );
       await vi.advanceTimersByTimeAsync(pluginConfig.unassignedTimeout * 1000 + 10);
       // Do not warn if negative timing (he will be kicked in the micro-second after...)
       expect(rconExec).not.toHaveBeenNthCalledWith(
-        13,
+        5,
         expect.stringMatching(/AdminWarn "new789" Join a squad! Time remaining: -?\d+ seconds?/)
       );
       expect(rconExec).toHaveBeenNthCalledWith(
-        13,
+        5,
         expect.stringMatching(/AdminKick "new789" Kicked for being unassigned for [\d.]+ seconds?/)
       );
     },

@@ -152,9 +152,11 @@ export function useCachedGameStatus({
           }
         ),
 
-        intervalServerInfo(config.updateInterval, rconSquad).subscribe(serverInfo => {
-          serverInfo$.next(serverInfo);
-        }),
+        intervalServerInfo(config.updateInterval, rconSquad, manualRCONUpdateForTest).subscribe(
+          serverInfo => {
+            serverInfo$.next(serverInfo);
+          }
+        ),
 
         logParser.events.newGame.pipe(exhaustMap(rconSquad.showServerInfo)).subscribe(info => {
           serverInfo$.next(info);

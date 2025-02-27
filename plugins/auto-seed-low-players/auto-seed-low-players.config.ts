@@ -18,7 +18,7 @@ const schema = pluginBaseOptionsSchema
       bellowThreshold: z
         .string()
         .default(
-          'Player count is bellow %playerThreshold% players, map will change in %duration% minutes.'
+          'WARNING: Player count is bellow %playerThreshold% players, map will change in %duration% minutes.'
         )
         .describe(
           'Message to broadcast when player count goes bellow the threshold.\n' +
@@ -29,7 +29,7 @@ const schema = pluginBaseOptionsSchema
       beforeChangeMap: z
         .string()
         .default(
-          'The map will change to %nextLayer% because the player count is bellow %threshold% players in 10 seconds.'
+          'WARNING: The map will change to %nextLayer% in 10 seconds ! (player count is bellow %threshold%).'
         )
         .describe(
           'Will be called 10seconds before the map change. Each connected player will also be warned in addition of the broadcast.'
@@ -37,7 +37,20 @@ const schema = pluginBaseOptionsSchema
     }),
     seedLayers: z
       .array(z.enum(GithubWiki.mapAvailables))
-      .default(['Sumari_Seed_v1', 'Sumari_Seed_v2', 'Sumari_Seed_v3', 'Sumari_Seed_v4'])
+      .default([
+        'Sumari_Seed_v1',
+        'Mutaha_Seed_v1',
+        'Fallujah_Seed_v1',
+        'BlackCoast_Seed_v1',
+        'Tallil_Seed_v1',
+        'Manicouagan_Seed_v1',
+        'Logar_Seed_v1',
+        'GooseBay_Seed_v1',
+        'AlBasrah_Seed_v1',
+        'Harju_Seed_v1',
+        'PacificProvingGrounds_Seed_v1',
+        'Sanxian_Seed_v1',
+      ])
       .describe(
         'List of seed layers to choose from (randomly picked from the list). Available layers are:\n' +
           GithubWiki.mapAvailables.filter(l => l.toLowerCase().includes('seed')).join(', ')

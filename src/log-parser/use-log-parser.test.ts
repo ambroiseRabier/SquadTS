@@ -154,15 +154,24 @@ describe('Log Parser events', () => {
     const mockEvent = vi.fn();
     logParser.events.newGame.subscribe(mockEvent);
     mockedLogReader.line$.next(
-      '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Game/Maps/TransitionMap.TransitionMap up for play (max tick rate 40) at 2025.01.27-13.50.48'
+      '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Game/Maps/Sumari/Gameplay_Layers/Sumari_Seed_v1.Sumari_Seed_v1 up for play (max tick rate 50) at 2025.02.27-14.50.08'
     );
     expect(mockEvent.mock.calls[0][0]).toEqual({
       chainID: '280',
       date: expect.any(Date),
       dlc: 'Game',
-      layerClassname: 'TransitionMap',
-      mapClassname: 'Maps',
+      layerClassname: 'Sumari_Seed_v1',
+      mapClassname: 'Sumari',
     });
+
+    mockEvent.mockClear();
+
+    // Ignore transition map, that happen at game end.
+    mockedLogReader.line$.next(
+      '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Game/Maps/TransitionMap.TransitionMap up for play (max tick rate 50) at 2025.02.27-14.36.57'
+    );
+
+    expect(mockEvent).not.toHaveBeenCalled();
   });
 
   it('playerAddedToTeam', () => {

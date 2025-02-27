@@ -1,0 +1,21 @@
+/**
+ * Execute a RCON command from your discord chat.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  channelID: '',
+  // Prepend admin names when making announcements.
+  prependAdminNameInBroadcast: false,
+  // Do not confuse with Admins.cfg permissions, this do not used Admins.cfg permissions. 
+  // Dictionary of role to list of the commands they are allowed to use.
+  // If dictionary is empty (`{}`) all commands are allowed !
+  // Example `{ 
+  //   '123456789123456789': ['AdminBroadcast', 'AdminForceTeamChange', 'AdminDemoteCommander'], 
+  //   '111111111111111111': ['AdminBroadcast'], 
+  // }` 
+  // Available commands: ListCommands, ShowCommandInfo, ListPermittedCommands, ShowServerInfo, AdminKillServer, AdminSetMaxNumPlayers, AdminSetNumReservedSlots, AdminSetServerPassword, AdminSlomo, AdminSetPublicQueueLimit, AdminSetSeedTargetPlayerCount, ListPlayers, ListSquads, AdminListDisconnectedPlayers, AdminTeleportToPlayer, AdminTeleportToPlayerById, AdminKick, AdminKickById, AdminBan, AdminBanById, AdminWarn, AdminWarnById, AdminForceTeamChange, AdminForceTeamChangeById, AdminRemovePlayerFromSquadById, AdminRemovePlayerFromSquad, AdminDemoteCommander, AdminDemoteCommanderById, AdminDisbandSquad, AdminRenameSquad, SLInviteMember, ListLevels, ListLayers, AdminChangeLevel, AdminChangeLayer, AdminSetNextLevel, AdminSetNextLayer, AdminClearNextLayer, AdminReloadServerConfig, ShowCurrentMap, ShowNextMap, AdminEnableVoting, AdminBroadcast, ChatToAdmin, AdminVote, AdminRestartMatch, AdminEndMatch, AdminPauseMatch, AdminUnpauseMatch, AdminSetFogOfWar, AdminForceAllVehicleAvailability, AdminForceAllDeployableAvailability, AdminForceAllRoleAvailability, AdminForceAllActionAvailability, AdminNoTeamChangeTimer, AdminNoRespawnTimer, AdminDisableVehicleClaiming, AdminDisableVehicleTeamRequirement, AdminDisableVehicleKitRequirement, AdminAlwaysValidPlacement, AdminForceNetUpdateOnClientSaturation, AdminAddCameraman, AdminCreateVehicle, AdminCreateDeployable, AdminGiveEquipment, AdminSpawnActor, AdminDemoPlay, AdminDemoRec, AdminDemoStop, AdminProfileServer, AdminProfileServerCSV, DebugVehicleList, DebugVehicleSetComponentHealthByName, DebugPrintCustomOptions, AdminSetCustomOption, AdminRemoveCustomOption, DebugAddBuildSupply, DebugAddAmmoSupply, DebugRearm, DebugRearmPlayer, DebugPrintPlayerStats, DebugFactionVehicleCount, DebugPrintFactionsList, MoveToNextFactionVariant, SQ.Skins.ListAllSkins, SQ.Skins.ListReplicatedEquippedSkins, SQ.Skins.ListAllEquippedSkins, SQ.Skins.ClearEquippedSkins, SQ.Skins.ToggleSkin, SQ.Skins.ForceAllowAll, RecordingStart, RecordingStart_Named, RecordingStop, DebugLoadingScreen, RepGraphSetDSFTargetKBytesSec
+  roleToCommands: {},
+}

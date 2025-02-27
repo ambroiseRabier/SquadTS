@@ -20,7 +20,7 @@ import { obtainEnteringPlayer } from './cached-game-status/obtain-entering-playe
 import { obtainRCONPlayersAndSquads } from './cached-game-status/rcon-updates';
 import { ServerConfigFile, useSquadConfig } from './squad-config/use-squad-config';
 import { useAdminList } from './admin-list/use-admin-list';
-import { joinSafeSubPath } from './utils';
+import { joinSafeSubPath, promiseWithTimeout } from './utils';
 
 interface Props {
   /**
@@ -210,8 +210,18 @@ export async function main(props?: Props) {
   //       it appears messy if mixed up with pino logger that is slightly behind.
   const cleanupFCT = async () => {
     try {
-      await pluginLoader.unloadAll();
-      await server.unwatch();
+      // Cleanup shouldn't be that long, if it is, it is probably a problem.
+      // If you came here from a test, make sure you disabled fake timers before calling cleanup!
+      await promiseWithTimeout(
+        pluginLoader.unloadAll(),
+        3000,
+        'Plugin unload timeout, took more than 3 seconds.'
+      );
+      await promiseWithTimeout(
+        server.unwatch(),
+        3000,
+        'Server unwatch timeout, took more than 3 seconds.'
+      );
 
       if (discordConnector) {
         logger.info('Removing discord connector.');
@@ -261,5 +271,9 @@ export async function main(props?: Props) {
 
   logger.info('SquadTS fully started.');
 
-  return server;
+  return {
+    ...server,
+    // Will also handle plugin's cleanup, that is most important for e2e tests!
+    unwatch: cleanupFCT.bind(cleanupFCT),
+  };
 }

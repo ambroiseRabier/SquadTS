@@ -3,10 +3,6 @@
   // Available levels: trace, debug, info, warn, error, fatal.
   // To disable a logger, set it to silent.
   loggerVerbosity: 'info',
-  channelID: '',
-  updateFrequency: 60,
   // The command that calls the status.
   command: '!status',
-  // Whether to update the bot's status with server information.
-  setBotStatus: true,
 }

@@ -415,9 +415,21 @@ export class Rcon {
             const concernedLog = body in this.logCache;
             if (concernedLog) {
               const previousResponse = this.logCache[body as keyof typeof this.logCache];
-              const changeDetected = this.options.debugCondenseLogsIgnoreSinceDisconnect
-                ? hasChangesIgnoringSinceDisconnect(previousResponse, response as string)
-                : previousResponse !== (response as string);
+              let changeDetected = false;
+
+              if (body === RCONCommand.ListPlayers) {
+                if (this.options.debugCondenseLogsIgnoreSinceDisconnect) {
+                  changeDetected = hasChangesIgnoringSinceDisconnect(
+                    previousResponse,
+                    response as string
+                  );
+                } else {
+                  changeDetected = previousResponse !== (response as string);
+                }
+              } else {
+                changeDetected = previousResponse !== (response as string);
+              }
+
               if (changeDetected) {
                 // Update cache
                 this.logCache[body as keyof typeof this.logCache] = response as string;

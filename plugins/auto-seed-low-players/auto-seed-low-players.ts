@@ -1,6 +1,6 @@
 import { SquadTSPlugin } from '../../src/plugin-loader/plugin.interface';
 import { AutoSeedLowPlayers } from './auto-seed-low-players.config';
-import { filter } from 'rxjs';
+import { concatMap, filter, firstValueFrom } from 'rxjs';
 import { formatDuration } from 'date-fns';
 import { Player } from '../../src/cached-game-status/use-cached-game-status';
 
@@ -36,7 +36,8 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
   // Function to change map
   const changeMap = async () => {
     if (isChangingMap) {
-      return;
+      // should not happen, since we ignore any events when we are changing map.
+      throw new Error('Change map called while already changing map.');
     }
     isChangingMap = true;
 
@@ -52,6 +53,12 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
 
       // Change the map
       await server.rcon.execute(`AdminChangeLayer ${nextLayer}`);
+
+      // Wait for new game events
+      await firstValueFrom(server.events.newGame);
+
+      // Wait for server info to be updated also (or server.info.isSeed will return a wrong value)
+      await firstValueFrom(server.info$);
     } catch (error) {
       logger.error('Failed to change map:', error);
     } finally {
@@ -60,19 +67,27 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
   };
 
   // Function to handle low player count
-  const handleLowPlayerCount = () => {
-    if (lowPlayerTimeout) return; // Already waiting
-
+  const handleLowPlayerCount = async () => {
     lowPlayerTimeout = setTimeout(
       async () => {
-        // Double check player count before changing map
-        if (server.players.length <= options.playerThreshold) {
+        // After a few minutes...
+        // - Double-check the player count.
+        // - Check if the map is not already in Seed. A admin could have changed the map manually before the timeout.
+        if (server.players.length <= options.playerThreshold && !server.info.isSeed) {
           await changeMap();
         }
         lowPlayerTimeout = null;
       },
+      // Convert minutes to milliseconds
       options.duration * 60 * 1000
-    ); // Convert minutes to milliseconds
+    );
+
+    // Broadcast after settings timeout, to avoid possible double broadcast.
+    // Broadcast message when going below threshold (only once when lowPlayerTimeout starts, and not on every player count change)
+    const message = options.broadcastMessages.bellowThreshold
+      .replace('%playerThreshold%', options.playerThreshold.toString())
+      .replace('%duration%', formatDuration({ minutes: options.duration }));
+    await server.rcon.broadcast(message);
   };
 
   // Function to cancel low player count timeout
@@ -84,24 +99,44 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
   };
 
   const onPlayerCountChange = async (players: Player[]) => {
-    if (players.length <= options.playerThreshold && !server.info.isSeed) {
-      // Broadcast message when going below threshold
-      const message = options.broadcastMessages.bellowThreshold
-        .replace('%playerThreshold%', options.playerThreshold.toString())
-        .replace('%duration%', formatDuration({ minutes: options.duration }));
-      await server.rcon.broadcast(message);
-
-      handleLowPlayerCount();
+    if (players.length <= options.playerThreshold) {
+      // If the countdown to changeMap has not already been started, start it.
+      if (!lowPlayerTimeout) {
+        await handleLowPlayerCount();
+      }
     } else {
       cancelLowPlayerCount();
     }
   };
 
-  // Subscribe to player count changes
-  server.players$.pipe(filter(() => !isChangingMap)).subscribe(onPlayerCountChange);
-
   // Once at startup
-  await onPlayerCountChange(server.players);
+  // Note: isChangingMap cannot be true at startup.
+  if (!server.info.isSeed) {
+    await onPlayerCountChange(server.players);
+  }
+
+  // Subscribe to player count changes
+  let totalPlayers = server.players.length;
+  server.players$
+    .pipe(
+      // Ignore if we are already in seed
+      filter(() => !server.info.isSeed),
+
+      // ignore all player count change events if we are changing map to seed.
+      filter(() => !isChangingMap),
+
+      // Check if player count has changed (server.players$ emit for any change in players)
+      filter(players => {
+        const changed = players.length !== totalPlayers;
+        totalPlayers = players.length;
+        return changed;
+      }),
+
+      // Instead of putting onPlayerCountChange in subscribe, where it may run concurrently!
+      // We place it in concatMap, guaranteing sequential execution.
+      concatMap(onPlayerCountChange)
+    )
+    .subscribe();
 
   // Cleanup function
   return async () => {
