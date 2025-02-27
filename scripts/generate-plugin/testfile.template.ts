@@ -100,7 +100,7 @@ Team ID: 2 (Manticore Security Task Force)\`,
       // 🔍 If you wonder how to get data for RCON responses and logs, check the README :)
     },
     {
-      timeout: 5000, // default timeout is 5000 ms, you may increase it, but you should try to avoid it.
+      timeout: 10000 // Tests with test server are a bit slow, default 5 sec timeout is not enough.
     }
   );
 });`;

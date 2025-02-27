@@ -135,3 +135,5 @@ et Pull request sur SquadJS
 ## Revoir les connectors, discord, voir awn et autres...
 
 ## Cleanup des plugins à faire.
+
+## Player suicide event.

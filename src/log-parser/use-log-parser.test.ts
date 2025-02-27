@@ -172,6 +172,13 @@ describe('Log Parser events', () => {
     );
 
     expect(mockEvent).not.toHaveBeenCalled();
+
+    mockEvent.mockClear();
+    // `-` and number in mod. Which are valid characters in the path.
+    mockedLogReader.line$.next(
+      '[2025.01.27-21.50.48:212][280]LogWorld: Bringing World /Titan-LeagueMod_44th/Maps/Sumari/Gameplay_Layers/TL_sumariv1_S2.TL_sumariv1_S2 up for play (max tick rate 64) at 2025.02.22-23.42.54'
+    );
+    expect(mockEvent).toHaveBeenCalled();
   });
 
   it('playerAddedToTeam', () => {
@@ -201,6 +208,20 @@ describe('Log Parser events', () => {
       ip: '92.106.127.65',
       controller: 'BP_PlayerController_C_2130426410',
       steamID: '76561129553531043',
+    });
+
+    // mod
+    mockEvent.mockClear();
+    mockedLogReader.line$.next(
+      '[2025.02.09-17.48.54:738][ 87]LogSquad: PostLogin: NewPlayer: BP_PlayerController_SMT_C /TitanLeagueMod_44th/Maps/Narva/Gameplay_Layers/TL_narvav1.TL_narvav1:PersistentLevel.BP_PlayerController_SMT_C_0000000000 (IP: 0.0.0.0 | Online IDs: EOS: 00000000000000000000000000000000 steam: 00000000000000000)'
+    );
+    expect(mockEvent.mock.calls[0][0]).toEqual({
+      chainID: '87',
+      controller: 'BP_PlayerController_SMT_C_0000000000',
+      date: expect.any(Date),
+      eosID: '00000000000000000000000000000000',
+      ip: '0.0.0.0',
+      steamID: '00000000000000000',
     });
   });
 
@@ -279,6 +300,19 @@ describe('Log Parser events', () => {
       eosID: '0002201300c327a19a4c6ae06dc955a3',
       ip: '86.208.113.0',
       controller: 'BP_PlayerController_C_2130438728',
+    });
+
+    // mod
+    mockEvent.mockClear();
+    mockedLogReader.line$.next(
+      '[2025.02.09-19.51.07:026][108]LogNet: UChannel::Close: Sending CloseBunch. ChIndex == 0. Name: [UChannel] ChIndex: 0, Closing: 0 [UNetConnection] RemoteAddr: 0.0.0.0:0, Name: EOSIpNetConnection_0000000000, Driver: GameNetDriver EOSNetDriver_0000000000, IsServer: YES, PC: BP_PlayerController_SMT_C_0000000000, Owner: BP_PlayerController_SMT_C_0000000000, UniqueId: RedpointEOS:00000000000000000000000000000000'
+    );
+    expect(mockEvent.mock.calls[0][0]).toEqual({
+      chainID: '108',
+      controller: 'BP_PlayerController_SMT_C_0000000000',
+      date: expect.any(Date),
+      eosID: '00000000000000000000000000000000',
+      ip: '0.0.0.0',
     });
   });
 

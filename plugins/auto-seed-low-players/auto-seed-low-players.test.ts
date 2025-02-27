@@ -22,16 +22,8 @@ describe.sequential('AutoSeedLowPlayers', () => {
   afterEach(async () => {
     // Important to use real timer for cleanup to properly happen (may be a code smell...)
     vi.useRealTimers();
-    console.log('start');
-    performance.mark('start');
     await testBed.server.unwatch();
-    console.log('end');
-    performance.mark('end');
     rconExec.mockClear();
-    performance.measure('operation', 'start', 'end');
-    const measurements = performance.getEntriesByName('operation');
-    console.log('measurements[0].duration'); // time in milliseconds
-    console.log(measurements[0].duration); // time in milliseconds
 
     // Hack to make sure testBed is recreated on the next test.
     testBed = undefined as unknown as TestServer;

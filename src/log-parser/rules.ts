@@ -19,7 +19,7 @@ export const logParserRules = [
   // 6th group seems to be a date, but a different timezone perhaps ?
   [
     'newGame',
-    '^LogWorld: Bringing World \\/(?<dlc>[A-z]+)\\/(?:Maps\\/)?(?<mapClassname>[A-z0-9-]+)\\/(?:.+\\/)?(?<layerClassname>[A-z0-9-]+)(?:\\.[A-z0-9-]+)',
+    '^LogWorld: Bringing World \\/(?<dlc>[A-z0-9-]+)\\/(?:Maps\\/)?(?<mapClassname>[A-z0-9-]+)\\/(?:.+\\/)?(?<layerClassname>[A-z0-9-]+)(?:\\.[A-z0-9-]+)',
   ],
 
   // Called before playerConnected and playerJoinSucceeded
@@ -48,7 +48,7 @@ export const logParserRules = [
   // Called between loginRequest and playerJoinSucceeded
   [
     'playerConnected',
-    '^LogSquad: PostLogin: NewPlayer: BP_PlayerController_C .+PersistentLevel\\.(?<controller>[^\\s]+) \\(IP: (?<ip>[\\d.]+) \\| Online IDs:(?<ids>[^)|]+)\\)',
+    '^LogSquad: PostLogin: NewPlayer:.+PersistentLevel\\.(?<controller>[^\\s]+) \\(IP: (?<ip>[\\d.]+) \\| Online IDs:(?<ids>[^)|]+)\\)',
   ],
 
   // todo: Player Controller ID usage compared to playerDied is confusing
@@ -65,7 +65,7 @@ export const logParserRules = [
 
   [
     'playerDisconnected',
-    '^LogNet: UChannel::Close: Sending CloseBunch\\. ChIndex == [0-9]+\\. Name: \\[UChannel\\] ChIndex: [0-9]+, Closing: [0-9]+ \\[UNetConnection\\] RemoteAddr: (?<ip>[\\d.]+):[\\d]+, Name: EOSIpNetConnection_[0-9]+, Driver: GameNetDriver EOSNetDriver_[0-9]+, IsServer: YES, PC: (?<controller>[^ ]+PlayerController_C_[0-9]+), Owner: [^ ]+PlayerController_C_[0-9]+, UniqueId: RedpointEOS:(?<eosID>[\\d\\w]+)',
+    '^LogNet: UChannel::Close: Sending CloseBunch\\. ChIndex == [0-9]+\\. Name: \\[UChannel\\] ChIndex: [0-9]+, Closing: [0-9]+ \\[UNetConnection\\] RemoteAddr: (?<ip>[\\d.]+):[\\d]+, Name: EOSIpNetConnection_[0-9]+, Driver: GameNetDriver EOSNetDriver_[0-9]+, IsServer: YES, PC: (?<controller>.+?),.+?, UniqueId: RedpointEOS:(?<eosID>[\\d\\w]+)',
   ],
 
   // Called at start of each game it seems, and right before playerAddedToTeam
