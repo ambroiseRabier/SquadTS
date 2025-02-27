@@ -10,6 +10,7 @@ const enabledSchema = pluginBaseOptionsSchema
     command: z
       .string()
       .startsWith('!', 'Command must start with !')
+      .toLowerCase()
       .default('!admin')
       .describe('The command that calls an admin.'),
     messages: z.object({

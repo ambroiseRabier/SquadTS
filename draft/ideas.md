@@ -31,7 +31,6 @@ Me semble que je l'ai zappé, pour `!status`
 - Seed reward auto whitelist
 - !whitelist <player> <reason> <duration> (ex: les FUR)
 - !canGiveWhitelist <player> <reason> <duration> (ex: les FUR)
-- auto seed low player.
 - un méga-plugin pour équilibré les parties sur un elo rating ?
 - kick unassigned: avec player threshold et enabled in seed= false.
 - discord RCON (peut etre utile)

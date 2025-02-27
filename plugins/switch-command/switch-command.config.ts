@@ -8,6 +8,7 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
   command: z
     .string()
     .startsWith('!', 'Command must start with !')
+    .toLowerCase()
     .default('!switch')
     .describe('Call to switch to the opposite team.'),
   watchDuration: z

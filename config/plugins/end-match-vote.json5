@@ -1,0 +1,43 @@
+/**
+ * End the match earlier when nobody like the map or when a team want to surrender.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // The commands to trigger the end of the match, first one will be used in broadcast.
+  nextCommand: [
+    '!next',
+    '!nextmap',
+    '!end',
+    '!forfeit',
+    '!endmatch',
+    '!surrender',
+    '!giveup',
+    '!skip',
+    '!skipmap',
+  ],
+  // The command to continue the match.
+  continueCommand: '!continue',
+  broadcastMessages: {
+    // The message to broadcast when the vote starts. Available variables: %nextCommand%, %continueCommand%
+    voteStarted: 'A vote has been started. Type "%nextCommand%" to end the match immediately or %continueCommand% to continue the match.',
+    // Message to broadcast at fixed intervals while the vote is running. Available variables: %votes%, %total%, %percentage%, %remainingTime%.
+    voteUpdated: 'Votes: %votes%/%total% (%percentage% %) - Remaining time: %remainingTime%',
+    // Message to broadcast when players voted to change map. Match will end in 10sec after this is broadcast. Available variables: %votes%, %total%, %percentage%.
+    nextWin: 'Ending match ! Most players voted to end the match. Votes: %votes%/%total% (%percentage% %)',
+    // Message to broadcast at fixed intervals while the vote is running. Available variables: %votes%, %total%, %percentage%, %remainingTime%.
+    continueWin: 'Most players voted to continue the match. Vote: %votes%/%total% (%percentage% %)',
+  },
+  // How many minutes to wait before starting another vote. The wait will start after last vote ended. And will be reset after a map change.
+  nextVoteWait: 15,
+  // Message to send to a player trying to start a vote when another vote cannot yet be started.
+  nextVoteWaitWarn: 'You cannot start another vote until %remainingNextVoteWait%',
+  // The interval in seconds between each vote update. In case the voteUpdateInterval end up at the same time as voteDuration, it will be skipped.
+  voteUpdateInterval: 60,
+  // The duration of the vote in minutes.
+  voteDuration: 5,
+  // The minimum number of votes % of total players to end the match.
+  voteThresholdPercentage: 65,
+}
