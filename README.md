@@ -14,7 +14,14 @@
 [![GitHub issues](https://img.shields.io/github/issues/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/pulls)
 [![GitHub issues](https://img.shields.io/github/stars/AmbroiseRabier/SquadTS.svg?style=flat-square)](https://github.com/AmbroiseRabier/SquadTS/stargazers)
+
+<!--
+This one is SquadJS discord, would be nice to use it, as this is where SquadTS will find most users. In meantime, there is
+a discord I created.
 [![Discord](https://img.shields.io/discord/266210223406972928.svg?style=flat-square&logo=discord)](https://discord.gg/9F2Ng5C)
+-->
+
+[![Discord](https://img.shields.io/discord/1344601472624627798.svg?style=flat-square&logo=discord)](https://discord.gg/mWdhF9ZzpR)
 
 <br><br>
 
@@ -43,6 +50,7 @@ SquadTS comes with plugins ready to use:
 - Discord killfeed
 - Discord server status
 - Discord squad created
+- End match vote
 - Heli crash broadcast
 - Knife broadcast
 - Max player in squad
