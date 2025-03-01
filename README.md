@@ -263,6 +263,12 @@ Cons:
 - No websocket API plugin yet (if this interests you, please open a feature request)
 - No database connector (if this interests you, please open a feature request)
 
+## Test SquadTS along side SquadJS
+
+You can use https://github.com/Matttor/SimplestSquadRcon to circumvent the limit of one RCON connection from the same IP
+set by the Squad server.
+You can also disable game modifying RCON command with `{dryRun: true}` in `<your-config>/rconSquad.json5` 
+
 # Dev
 
 ## Setup
