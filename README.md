@@ -110,7 +110,9 @@ Everything is detailed in comments insides each `json5` config file.
 
 You can regenerate the config with `npm run generate-config`, this will overwrite everything inside config folder.
 
-## Docker ( has yet to be confirmed ok :) )
+## Docker
+
+( has yet to be confirmed ok :) )
 
 Running SquadTS in docker is for advanced user.
 
@@ -138,134 +140,6 @@ docker run -f .dockerfile -t SquadTS \
 # If you add or update an external plugin not shipped by default with SquadTS
 # It is recommended to at least check if it pass type check.
 docker run SquadTS npm run typecheck
-```
-
-## Dev
-
-### Setup
-
-If you are a beginner coder, following "Install and Run" steps and using an IDE like **Webstorm** or **VSCode**
-is enough to get your started. Everything is written in TypeScript, which is a superset of JavaScript.
-
-If you have some more knowledge, I recommend these steps:
-
-1. Install Git.
-2. NodeJS 22 LTS, recommended with NVM (node version manager).
-3. Clone the project with git.
-4. Use git bash and install node dependencies.
-5. Use an IDE like Webstorm (free) or VSCode (free)
-6. Finish reading \*_dev_ section.
-
-### Generate a plugin base
-
-Get started fast and avoid boilerplate code with:
-`npm run generate-plugin auto-kick-unassigned` will generate `auto-kick-unassigned` base files inside `"plugins"` folder.
-
-The generated files will include documentation and examples.
-
-### Tests
-
-The project uses Vitest, Vitest does not typecheck which greatly enhance speed of running test.
-When developing, you should make use of your IDE, and may also confirm typing with `npm run typecheck`.
-Since Vitest does not typecheck, you may run into strange issues if your typing is wrong and you run tests.
-Vitest has almost the same API as the more popular Jest, keep that in mind if you need to learn vitest.
-
-You have two type of tests available, unit test, and e2e (end-to-end) test.
-For example `switch-command` plugin showcase the plugin tested with unit test, mocking every dependencies
-of the plugin. While `heli-crash-broadcast` showcase e2e test, creating a real SquadTS server but with log reader (ftp)
-and rcon mocked.
-
-It is likely easier to use e2e tests for your plugins, in any case, if your plugin is complicated, you may split it
-in multiples files and make unit test on smaller parts to help with developement.
-
-#### Get test data
-
-Best is to get real data from a live server, just run SquadTS with the appropriate logger configuration.
-
-You also have examples logs and RCON responses in tests files.
-
-But be careful when modifying logs. Small stuff like an extra space may break your expected plugin output,
-and be hard to detect, for example:
-
-```
-// This one is incorrect !
-'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player: -TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
-
-// This one is correct !
-'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player:-TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
-```
-
-Have you seen the difference? In the real log, there is no space between `"Player:"` and the player name with clan tag `"-TWS Yuca"`. Others logs may have a space.
-This will not fail, as `" -TWS Yuca"` is a valid player name with clan tag.
-
-#### Test on live server
-
-Most likely, if you are here, you already have access to a squad server, you may host yourself (but it will be a hassle):
-
-- https://squad.fandom.com/wiki/Server_Installation
-- https://hub.docker.com/r/cm2network/squad/
-
-## Configuration
-
-To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
-and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
-
-Pre-commit hook will override everything inside config folder. Be warned.
-
-## Pre-commit hook explained
-
-Will test:
-
-- Typescript typing (tsx used to run the server, by default does not check it)
-- Prettier and eslint, eslint will abort commit if there is any issue, it is up to you to properly fix it.
-- Generate up-to-date config, if there is any difference, commit is aborted and you should review change before re-commiting.
-- Run all the tests.
-
-Prettier is executed in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
-You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
-`// prettier-ignore` on a statement like in `check-unbalance-switchability.test.ts`.
-
-We only run prettier, and not `eslint --fix`. Since there are too many occasions where there is disagreement with eslint --fix.
-It also give devs the occasion to learn from their mistake, and re-evaluate code, like is that non-null-assertion really safe
-and documented ?
-However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
-eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
-
-### (Utility) Get output of a single RCON command
-
-Running this will cause Squad server to disconnect others RCON connection from the same IP,
-effectively closing SquadTS server if opened.
-
-```shell
-# Output in the console
-npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
-
-# save to a file
-npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-players.txt
-```
-
-## Local test with SFTP
-
-You can run a local docker SFTP container and update yourself the squad server logs to test out SFTP related code.
-
-```shell
-# From WSL, username foo, password pass
-# Then create directories and files we'll need
-# Finally fix permissions, as by default foo user doesn't have right on /home/foo/upload folder.
-# Note: changing /home/foo permissions will prevent you from connecting with filezilla (see container logs)
-# Note: --rm will delete the container once you stop it, remove that if you want to re-use it.
-container_id=$(docker run --rm -p 2222:22 -d atmoz/sftp foo:pass:1001) && \
-docker exec -it $container_id bash -c "mkdir -p /home/foo/upload/SquadGame/ServerConfig && \
-                    mkdir -p /home/foo/upload/SquadGame/Saved/Logs && \
-                    touch /home/foo/upload/SquadGame/Saved/Logs/SquadGame.log && \
-                    touch /home/foo/upload/SquadGame/ServerConfig/Admins.cfg && \
-                    touch /home/foo/upload/SquadGame/ServerConfig/RemoteAdminListHosts.cfg && \
-                    chown -R foo:root /home/foo/upload" && echo "ok"
-
-# You may want to provide a filled Admins.cfg inside ServerConfig
-
-# To connect with FileZilla: foo@localhost:2222 with password: "pass".
-# Update logParser.json5 config. And don't forget to set to mode:'sftp'
 ```
 
 ## SquadTS vs SquadJS
@@ -388,6 +262,134 @@ Cons:
 - Likely some missing feature I haven't paid attention to. If there is anything you use and you think may be useful for others too, feel free to make a feature request.
 - No websocket API plugin yet (if this interests you, please open a feature request)
 - No database connector (if this interests you, please open a feature request)
+
+# Dev
+
+## Setup
+
+If you are a beginner coder, following "Install and Run" steps and using an IDE like **Webstorm** or **VSCode**
+is enough to get your started. Everything is written in TypeScript, which is a superset of JavaScript.
+
+If you have some more knowledge, I recommend these steps:
+
+1. Install Git.
+2. NodeJS 22 LTS, recommended with NVM (node version manager).
+3. Clone the project with git.
+4. Use git bash and install node dependencies.
+5. Use an IDE like Webstorm (free) or VSCode (free)
+6. Finish reading \*_dev_ section.
+
+## Generate a plugin to get started fast
+
+Get started fast and avoid boilerplate code with:
+`npm run generate-plugin auto-kick-unassigned` will generate `auto-kick-unassigned` base files inside `"plugins"` folder.
+
+The generated files will include documentation and examples.
+
+## Tests
+
+The project uses Vitest, Vitest does not typecheck which greatly enhance speed of running test.
+When developing, you should make use of your IDE, and may also confirm typing with `npm run typecheck`.
+Since Vitest does not typecheck, you may run into strange issues if your typing is wrong and you run tests.
+Vitest has almost the same API as the more popular Jest, keep that in mind if you need to learn vitest.
+
+You have two type of tests available, unit test, and e2e (end-to-end) test.
+For example `switch-command` plugin showcase the plugin tested with unit test, mocking every dependencies
+of the plugin. While `heli-crash-broadcast` showcase e2e test, creating a real SquadTS server but with log reader (ftp)
+and rcon mocked.
+
+It is likely easier to use e2e tests for your plugins, in any case, if your plugin is complicated, you may split it
+in multiples files and make unit test on smaller parts to help with developement.
+
+### Get test data
+
+Best is to get real data from a live server, just run SquadTS with the appropriate logger configuration.
+
+You also have examples logs and RCON responses in tests files.
+
+But be careful when modifying logs. Small stuff like an extra space may break your expected plugin output,
+and be hard to detect, for example:
+
+```
+// This one is incorrect !
+'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player: -TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
+
+// This one is correct !
+'[2025.01.27-22.23.56:380][439]LogSquadTrace: [DedicatedServer]ASQSoldier::Wound(): Player:-TWS- Yuca KillingDamage=199.097168 from BP_PlayerController_C_2130401015 (Online IDs: EOS: 0002a10186d9414496bf20d22d3860b2 steam: 76561198016942072 | Controller ID: BP_PlayerController_C_2130401015) caused by BP_Soldier_RU_Pilot_C_2130397914'
+```
+
+Have you seen the difference? In the real log, there is no space between `"Player:"` and the player name with clan tag `"-TWS Yuca"`. Others logs may have a space.
+This will not fail, as `" -TWS Yuca"` is a valid player name with clan tag.
+
+### Test on live server
+
+Most likely, if you are here, you already have access to a squad server, you may host yourself (but it will be a hassle):
+
+- https://squad.fandom.com/wiki/Server_Installation
+- https://hub.docker.com/r/cm2network/squad/
+
+## Configuration
+
+To avoid mistakenly commiting sensitive info like the password on git, you can put your config into dev-config folder
+and add `SQUAD_TS_CONFIG_PATH="dev-config"` before running the server. `dev-config` is ignored by git.
+
+Pre-commit hook will override everything inside config folder. Be warned.
+
+## Pre-commit hook explained
+
+Will test:
+
+- Typescript typing (tsx used to run the server, by default does not check it)
+- Prettier and eslint, eslint will abort commit if there is any issue, it is up to you to properly fix it.
+- Generate up-to-date config, if there is any difference, commit is aborted and you should review change before re-commiting.
+- Run all the tests.
+
+Prettier is executed in pre-commit hook, modifying your files. So for example `const a = "value"` will become `const a = 'value'`.
+You may check your changes in pull request again. In rare case where prettier give you a worse readability you may use
+`// prettier-ignore` on a statement like in `check-unbalance-switchability.test.ts`.
+
+We only run prettier, and not `eslint --fix`. Since there are too many occasions where there is disagreement with eslint --fix.
+It also give devs the occasion to learn from their mistake, and re-evaluate code, like is that non-null-assertion really safe
+and documented ?
+However, any issue eslint has to be fixed before commiting, as it will fail pre-commit hook. If you ignore a specific
+eslint rule, make sure to add a comment explaining why, at least once in the file, unless it is extremely obvious.
+
+## (Utility) Get output of a single RCON command
+
+Running this will cause Squad server to disconnect others RCON connection from the same IP,
+effectively closing SquadTS server if opened.
+
+```shell
+# Output in the console
+npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
+
+# save to a file
+npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-players.txt
+```
+
+## Local test with SFTP
+
+You can run a local docker SFTP container and update yourself the squad server logs to test out SFTP related code.
+
+```shell
+# From WSL, username foo, password pass
+# Then create directories and files we'll need
+# Finally fix permissions, as by default foo user doesn't have right on /home/foo/upload folder.
+# Note: changing /home/foo permissions will prevent you from connecting with filezilla (see container logs)
+# Note: --rm will delete the container once you stop it, remove that if you want to re-use it.
+container_id=$(docker run --rm -p 2222:22 -d atmoz/sftp foo:pass:1001) && \
+docker exec -it $container_id bash -c "mkdir -p /home/foo/upload/SquadGame/ServerConfig && \
+                    mkdir -p /home/foo/upload/SquadGame/Saved/Logs && \
+                    touch /home/foo/upload/SquadGame/Saved/Logs/SquadGame.log && \
+                    touch /home/foo/upload/SquadGame/ServerConfig/Admins.cfg && \
+                    touch /home/foo/upload/SquadGame/ServerConfig/RemoteAdminListHosts.cfg && \
+                    chown -R foo:root /home/foo/upload" && echo "ok"
+
+# You may want to provide a filled Admins.cfg inside ServerConfig
+
+# To connect with FileZilla: foo@localhost:2222 with password: "pass".
+# Update logParser.json5 config. And don't forget to set to mode:'sftp'
+```
 
 ## Statement on accuracy
 
