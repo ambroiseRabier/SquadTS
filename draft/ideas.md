@@ -137,3 +137,8 @@ et Pull request sur SquadJS
 ## Cleanup des plugins à faire.
 
 ## Player suicide event.
+
+## RCON client refactor based on
+
+https://github.com/Matttor/SimplestSquadRcon/blob/master/rconforSquadJS.js
+? lequel est meilleurs ? le passthrough est assez utile comme tool, mais pas besoin de refaire ici non ?

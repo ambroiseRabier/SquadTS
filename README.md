@@ -65,15 +65,15 @@ Go into [./config/plugins](./config/plugins) folder to discover them.
 3. Open the unzipped folder in your terminal (e.g., cmd.exe, git bash).
 4. Install node dependencies with `npm install`.
 5. Customize the config in `.json5` files inside `config` folder`.
-6. BY DEFAULT, EVERY PLUGIN IS DISABLED, enable the one you need in `config/plugins` folder.
-7. Start SquadTS by running `npm run start`.
+6. BY DEFAULT, EVERY PLUGIN IS DISABLED, enable the one you need in `config/plugins` folder (`{enabled: true}`).
+7. Start SquadTS by running `npm run start` in your terminal.
 
 ## Config folder
 
 It is recommended to use your own config folder, this will make future updates of SquadTS easier.
 
 Config folder will be `config` by default.
-If you need a different location, you can set `SQUAD_TS_CONFIG_PATH` env variable to a path relative to the project.
+For a different location, you can set `SQUAD_TS_CONFIG_PATH` env variable to a relative or absolute path.
 
 ```shell
 # Windows (cmd or git bash)
@@ -270,7 +270,7 @@ docker exec -it $container_id bash -c "mkdir -p /home/foo/upload/SquadGame/Serve
 
 ## SquadTS vs SquadJS
 
-SquadTS offer several advantages for server owner and plugins developpers:
+SquadTS offer several advantages for server owners and plugins development:
 
 For everyone:
 
@@ -386,8 +386,8 @@ Cons:
   plugins folder.
 - Some features still need testing, like using a local Squad server or using SFTP.
 - Likely some missing feature I haven't paid attention to. If there is anything you use and you think may be useful for others too, feel free to make a feature request.
-- No websocket API plugin yet (if this interest you, please open a feature request)
-- No database connector (if this interest you, please open a feature request)
+- No websocket API plugin yet (if this interests you, please open a feature request)
+- No database connector (if this interests you, please open a feature request)
 
 ## Statement on accuracy
 
@@ -401,7 +401,7 @@ Only RCON `"ListPlayers"` provide the `nameWithClanTag`, and some logs only prov
 If the player has not been obtained through RCON, logs with only `nameWithClanTag` will fail to find the player.
 However, RCON `"ListPlayers"` update interval (that you can modify in the config), is set by default to a low interval
 of 5 seconds.
-This should be low enough to avoid having any logs without player.
+This should be low enough to avoid having any logs without a player.
 
 ### Duplicate player names
 
