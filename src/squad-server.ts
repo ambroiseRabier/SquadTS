@@ -12,6 +12,7 @@ import { GithubWikiWeapon } from './github-info/github-weapons.type';
 import { GithubWiki } from './github-info/github-layer.type';
 import { AdminList } from './admin-list/use-admin-list';
 import { promiseWithTimeout } from './utils';
+import { SquadConfig } from './squad-config/use-squad-config';
 
 export type SquadServer = ReturnType<typeof useSquadServer>;
 
@@ -27,6 +28,7 @@ interface Props {
     layerInfo: GithubWiki.Layer;
     weaponInfo: Record<string, GithubWikiWeapon.WeaponInfo>;
   };
+  squadConfig: SquadConfig;
 }
 
 export function useSquadServer({
@@ -38,6 +40,7 @@ export function useSquadServer({
   refinedLogEvents,
   refinedChatEvents,
   githubInfo,
+  squadConfig,
 }: Props) {
   const { admins, getAdminsWithPermissions } = adminList;
   const helpers = useHelpers({
@@ -77,6 +80,11 @@ export function useSquadServer({
   };
 
   return {
+    /**
+     * Fetch squad server config.
+     */
+    squadConfig,
+
     /**
      * Information extract from the Github squad wiki repository.
      */

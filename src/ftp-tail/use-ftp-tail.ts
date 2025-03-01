@@ -11,6 +11,7 @@ import { createReadStream } from 'node:fs';
 import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 import { TMP_DIR } from '../config/path-constants.mjs';
 import { promiseWithTimeout } from '../utils';
+import { Readable } from 'node:stream';
 
 type Props = {
   timeout?: number;
@@ -36,7 +37,7 @@ type Props = {
 );
 
 function useClient(options: Props) {
-  let client: Client;
+  let ftpClient: Client;
   // quick fix for lib typing being incorrect.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let sftpClient: SFTPClient & { sftp: any };
@@ -57,7 +58,7 @@ function useClient(options: Props) {
           await fs.promises.mkdir(TMP_DIR, { recursive: true });
 
           // Download the remote file to a temporary local file
-          await client.downloadTo(localTempFile, filepath);
+          await ftpClient.downloadTo(localTempFile, filepath);
           return await fs.promises.readFile(localTempFile, 'utf8');
         } catch (err) {
           console.error(`Error fetching file "${filepath}":`, err);
@@ -89,27 +90,36 @@ function useClient(options: Props) {
         }
       }
     },
+    async writeFile(filepath: string, content: string) {
+      if (options.protocol === 'sftp') {
+        await sftpClient.put(Buffer.from(content), filepath);
+      } else {
+        // For basic-ftp, create a readable stream from the content
+        const stream = Readable.from(content);
+        await ftpClient.uploadFrom(stream, filepath);
+      }
+    },
     async connect() {
       return options.protocol === 'ftp'
-        ? client.access(options.ftp)
+        ? ftpClient.access(options.ftp)
         : sftpClient.connect(options.sftp);
     },
     async disconnect() {
       if (options.protocol === 'ftp') {
-        client.close();
+        ftpClient.close();
       } else {
         await sftpClient.end();
       }
     },
     fileSize(filepath: string): Promise<number> {
       return options.protocol === 'ftp'
-        ? client.size(filepath)
+        ? ftpClient.size(filepath)
         : // I am supposed to fix absence of typing of sftp.stat myself ? any is fine.
           sftpClient.stat(sftpValidPath(filepath)).then(data => data.size);
     },
     async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
       if (options.protocol === 'ftp') {
-        await client.downloadTo(
+        await ftpClient.downloadTo(
           // Do not use a file path, as offset is also applied to file path. Our file will not be of the same size as the
           // one on the server !
           fs.createWriteStream(toLocalPath, { flags: 'w' }),
@@ -127,8 +137,8 @@ function useClient(options: Props) {
     },
     init(logger: Logger) {
       if (options.protocol === 'ftp') {
-        client = new Client(options.timeout);
-        client.ftp.log = logger.trace.bind(logger);
+        ftpClient = new Client(options.timeout);
+        ftpClient.ftp.log = logger.trace.bind(logger);
       } else {
         // We slightly corrected SFTPClient type so we need to cast.
         sftpClient = new SFTPClient() as typeof sftpClient;
@@ -136,7 +146,7 @@ function useClient(options: Props) {
       }
     },
     isConnected() {
-      return options.protocol === 'ftp' ? !client.closed : !!sftpClient.sftp;
+      return options.protocol === 'ftp' ? !ftpClient.closed : !!sftpClient.sftp;
     },
   };
 }
@@ -385,9 +395,8 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   return {
-    readFile: async (subPath: string) => {
-      return client.readFile(subPath);
-    },
+    readFile: client.readFile,
+    writeFile: client.writeFile,
     connect: async () => {
       const address =
         (options.protocol === 'ftp' ? options.ftp.host : options.sftp.host) +

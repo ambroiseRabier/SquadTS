@@ -77,10 +77,15 @@ export async function main(props?: Props) {
     config.logParser,
     config.logger.debugLogMatching
   );
-  const squadConfig = useSquadConfig(async (file: ServerConfigFile) => {
+  const configFetch = async (file: ServerConfigFile) => {
     const configFile = joinSafeSubPath(config.logParser.configDir, file + '.cfg');
     return await logReader.readFile(configFile);
-  }, logger);
+  };
+  const configUpload = async (file: ServerConfigFile, content: string) => {
+    const configFile = joinSafeSubPath(config.logParser.configDir, file + '.cfg');
+    return await logReader.writeFile(configFile, content);
+  };
+  const squadConfig = useSquadConfig(configFetch, configUpload, logger);
   const adminList = useAdminList(squadConfig);
 
   const earlyCleanup = async (skipExit = false) => {
@@ -183,6 +188,7 @@ export async function main(props?: Props) {
     refinedChatEvents,
     adminList,
     githubInfo,
+    squadConfig,
   });
 
   const discordConnector = config.connectors.discord.enabled

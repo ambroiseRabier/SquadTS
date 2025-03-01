@@ -1,0 +1,38 @@
+/**
+ * Reward players with temporary whitelist for helping seed the server.
+ * 
+ * Details on how it works:
+ * The player accumulate "hours of seeding" as a currency, these are then spent automatically to obtain a whitelist.
+ * Whitelist are not cumulative, example:
+ * John get whitelisted the 2 feb 2025 for 7days. But John keep helping the server and obtain another reward the 4 feb 2025,
+ * whitelist will end the 11 feb 2025. Not the 16 feb 2025.
+ * 
+ * The point of that system, is to avoid a player staying 24/24 7/7 in the seed obtaining a one year whitelist that may not be fulfilled.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // Hours of seeding required to get a whitelist
+  seedDuration: 7,
+  // Days the whitelist will last
+  whiteListDuration: 14,
+  // Delay in seconds before sending the welcome thanks message
+  // Consider a small delay to avoid the message being missed by the player.
+  thanksMessageDelay: 15,
+  // Interval in minutes between each progression message
+  seedProgressionMessageInterval: 30,
+  // Message sent to players when they join seed. Available variables: %whiteListDuration%, %percent%
+  thanksMessage: 'Thank you for helping seed the server! After %whiteListDuration% days of seeding, you will get a %whiteListDuration% days whitelist. Current progress: %percent%%',
+  // Message sent to players periodically. Available variables: %percent%
+  seedProgressionMessage: 'Current seeding progress: %percent%%',
+  // Message sent to players when they get whitelisted. Available variables: %whiteListDuration%
+  seedRewardMessage: 'You have been whitelisted for %whiteListDuration% days!',
+  // Message broadcast when a player gets whitelisted. Available variables: %playerName%, %whiteListDuration%
+  seedRewardBroadcastMessage: '%playerName% has been whitelisted for %whiteListDuration% days for helping seed the server!',
+  // Path to the sqlite database file, absolute or relative to the server root.
+  // If you use multiple instance of SquadTS for multiples servers, you can share
+  // the same database to share seeding rewards.
+  sqliteDatabasePath: './saved/seed-reward.db',
+}

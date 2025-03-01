@@ -34,6 +34,7 @@ export type SquadConfig = ReturnType<typeof useSquadConfig>;
  */
 export function useSquadConfig(
   fetcher: (file: ServerConfigFile) => Promise<string>,
+  uploader: (file: ServerConfigFile, content: string) => Promise<void>,
   logger: Logger
 ) {
   // Setters are somewhat troublesome, hard to keep order of lines, comments, and more intact without quite
@@ -42,6 +43,8 @@ export function useSquadConfig(
   // only when new game starts...
 
   return {
+    rawFetch: fetcher,
+    rawUpload: uploader,
     fetch: {
       admins: async () => {
         logger.info(`Fetching ${ServerConfigFile.Admins}.cfg from server.`);

@@ -28,6 +28,9 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
         readFile: async (subPath: string) => {
           return await fs.promises.readFile(subPath, 'utf8');
         },
+        writeFile: async (filepath: string, content: string) => {
+          await fs.promises.writeFile(filepath, content, 'utf8');
+        },
         // There isn't a "connect" for reading a file, but this is to keep the same API as FTP and SFTP
         connect: async () => {
           await fs.promises.access(fixedFilePath);

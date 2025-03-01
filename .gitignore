@@ -32,3 +32,6 @@ yarn-error.log*
 
 # Profiler custom dir for logs
 /profile-logs
+
+# Permanent storage folder, as set by default for seed-reward plugin.
+/saved

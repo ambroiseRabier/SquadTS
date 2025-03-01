@@ -35,6 +35,11 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
       /* no-op */
       return '';
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    writeFile: async (filepath, content) => {
+      /* no-op */
+      return Promise.resolve();
+    },
     connect: async () => {
       /* no-op */
     },

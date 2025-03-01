@@ -142,3 +142,7 @@ et Pull request sur SquadJS
 
 https://github.com/Matttor/SimplestSquadRcon/blob/master/rconforSquadJS.js
 ? lequel est meilleurs ? le passthrough est assez utile comme tool, mais pas besoin de refaire ici non ?
+
+## Outils en cmd pour installer
+
+avec prompt et tout... prendre la main pour l'installation en gros.
