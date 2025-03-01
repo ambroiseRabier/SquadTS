@@ -108,7 +108,7 @@ export async function main(props?: Props) {
   };
 
   const earlyException = async (error: Error) => {
-    logger.fatal('UncaughtException, see the error trace below.', { error });
+    logger.fatal('UncaughtException, see the error trace above.', { error });
     console.error(error);
     try {
       await earlyCleanup(true);
@@ -259,7 +259,7 @@ export async function main(props?: Props) {
     process.exit(0);
   }); // e.g., Process kill
   process.once('uncaughtException', async error => {
-    logger.fatal('UncaughtException, see the error trace below.', { error });
+    logger.fatal('UncaughtException, see the error trace above.', { error });
     console.error(error);
     await cleanupFCT();
     process.exit(1);

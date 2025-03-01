@@ -41,6 +41,8 @@ function useClient(options: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let sftpClient: SFTPClient & { sftp: any };
 
+  const sftpValidPath = (filePath: string) => filePath.replaceAll('\\', '/');
+
   return {
     /**
      * Good for small files, do not use for big files.
@@ -72,7 +74,7 @@ function useClient(options: Props) {
         // sftp
         try {
           // Download the remote file to a temporary local file
-          await sftpClient.fastGet(filepath, localTempFile);
+          await sftpClient.fastGet(sftpValidPath(filepath), localTempFile);
           return await fs.promises.readFile(localTempFile, 'utf8');
         } catch (err) {
           console.error('Error fetching SFTP file:', err);
@@ -103,8 +105,7 @@ function useClient(options: Props) {
       return options.protocol === 'ftp'
         ? client.size(filepath)
         : // I am supposed to fix absence of typing of sftp.stat myself ? any is fine.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          sftpClient.sftp.stat(filepath).then((stat: any) => stat.size);
+          sftpClient.stat(sftpValidPath(filepath)).then(data => data.size);
     },
     async downloadFile(filepath: string, toLocalPath: string, lastByteReceived: number) {
       if (options.protocol === 'ftp') {
@@ -116,7 +117,7 @@ function useClient(options: Props) {
           lastByteReceived
         );
       } else {
-        await sftpClient.get(filepath, toLocalPath, {
+        await sftpClient.get(sftpValidPath(filepath), toLocalPath, {
           readStreamOptions: {
             // @ts-expect-error Typing is not up to date here, this is valid: https://github.com/theophilusx/ssh2-sftp-client/blob/eda4510f8814c45fb500517dd0dc4d20519b7852/src/index.js#L501
             start: lastByteReceived,

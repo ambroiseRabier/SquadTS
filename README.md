@@ -244,6 +244,30 @@ npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
 npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListPlayers > tmp/list-players.txt
 ```
 
+## Local test with SFTP
+
+You can run a local docker SFTP container and update yourself the squad server logs to test out SFTP related code.
+
+```shell
+# From WSL, username foo, password pass
+# Then create directories and files we'll need
+# Finally fix permissions, as by default foo user doesn't have right on /home/foo/upload folder.
+# Note: changing /home/foo permissions will prevent you from connecting with filezilla (see container logs)
+# Note: --rm will delete the container once you stop it, remove that if you want to re-use it.
+container_id=$(docker run --rm -p 2222:22 -d atmoz/sftp foo:pass:1001) && \
+docker exec -it $container_id bash -c "mkdir -p /home/foo/upload/SquadGame/ServerConfig && \
+                    mkdir -p /home/foo/upload/SquadGame/Saved/Logs && \
+                    touch /home/foo/upload/SquadGame/Saved/Logs/SquadGame.log && \
+                    touch /home/foo/upload/SquadGame/ServerConfig/Admins.cfg && \
+                    touch /home/foo/upload/SquadGame/ServerConfig/RemoteAdminListHosts.cfg && \
+                    chown -R foo:root /home/foo/upload" && echo "ok"
+
+# You may want to provide a filled Admins.cfg inside ServerConfig
+
+# To connect with FileZilla: foo@localhost:2222 with password: "pass".
+# Update logParser.json5 config. And don't forget to set to mode:'sftp'
+```
+
 ## SquadTS vs SquadJS
 
 SquadTS offer several advantages for server owner and plugins developpers:
@@ -266,6 +290,7 @@ For everyone:
   - auto-rejoin-team
   - ...
 - Properly clean up RCON and FTP connection when process is killed (CTRL+C)
+- Remote admin list is automatically downloaded and merged to provide SquadTS plugins with the correct admin list.
 
 This makes it easier to develop and maintain plugins.
 

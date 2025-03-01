@@ -56,7 +56,7 @@ const configDirSchema = z
 
 const ftpSchema = z
   .object({
-    host: ipv4Schema,
+    host: z.union([ipv4Schema, z.literal('localhost')]),
     port: z.number().int().default(21).describe('FTP server port usually is 21. SFTP is 22.'),
     username: z.string().nonempty(),
     password: z.string(),
