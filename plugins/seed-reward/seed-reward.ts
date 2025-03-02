@@ -8,7 +8,9 @@ import { PROJECT_ROOT } from '../../src/config/path-constants.mjs';
 import { ServerConfigFile } from '../../src/squad-config/use-squad-config';
 import { filter } from 'rxjs';
 import fs from 'node:fs';
+import { formatDate } from 'date-fns';
 
+// todo: probably need to handle all duration in one single unit.
 const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
   server,
   connectors,
@@ -25,37 +27,35 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
   await fs.promises.mkdir(path.parse(sqlitePath).dir, { recursive: true });
 
   const db = useSeedRewardDB(sqlitePath);
-  db.init();
 
   const adminManager = useAdminFileManager(
     async () => server.squadConfig.rawFetch(ServerConfigFile.Admins),
-    async content => server.squadConfig.rawUpload(ServerConfigFile.Admins, content),
-    logger
+    async content => server.squadConfig.rawUpload(ServerConfigFile.Admins, content)
   );
   const playerTimers = new Map<string, NodeJS.Timeout>();
   const activeSeeders = new Set<string>();
+  // We also need to track thanks timer, even though they are short, or SquadTS will hang instead of being stopped.
+  // especially in tests.
+  const thanksTimers = new Map<string, NodeJS.Timeout>();
 
   const checkAndRewardPlayer = async (eosID: string) => {
-    const record = await db.getPlayer(eosID);
-    // We pull latest record from database, since we only call checkAndRewardPlayer
+    const record = db.getPlayer(eosID);
+    // We pull the latest record from database, since we only call checkAndRewardPlayer
     // when we already have a record, there should be a record.
-    // Records are not removed, so if it exist once, it exist forever.
+    // Records are not removed, so if it exists once, it exists forever.
     if (!record) {
       throw new Error(`Player ${eosID} not found in database`);
     }
 
     const unusedTime = record.totalSeedTime - record.consumedTime;
     if (unusedTime >= options.seedDuration * 60) {
-      const player = server.players.find(p => p.eosID === eosID);
-      // If the player disconnected, we don't want to whitelist when he is absent, he wouldn't know about his reward.
-      if (!player) {
-        return;
-      }
-
       // Handles dates without timezone.
       const expiryDate = new Date(Date.now() + options.whiteListDuration * 24 * 60 * 60 * 1000);
 
-      await adminManager.updateOrAddWhitelist(player.steamID, record.displayName, expiryDate);
+      logger.info(
+        `Rewarding player "${record.displayName}" (${record.steamID}) with whitelist until ${formatDate(expiryDate, 'dd MMM yyyy HH') + 'h'}`
+      );
+      await adminManager.updateOrAddWhitelist(record.steamID, record.displayName, expiryDate);
 
       db.upsertPlayer({
         ...record,
@@ -70,7 +70,7 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
       );
 
       await server.rcon.warn(
-        player.eosID,
+        record.eosID,
         options.seedRewardMessage.replace(
           '%whiteListDuration%',
           options.whiteListDuration.toString()
@@ -107,9 +107,11 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
     db.upsertPlayer(record);
 
     // Send the initial thanks message after delay
-    setTimeout(async () => {
+    const thanksTimer = setTimeout(async () => {
+      // Player still connected
       if (activeSeeders.has(player.eosID)) {
         const currentRecord = db.getPlayer(player.eosID);
+        // Curent record should have been created (unless thanks timer is 0 ?)
         if (currentRecord) {
           const unusedTime = currentRecord.totalSeedTime - currentRecord.consumedTime;
           const percent = Math.floor((unusedTime / (options.seedDuration * 60)) * 100);
@@ -122,21 +124,31 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
           );
         }
       }
+      thanksTimers.delete(player.eosID);
     }, options.thanksMessageDelay * 1000);
+    thanksTimers.set(player.eosID, thanksTimer);
 
     // Set up progress update timer
     const timer = setInterval(
       async () => {
         if (activeSeeders.has(player.eosID)) {
-          const currentRecord = await db.getPlayer(player.eosID);
+          const currentRecord = db.getPlayer(player.eosID);
           if (currentRecord) {
             const unusedTime = currentRecord.totalSeedTime - currentRecord.consumedTime;
             const percent = Math.floor((unusedTime / (options.seedDuration * 60)) * 100);
 
-            await server.rcon.warn(
-              player.eosID,
-              options.seedProgressionMessage.replace('%percent%', percent.toString())
-            );
+            // Rewarded less than 10 seconds ago
+            const recentlyRewarded =
+              currentRecord.lastWhitelistGrant &&
+              (Date.now() - currentRecord.lastWhitelistGrant) / 1000 <= 10;
+
+            // Only warn, if not recently rewarded, to not override a more important message.
+            if (!recentlyRewarded) {
+              await server.rcon.warn(
+                player.eosID,
+                options.seedProgressionMessage.replace('%percent%', percent.toString())
+              );
+            }
           }
         }
       },
@@ -168,7 +180,7 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
     const now = Date.now();
     const expiryMs = options.whiteListDuration * 24 * 60 * 60 * 1000;
 
-    const records = await db.getAllWithWhitelist();
+    const records = db.getAllWithWhitelist();
     const expiredSteamIDs = records
       .filter(record => record.lastWhitelistGrant && now - record.lastWhitelistGrant > expiryMs)
       .map(record => {
@@ -185,7 +197,7 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
   // Set up intervals
   const whitelistCheckInterval = setInterval(checkExpiredWhitelists, 60 * 60 * 1000);
 
-  const updateActiveSeeders = async () => {
+  const recordSeedTime = async () => {
     // Do nothing if there is no seeder
     if (activeSeeders.size === 0) {
       return;
@@ -197,7 +209,10 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
       .filter((r): r is SeedingRecord => !!r)
       .map(record => ({
         ...record,
-        totalSeedTime: record.totalSeedTime + 1,
+        // Note: setTimeout is sometime imprecise, best is to add exact time with
+        //       record.lastSeenInSeed - now instead of just 1.
+        totalSeedTime:
+          record.totalSeedTime + Math.ceil((now - record.lastSeenInSeed) / (1000 * 60)),
         lastSeenInSeed: now,
       }));
 
@@ -211,10 +226,9 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
   };
 
   // Update active seeders every minute
-  const updateInterval = setInterval(updateActiveSeeders, 60 * 1000);
+  const updateInterval = setInterval(recordSeedTime, 60 * 1000);
 
-  // Handle player joins/leaves
-  server.players$.pipe(filter(() => server.info.isSeed)).subscribe(async players => {
+  async function updateActiveSeeders(players: Player[]) {
     // Start tracking new players
     for (const player of players) {
       if (!activeSeeders.has(player.eosID)) {
@@ -228,7 +242,10 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
         await stopTracking(eosID);
       }
     }
-  });
+  }
+
+  // Handle player joins/leaves
+  server.players$.pipe(filter(() => server.info.isSeed)).subscribe(updateActiveSeeders);
 
   // Handle seed mode changes
   server.info$.subscribe(async info => {
@@ -247,8 +264,9 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
     }
   });
 
-  // Run initial whitelist check
+  // Run initial whitelist checks
   await checkExpiredWhitelists();
+  await updateActiveSeeders(server.players);
 
   // Cleanup function
   return async () => {
@@ -260,6 +278,12 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
       clearInterval(timer);
     }
     playerTimers.clear();
+
+    // Clear all thanks timers
+    for (const timer of thanksTimers.values()) {
+      clearTimeout(timer);
+    }
+    thanksTimers.clear();
 
     // Stop tracking all players
     for (const eosID of [...activeSeeders]) {

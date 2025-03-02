@@ -12,6 +12,7 @@ describe('${pascalName}', () => {
   const rconExec: MockedFunction<Rcon['execute']> = vi.fn();
 
   afterAll(async () => {
+    // It is important to await the server unwatch, otherwise you may not have every logs displayed, including errors.
     await testBed.server.unwatch();
   });
 

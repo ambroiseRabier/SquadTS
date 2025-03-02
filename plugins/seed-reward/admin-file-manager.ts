@@ -1,4 +1,3 @@
-import { Logger } from 'pino';
 import { format } from 'date-fns';
 
 const SEED_REWARD_GROUP = 'SeedRewardPlugin';
@@ -28,8 +27,7 @@ const ensureGroup = (lines: string[]): string[] => {
 
 export function useAdminFileManager(
   adminsFetch: () => Promise<string>,
-  adminsUpload: (adminsFile: string) => Promise<void>,
-  logger: Logger
+  adminsUpload: (adminsFile: string) => Promise<void>
 ) {
   const updateOrAddWhitelist = async (
     steamID: string,
@@ -68,12 +66,6 @@ export function useAdminFileManager(
         );
       }
     }
-
-    logger.info(
-      whitelistUpdated
-        ? `Updating whitelist expiry for ${steamID} to ${expiryStr}`
-        : `Adding new whitelist for ${steamID} expiring ${expiryStr}`
-    );
 
     await adminsUpload(lines.join('\n'));
   };

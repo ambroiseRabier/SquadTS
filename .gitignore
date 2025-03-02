@@ -35,3 +35,6 @@ yarn-error.log*
 
 # Permanent storage folder, as set by default for seed-reward plugin.
 /saved
+
+# Test temporary folder, for example to create a temporary SQLite db.
+/test-tmp

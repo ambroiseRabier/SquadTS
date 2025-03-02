@@ -31,34 +31,33 @@ export function useSeedRewardDB(dbPath: string) {
    * */
   db.pragma('journal_mode = WAL');
 
-  const init = () => {
-    // Note: sync operation, but this is file since SQLite operations are CPU-bound
-    //       and better-sqlite3 uses native code which doesn't block NodeJS event loop.
-    db.exec(`
+  // Note: sync operation, but this is file since SQLite operations are CPU-bound
+  //       and better-sqlite3 uses native code which doesn't block NodeJS event loop.
+  db.exec(`
       CREATE TABLE IF NOT EXISTS seeding_records (
         eosID TEXT PRIMARY KEY,
         steamID TEXT NOT NULL,
-        nameWithClanTag TEXT NOT NULL,
+        displayName TEXT NOT NULL,
         totalSeedTime INTEGER NOT NULL,
         consumedTime INTEGER NOT NULL,
         lastSeenInSeed INTEGER NOT NULL,
         lastWhitelistGrant INTEGER
       )
     `);
-  };
 
   // Prepare statements for better performance
   const upsertStatement = db.prepare(`
     INSERT INTO seeding_records 
-    (eosID, steamID, nameWithClanTag, totalSeedTime, consumedTime, lastSeenInSeed, lastWhitelistGrant)
+    (eosID, steamID, displayName, totalSeedTime, consumedTime, lastSeenInSeed, lastWhitelistGrant)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(eosID) DO UPDATE SET
-      nameWithClanTag = ?,
+      displayName = ?,
       totalSeedTime = ?,
       consumedTime = ?,
       lastSeenInSeed = ?,
       lastWhitelistGrant = ?
   `);
+
   const getPlayerStatement = db.prepare('SELECT * FROM seeding_records WHERE eosID = ?');
   const getAllWithWhitelistStatement = db.prepare(
     'SELECT * FROM seeding_records WHERE lastWhitelistGrant IS NOT NULL'
@@ -82,14 +81,13 @@ export function useSeedRewardDB(dbPath: string) {
   }
 
   return {
-    init,
     upsertPlayers: (records: SeedingRecord[]) => {
       // Use transaction for batch updates
       db.transaction(() => {
         for (const record of records) {
           upsertPlayer(record);
         }
-      });
+      })();
     },
     upsertPlayer,
     getPlayer: (eosID: string): SeedingRecord | undefined => {

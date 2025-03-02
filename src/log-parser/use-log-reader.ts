@@ -4,7 +4,8 @@ import { useFtpTail } from '../ftp-tail/use-ftp-tail';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
 import { omit } from 'lodash-es';
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export type LogReader = ReturnType<typeof useLogReader>;
 
@@ -29,7 +30,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
           return await fs.promises.readFile(subPath, 'utf8');
         },
         writeFile: async (filepath: string, content: string) => {
-          await fs.promises.writeFile(filepath, content, 'utf8');
+          await fs.promises.writeFile(path.normalize(filepath), content, 'utf8');
         },
         // There isn't a "connect" for reading a file, but this is to keep the same API as FTP and SFTP
         connect: async () => {

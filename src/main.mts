@@ -103,9 +103,17 @@ export async function main(props?: Props) {
       throw error;
     }
     // Wait a bit for remaining logs to be displayed, especially useful for tests that are very fast.
-    await new Promise<void>((resolve, reject) => {
-      logger.flush(err => (err ? reject(err) : resolve()));
+    // todo: duplicated with squad-server.ts unwatch.
+    const flushPromise = new Promise<void>((resolve, reject) => {
+      logger.flush(err => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
     });
+    await flushPromise;
     console.info('Early cleanup completed.');
     if (!skipExit) {
       process.exit(0);
@@ -133,6 +141,7 @@ export async function main(props?: Props) {
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
   try {
     await rconSquad.connect(); // todo, right now, wrong password is not properly handled, and will not stop SquadTS !!
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     logger.fatal(`Failed to connect to RCON server: ${error?.message}`, { error });
     await earlyCleanup();
@@ -292,6 +301,6 @@ export async function main(props?: Props) {
   return {
     ...server,
     // Will also handle plugin's cleanup, that is most important for e2e tests!
-    unwatch: cleanupFCT.bind(cleanupFCT),
+    unwatch: cleanupFCT,
   };
 }

@@ -170,19 +170,22 @@ export function usePluginLoader(
             ),
             parsedConfig
           )
+          .then(cleanUpFC => {
+            logger.info(`${pair.name}: ${chalk.green.bold('Started')}`);
+            return cleanUpFC;
+          })
           .catch(error => {
             // A failing plugin should not stop SquadTS completely.
             logger.error(
               `Failed to start plugin ${pair.name}. Error: ${error?.message}\n${error?.stack}`,
               error
             );
+            logger.info(`${pair.name}: ${chalk.red.bold('Failed')}`);
           });
 
         if (cleanUpFC) {
           pluginCleanupFC.push(cleanUpFC);
         }
-
-        logger.info(`${pair.name}: ${chalk.green.bold('Started')}`);
       }
     },
   };

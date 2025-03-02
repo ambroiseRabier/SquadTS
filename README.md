@@ -68,6 +68,9 @@ Go into [./config/plugins](./config/plugins) folder to discover them.
 6. BY DEFAULT, EVERY PLUGIN IS DISABLED, enable the one you need in `config/plugins` folder (`{enabled: true}`).
 7. Start SquadTS by running `npm run start` in your terminal.
 
+⚠ If you plan on using SquadJS on the same machine, the Squad server only allows one RCON connection per IP, to properly
+configure that read [Running SquadTS along side SquadJS](#running-squadts-along-side-squadjs)
+
 ## Config folder
 
 It is recommended to use your own config folder, this will make future updates of SquadTS easier.
@@ -263,11 +266,13 @@ Cons:
 - No websocket API plugin yet (if this interests you, please open a feature request)
 - No database connector (if this interests you, please open a feature request)
 
-## Test SquadTS along side SquadJS
+## Running SquadTS along side SquadJS
 
-You can use https://github.com/Matttor/SimplestSquadRcon to circumvent the limit of one RCON connection from the same IP
-set by the Squad server.
-You can also disable game modifying RCON command with `{dryRun: true}` in `<your-config>/rconSquad.json5` 
+SquadTS uses https://github.com/Matttor/SimplestSquadRcon to circumvent the limit of one RCON connection from the same IP
+set by the Squad server by allowing pass through.
+
+If you want to observe SquadTS behavior first, you push this step further and disable
+game modifying RCON command with `{dryRun: true}` in `<your-config>/rconSquad.json5`
 
 # Dev
 
@@ -306,6 +311,9 @@ and rcon mocked.
 
 It is likely easier to use e2e tests for your plugins, in any case, if your plugin is complicated, you may split it
 in multiples files and make unit test on smaller parts to help with developement.
+
+Note that vitest does not do typecheck, if you don't see any pino server logs, you may have a typing error that silently
+make the test fail. You can always check using `npm run typecheck`
 
 ### Get test data
 

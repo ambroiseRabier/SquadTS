@@ -42,43 +42,37 @@ export interface GameServerInfo {
   ServerName_s: string;
 
   // e.g. "1000812"
-  LicenseId_s: string;
-
-  // e.g. "OU50yaTav800q/EZewTAtXucSWtJx3xoizlbJaGYxTtKbjlqQrUS3WFqc..."
-  LicenseSig1_s: string;
-
-  // e.g. "svZIf6iTwpopHQ63Z5nU7pf6YOYZK4143jZPdL0va+mjXE..."
-  LicenseSig2_s: string;
-
-  // e.g. "34z41qQdN8sey0q+A+CLpSdqjiGJDX4+2fWS+trG07Cxf/R..."
-  LicenseSig3_s: string;
+  LicenseId_s?: string;
+  LicenseSig1_s?: string;
+  LicenseSig2_s?: string;
+  LicenseSig3_s?: string;
 
   // e.g. ";1;64;"
-  TagLanguage_s: string;
+  TagLanguage_s?: string;
 
   // e.g. "003;009;015;021;027;033;..."
-  'TagGameMode-0_s': string;
+  'TagGameMode-0_s'?: string;
 
   // e.g. "001;007;013;019;025;..."
-  'TagGameMode-1_s': string;
+  'TagGameMode-1_s'?: string;
 
   // e.g. "005;011;017;023;..."
-  'TagGameMode-2_s': string;
+  'TagGameMode-2_s'?: string;
 
   // e.g. ";1;"
-  TagGameMode_s: string;
+  TagGameMode_s?: string;
 
   // e.g. ";2;"
-  TagPlaystyle_s: string;
+  TagPlaystyle_s?: string;
 
   // e.g. ";1;"
-  TagMapRotation_s: string;
+  TagMapRotation_s?: string;
 
   // e.g. ";1;"
-  TagExperience_s: string;
+  TagExperience_s?: string;
 
   // e.g. ";1;4;8;16;32;64;"
-  TagRules_s: string;
+  TagRules_s?: string;
 
   // e.g. "0"
   CurrentModLoadedCount_I: string;

@@ -92,12 +92,14 @@ function useClient(options: Props) {
       }
     },
     async writeFile(filepath: string, content: string) {
+      // Call to this already have normalized path, but to be sure...
+      const normalizedPath = path.normalize(filepath);
       if (options.protocol === 'sftp') {
-        await sftpClient.put(Buffer.from(content), filepath);
+        await sftpClient.put(Buffer.from(content), sftpValidPath(normalizedPath));
       } else {
         // For basic-ftp, create a readable stream from the content
         const stream = Readable.from(content);
-        await ftpClient.uploadFrom(stream, filepath);
+        await ftpClient.uploadFrom(stream, normalizedPath);
       }
     },
     async connect() {
@@ -438,12 +440,22 @@ export function useFtpTail(logger: Logger, options: Props) {
             );
           }
 
-          logger.fatal(`Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${e.message}`
-            + '\n' + helperMessage,
+          logger.fatal(
+            `Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${e.message}` +
+              '\n' +
+              helperMessage,
             e
           );
         } else {
-          logger.fatal(`Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${(e as any)?.message}`, e);
+          /* eslint-disable @typescript-eslint/no-explicit-any */
+          logger.fatal(
+            `Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${
+              (e as any)?.message
+            }`,
+            e
+          );
+          /* eslint-enable @typescript-eslint/no-explicit-any */
+
           console.error(e); // logger may not correctly display the error...
         }
         return false;

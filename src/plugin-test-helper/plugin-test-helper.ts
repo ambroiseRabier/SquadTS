@@ -97,7 +97,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
     // log parser config is mostly ignored as we mock log reader
     logParser: {
-      configDir: 'unused config dir',
+      configDir: 'C:/fake/config/dir',
       logFile: 'C:/fake/path/logParser/is/mocked',
       ftp: {
         host: '127.0.0.1',
@@ -145,6 +145,10 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
   });
 
+  if (!server) {
+    throw new Error('Server has not started properly !');
+  }
+
   /**
    * Helper to emit logs.
    * Ignore empty lines and remove front space to allow better code formatting on multiline strings.
@@ -164,6 +168,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     server,
     line$: mockLogReader.line$ as Subject<string>,
     rcon: mockRcon as Rcon,
+    mockLogReader,
 
     /**
      * Call this after update RCON ListPlayers return value.
@@ -254,9 +259,7 @@ export function setRconMock(
       console.warn(
         '⚠️ Returning default data for ShowServerInfo command, if you are using server.info in your tests, provide your own data !'
       );
-      return Promise.resolve(
-        JSON.stringify(defaultServerInfo)
-      );
+      return Promise.resolve(JSON.stringify(defaultServerInfo));
     }
 
     // Provide an empty player list as default.
