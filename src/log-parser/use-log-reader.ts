@@ -33,8 +33,16 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
         },
         // There isn't a "connect" for reading a file, but this is to keep the same API as FTP and SFTP
         connect: async () => {
-          await fs.promises.access(fixedFilePath);
-          logger.info(`Local log file ${fixedFilePath} found.`);
+          return await fs.promises
+            .access(fixedFilePath)
+            .then(() => {
+              logger.info(`Local log file ${fixedFilePath} found.`);
+              return true;
+            })
+            .catch(() => {
+              logger.fatal(`Local log file ${fixedFilePath} not found.`);
+              return false;
+            });
         },
         // Same as unwatch
         watch: () =>

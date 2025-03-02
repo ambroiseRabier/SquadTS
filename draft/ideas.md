@@ -146,3 +146,18 @@ https://github.com/Matttor/SimplestSquadRcon/blob/master/rconforSquadJS.js
 ## Outils en cmd pour installer
 
 avec prompt et tout... prendre la main pour l'installation en gros.
+
+
+## ⚠ Error handling de main.mts rcon
+
+
+mauvaise adresse ou port
+ETIMEDOUT 134.119.187.19:19445
+
+mauvais mdp !!
+```
+[12:05:08.045] DEBUG: [RCON] Clearing Pending Callbacks
+[12:05:08.046] ERROR: [RCON] decodePacket is an ERROR, unknown how to handle
+```
+et il continue...
+je vais changer rcon.ts de toute façon

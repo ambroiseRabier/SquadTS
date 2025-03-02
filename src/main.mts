@@ -113,7 +113,7 @@ export async function main(props?: Props) {
   };
 
   const earlyException = async (error: Error) => {
-    logger.fatal('UncaughtException, see the error trace above.', { error });
+    logger.fatal('UncaughtException, see the error trace above or bellow.', { error });
     console.error(error);
     try {
       await earlyCleanup(true);
@@ -131,8 +131,20 @@ export async function main(props?: Props) {
   process.on('uncaughtException', earlyException);
 
   // Test log FTP connection and RCON, as it is best for user to fail early if credentials are wrong.
-  await rconSquad.connect();
-  await logReader.connect();
+  try {
+    await rconSquad.connect(); // todo, right now, wrong password is not properly handled, and will not stop SquadTS !!
+  } catch (error: any) {
+    logger.fatal(`Failed to connect to RCON server: ${error?.message}`, { error });
+    await earlyCleanup();
+    return;
+  }
+
+  const successLogReader = await logReader.connect();
+
+  if (!successLogReader) {
+    await earlyCleanup();
+    return;
+  }
 
   // Fetch admin lists from server config and cache it.
   await adminList.update();

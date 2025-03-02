@@ -12,6 +12,7 @@ import { retryWithExponentialBackoff } from './retry-with-eponential-backoff';
 import { TMP_DIR } from '../config/path-constants.mjs';
 import { promiseWithTimeout } from '../utils';
 import { Readable } from 'node:stream';
+import chalk from 'chalk';
 
 type Props = {
   timeout?: number;
@@ -404,8 +405,51 @@ export function useFtpTail(logger: Logger, options: Props) {
         (options.protocol === 'ftp' ? options.ftp.port : options.sftp.port);
 
       logger.info(`Connecting to ${options.protocol.toUpperCase()} ${address}...`);
-      await client.connect();
+      try {
+        await client.connect();
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          // Tried manually for FTP
+          const likelyWrongProtocol = e.message.includes('Timed out while waiting for handshake');
+          const likelyWrongHost = e.message.includes('Remote host refused connection');
+          const likelyWrongPwdOrUser = e.message.includes('Timed out while waiting for handshake');
+          let helperMessage = `Make sure of: 
+- Correct credentials
+- Correct address
+- Correctly choose between FTP and SFTP in the config
+- Your FTP/SFTP server is running`;
+
+          if (likelyWrongProtocol) {
+            helperMessage = helperMessage.replace(
+              'Correctly choose between FTP and SFTP in the config',
+              chalk.bgYellow.bold('Correctly choose between FTP and SFTP in the config')
+            );
+          }
+          if (likelyWrongHost) {
+            helperMessage = helperMessage.replace(
+              'Correct address',
+              chalk.bgYellow.bold('Correct address')
+            );
+          }
+          if (likelyWrongPwdOrUser) {
+            helperMessage = helperMessage.replace(
+              'Correct credentials',
+              chalk.bgYellow.bold('Correct credentials')
+            );
+          }
+
+          logger.fatal(`Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${e.message}`
+            + '\n' + helperMessage,
+            e
+          );
+        } else {
+          logger.fatal(`Error while connecting to ${options.protocol.toUpperCase()} ${address}: ${(e as any)?.message}`, e);
+          console.error(e); // logger may not correctly display the error...
+        }
+        return false;
+      }
       logger.info(`Connected to ${options.protocol.toUpperCase()} ${address}`);
+      return true;
     },
     line$,
     watch,

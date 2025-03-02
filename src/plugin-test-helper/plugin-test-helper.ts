@@ -42,6 +42,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
     },
     connect: async () => {
       /* no-op */
+      return true;
     },
     watch: async () => {
       /* no-op */
@@ -254,42 +255,7 @@ export function setRconMock(
         '⚠️ Returning default data for ShowServerInfo command, if you are using server.info in your tests, provide your own data !'
       );
       return Promise.resolve(
-        JSON.stringify({
-          MaxPlayers: 24,
-          GameMode_s: 'Skirmish',
-          MapName_s: 'Skorpo_Skirmish_v1',
-          SEARCHKEYWORDS_s: 'squadtstestserver,skorposkirmishv1,skirmish',
-          GameVersion_s: 'v8.2.1.369429.845',
-          LICENSEDSERVER_b: false,
-          PLAYTIME_I: '5616',
-          Flags_I: '7',
-          MATCHHOPPER_s: 'TeamDeathmatch',
-          MatchTimeout_d: 120,
-          SESSIONTEMPLATENAME_s: 'GameSession',
-          Password_b: false,
-          PlayerCount_I: '0',
-          ServerName_s: 'SquadTS Test Server',
-          CurrentModLoadedCount_I: '0',
-          AllModsWhitelisted_b: false,
-          TeamTwo_s: 'USA_S_CombinedArms',
-          TeamOne_s: 'IMF_S_CombinedArms',
-          NextLayer_s: 'Al Basrah RAAS v1',
-          'eu-central-1_I': '14',
-          'eu-west-2_I': '15',
-          'eu-north-1_I': '50',
-          'us-east-1_I': '84',
-          'me-central-1_I': '79',
-          'us-west-1_I': '152',
-          'ap-east-1_I': '238',
-          'ap-southeast-2_I': '289',
-          'ap-southeast-1_I': '17',
-          Region_s: 'eu-central-1',
-          PlayerReserveCount_I: '0',
-          PublicQueueLimit_I: '25',
-          PublicQueue_I: '0',
-          ReservedQueue_I: '0',
-          BeaconPort_I: '15003',
-        } as GameServerInfo)
+        JSON.stringify(defaultServerInfo)
       );
     }
 
@@ -310,3 +276,40 @@ Team ID: 2 (Manticore Security Task Force)
     }
   });
 }
+
+export const defaultServerInfo: GameServerInfo = {
+  MaxPlayers: 24,
+  GameMode_s: 'Skirmish',
+  MapName_s: 'Skorpo_Skirmish_v1',
+  SEARCHKEYWORDS_s: 'squadtstestserver,skorposkirmishv1,skirmish',
+  GameVersion_s: 'v8.2.1.369429.845',
+  LICENSEDSERVER_b: false,
+  PLAYTIME_I: '5616',
+  Flags_I: '7',
+  MATCHHOPPER_s: 'TeamDeathmatch',
+  MatchTimeout_d: 120,
+  SESSIONTEMPLATENAME_s: 'GameSession',
+  Password_b: false,
+  PlayerCount_I: '0',
+  ServerName_s: 'SquadTS Test Server',
+  CurrentModLoadedCount_I: '0',
+  AllModsWhitelisted_b: false,
+  TeamTwo_s: 'USA_S_CombinedArms',
+  TeamOne_s: 'IMF_S_CombinedArms',
+  NextLayer_s: 'Al Basrah RAAS v1',
+  'eu-central-1_I': '14',
+  'eu-west-2_I': '15',
+  'eu-north-1_I': '50',
+  'us-east-1_I': '84',
+  'me-central-1_I': '79',
+  'us-west-1_I': '152',
+  'ap-east-1_I': '238',
+  'ap-southeast-2_I': '289',
+  'ap-southeast-1_I': '17',
+  Region_s: 'eu-central-1',
+  PlayerReserveCount_I: '0',
+  PublicQueueLimit_I: '25',
+  PublicQueue_I: '0',
+  ReservedQueue_I: '0',
+  BeaconPort_I: '15003',
+};

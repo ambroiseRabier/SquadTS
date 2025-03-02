@@ -17,6 +17,7 @@ export function useRconSquad(logger: Logger, rcon: Rcon, config: RconSquadConfig
     ...useRconSquadExecute(rcon.execute.bind(rcon), config.dryRun, logger),
     ...useSquadEvents(logger, rcon.chatPacketEvent),
 
+    // Bind is needed here because RCON is a class.
     connect: rcon.connect.bind(rcon),
     disconnect: rcon.disconnect.bind(rcon),
   };
