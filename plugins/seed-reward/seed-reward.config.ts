@@ -82,7 +82,9 @@ const schema = z
       'John get whitelisted the 2 feb 2025 for 7days. But John keep helping the server and obtain another reward the 4 feb 2025,\n' +
       'whitelist will end the 11 feb 2025. Not the 16 feb 2025.\n' +
       '\n' +
-      'The point of that system, is to avoid a player staying 24/24 7/7 in the seed obtaining a one year whitelist that may not be fulfilled.'
+      'The point of that system, is to avoid a player staying 24/24 7/7 in the seed obtaining a one year whitelist that may not be fulfilled.\n' +
+      '\n' +
+      'If you are using https://github.com/fantinodavide/Squad_Whitelister you likely should disable this plugin.'
   );
 
 export type SeedRewardOptions = z.infer<typeof enabledSchema>;

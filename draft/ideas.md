@@ -161,3 +161,5 @@ mauvais mdp !!
 
 et il continue...
 je vais changer rcon.ts de toute façon
+
+## Prévenir si champs manquant en config (due a une update)

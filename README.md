@@ -274,6 +274,15 @@ set by the Squad server by allowing pass through.
 If you want to observe SquadTS behavior first, you push this step further and disable
 game modifying RCON command with `{dryRun: true}` in `<your-config>/rconSquad.json5`
 
+## Updating SquadTS
+
+Using git is easiest:
+
+```shell
+git pull
+npm install
+```
+
 # Dev
 
 ## Setup

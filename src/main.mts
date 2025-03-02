@@ -21,6 +21,7 @@ import { obtainRCONPlayersAndSquads } from './cached-game-status/rcon-updates';
 import { ServerConfigFile, useSquadConfig } from './squad-config/use-squad-config';
 import { useAdminList } from './admin-list/use-admin-list';
 import { joinSafeSubPath, promiseWithTimeout } from './utils';
+import { logGitVersion } from './log-git-version';
 
 interface Props {
   /**
@@ -38,6 +39,7 @@ interface Props {
 export async function main(props?: Props) {
   const logger = useLogger();
   logger.info('Starting SquadTS');
+  logGitVersion(logger);
 
   // Load config from object if it is a test server, or from directory if non-test server.
   const { valid, config } = !!props?.mocks

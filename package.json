@@ -13,7 +13,8 @@
     "prettier": "node --experimental-strip-types node_modules/prettier/bin/prettier.cjs . --write",
     "prepare": "husky",
     "typecheck": "npx tsc --noEmit --project tsconfig.test-included.json",
-    "generate-plugin": "tsx scripts/generate-plugin.ts"
+    "generate-plugin": "tsx scripts/generate-plugin.ts",
+    "postinstall": "tsx scripts/write-git-info.mts"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5",

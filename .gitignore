@@ -38,3 +38,7 @@ yarn-error.log*
 
 # Test temporary folder, for example to create a temporary SQLite db.
 /test-tmp
+
+# File created to store current commit the project is at to help identify which version is running.
+# File is created on postinstall
+/git-info.json
