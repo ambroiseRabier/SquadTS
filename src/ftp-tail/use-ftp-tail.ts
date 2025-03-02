@@ -53,11 +53,11 @@ function useClient(options: Props) {
     async readFile(filepath: string) {
       const localTempFile = path.join(TMP_DIR, path.basename(filepath));
 
+      // Ensure the directory exists (for both FTP and SFTP)
+      await fs.promises.mkdir(TMP_DIR, { recursive: true });
+
       if (options.protocol === 'ftp') {
         try {
-          // Ensure the directory exists
-          await fs.promises.mkdir(TMP_DIR, { recursive: true });
-
           // Download the remote file to a temporary local file
           await ftpClient.downloadTo(localTempFile, filepath);
           return await fs.promises.readFile(localTempFile, 'utf8');
