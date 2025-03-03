@@ -42,3 +42,6 @@ yarn-error.log*
 # File created to store current commit the project is at to help identify which version is running.
 # File is created on postinstall
 /git-info.json
+
+# Example path in README.md, in case someone leave it by default.
+/myserver-config

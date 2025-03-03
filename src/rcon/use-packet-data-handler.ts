@@ -1,11 +1,13 @@
 import { Logger } from 'pino';
 import { PacketType } from './use-rcon';
 
-
+/**
+ * Handle raw data, transform it into a Packet.
+ * Calls onPacketCallback when finished decoding.
+ */
 export function usePacketDataHandler(
   logger: Logger,
-  onChatPacket: (packet: Packet) => void,
-  onResPacket: (packet: Packet) => void
+  onPacketCallback: (packet: Packet) => void,
 ) {
   const incomingChunks: Buffer[] = [];
   let chunksByteLength = 0;
@@ -13,6 +15,7 @@ export function usePacketDataHandler(
   let packetType: PacketType | undefined;
 
   function cleanUp() {
+    incomingChunks.length = 0;
     chunksByteLength = 0;
     actualPacketLength = undefined;
     packetType = undefined;
@@ -69,21 +72,13 @@ export function usePacketDataHandler(
     packetType = undefined;
     actualPacketLength = undefined;
 
-    // Chat value seems to be unique to Squad. I have no idea if there can be multi-packet
-    // response for chat value, I will assume there isn't.
-    if (packetType === PacketType.CHAT_VALUE) {
-      onChatPacket(decodePacket(combinedData));
-    }
-    // Doc "A SERVERDATA_RESPONSE_VALUE packet is the response to a SERVERDATA_EXECCOMMAND request."
-    else if (packetType === PacketType.RESPONSE_VALUE) {
-      onResPacket(decodePacket(combinedData));
-    }
+    onPacketCallback(decodePacket(combinedData));
   }
 
   return {
+    cleanUp,
     onData,
-    cleanUp
-  }
+  };
 }
 
 
