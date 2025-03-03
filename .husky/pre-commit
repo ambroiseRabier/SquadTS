@@ -1,3 +1,4 @@
+
 # Check typing, as tsx does not check typing.
 echo "--------- Checking Typescript ---------"
 npx tsc --noEmit --project tsconfig.test-included.json
@@ -31,6 +32,19 @@ if [ -n "$(git ls-files --others --exclude-standard config)" ]; then
 fi
 
 echo "✅ Config is up-to-date."
+
+# Run NPM install, for example, if a postinstall script is added, npm i needs
+# to be called for the lock file to be updated.
+npm i
+
+## Check for unstaged changes in tracked files
+if [ -n "$(git diff --name-only package-lock.json)" ]; then
+  echo "⚠️ package-lock.json has changed after running \`npm i\`."
+  echo "⚠️ Please review the changes before commiting again."
+  exit 1
+fi
+
+echo "✅ package-lock.json is up-to-date."
 
 
 # Run tests
