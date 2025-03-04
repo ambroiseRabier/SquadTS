@@ -22,7 +22,8 @@ export function usePacketDataHandler(
   }
 
   function onData(data: Buffer<ArrayBufferLike>) {
-    logger.trace(`Got data: ${bufToHexString(data)}`); // todo: is pwd displayed ? on auth ? otherwise is id 0 as special
+    // Note: auth request will not come back with password, so we won't display the password here.
+    logger.trace(`Got data: ${bufToHexString(data)}`);
 
     chunksByteLength += data.byteLength;
     // Incoming date will come in order, so this is safe to do.
@@ -82,15 +83,35 @@ export function usePacketDataHandler(
 }
 
 
-export type Packet = ReturnType<typeof decodePacket>;
+export interface Packet {
+  size: number;
+  id: number;
+  type: PacketType;
+  body: string;
+}
+
+// Add validation for packet type
+function isValidPacketType(type: number): type is PacketType {
+  return Object.values(PacketType).includes(type);
+}
 
 function decodePacket(packet: Buffer) {
+  const size = packet.readUInt32LE(0);
+  const id = packet.readUInt32LE(4);
+  const type = packet.readUInt32LE(8);
+  // decoding as utf8 is compatible with ascii, not sure if we receive only ascii.
+  const body = packet.toString('utf8', 12, packet.byteLength - 2);
+
+  // May happen on a Squad update, if a new packet type is added.
+  if (!isValidPacketType(type)) {
+    throw new Error(`Invalid/Unknown packet type: ${type}, with body: ${body}`);
+  }
+
   return {
-    size: packet.readUInt32LE(0),
-    id: packet.readUInt32LE(4),
-    type: packet.readUInt32LE(8),
-    // decoding as utf8 is compatible with ascii, not sure if we receive only ascii.
-    body: packet.toString('utf8', 12, packet.byteLength - 2),
+    size,
+    id,
+    type,
+    body,
   };
 }
 

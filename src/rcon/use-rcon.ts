@@ -30,7 +30,7 @@ export enum PacketType {
 const INT32_MAX = 2 ** 31 - 1; // 2,147,483,647
 const INT32_MIN = -(2 ** 31);  // -2,147,483,648
 const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
-const MAX_CONNECT_RETRY = 5;
+const MAX_CONNECT_RETRY = 4; // keep it low.
 
 /**
  * The packet id field is a 32-bit little endian integer chosen by the client for each request.
@@ -56,6 +56,8 @@ function usePacketIdGen() {
 // todo: can we retry request in case of disconnect, instead of shuffling errors and letting the rest of the app
 // having to deal with unreliable execute request? or just error whole app on rcon disconnect (boou)
 
+export type Rcon = ReturnType<typeof useRcon>;
+
 /**
  * Doc: https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
  */
@@ -66,36 +68,143 @@ export function useRcon(options: RconOptions, logger: Logger) {
   let retryTimeout: NodeJS.Timeout | undefined = undefined;
   const genPacketId = usePacketIdGen(); // todo: what if there is already a callback waiting for that id ?
   const chatPacketEvent = new Subject<string>();
-
   const packetDataHandler = usePacketDataHandler(logger, onPacket);
+  let retryComplete: Promise<void> | undefined;
+  let resolveRetry: ((value: (void | PromiseLike<void>)) => void) | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rejectRetry: ((reason?: any) => void) | undefined;
 
   function connect() {
     return new Promise<void>((resolve, reject) => {
-      client = new net.Socket();
+      client = new net.Socket(); // allowHalfOpen ?, keepAlive ?
+
+      function earlyError(error: Error) {
+        // Remove connect listener
+        client.removeAllListeners();
+        client.destroy();
+        reject(error);
+      }
+
+      // https://nodejs.org/api/net.html#socketconnect
+      // "If there is a problem connecting, instead of a 'connect' event, an 'error' event will be emitted with the error passed to the 'error' listener."
+      client.once('error', earlyError);
+
       client.once('connect', () => {
         logger.info(`Connected to ${options.host}:${options.port}`);
         retryCount = 0;
 
         logger.info('Sending authentication packet...');
+
+        // Doc "When the server receives an auth request, it will respond with an empty SERVERDATA_RESPONSE_VALUE,
+        // followed immediately by a SERVERDATA_AUTH_RESPONSE indicating whether authentication succeeded or failed."
+        // Meaning we await two packets.
+        function* authPacketsGenerator() {
+          // Note about generators: I've learned that passing packet as parameter of `authPackets`
+          // is not okay as the parameter will be re-used on next yield if "next" is called
+          // without parameter. Not that I would do that!
+          // But being more explicit fix the issue.
+
+          // Simply ignore the first packet
+          let packet: Packet = yield;
+          if (packet.type !== PacketType.RESPONSE_VALUE) {
+            throw new Error(`Unexpected first packet type ${packet.type} with body: ${packet.body}`);
+          }
+
+          // This contains the info we need
+          packet = yield;
+          if (packet.type !== PacketType.AUTH_RESPONSE) {
+            throw new Error(`Unexpected first packet type ${packet.type} with body: ${packet.body}`);
+          }
+          // Doc "Note that the status code is returned in the packet id field"
+          // "If authentication was successful, the ID assigned by the request. If auth failed, -1 (0xFF FF FF FF)"
+          if (packet.id !== -1) {
+            logger.info(`Authenticated to ${options.host}:${options.port}`);
+            resolve(); // auth succeeded
+          } else {
+            logger.error('Authentication failed.');
+            reject();
+          }
+        }
+
+        const handleAuthPackets = authPacketsGenerator();
+        // Start the generator
+        handleAuthPackets.next();
+
+        // handleAuthPackets.next will be called exactly two times more.
+        // Note: I believe handling auth data separately from other responses make it easier to follow and debug.
+        const onAuthData = usePacketDataHandler(logger, handleAuthPackets.next);
+
+        // Listen to data before sending auth response
+        client.on('data', onAuthData);
         sendAuth().then(success => {
           if (success) {
             logger.info(`Authenticated to ${options.host}:${options.port}`);
+
+            // remove auth and connect error listener
+            client.removeListener('error', earlyError);
+            // remove auth data listener
+            client.removeListener('data', onAuthData);
+
+            // listen to error
+            client.once('error', onError);
+            // listen to data
+            client.on('data', packetDataHandler.onData);
+
             resolve();
           } else {
             logger.error('Authentication failed.');
+            // remove error listener
+            client.removeAllListeners();
+            client.destroy();
             // If authentification fails, there is no point retrying later.
             reject('Authentication failed.');
           }
-        });
+        }).catch(reject);
       });
 
-      client.on('data', packetDataHandler.onData);
-      client.once('error', onError);
+      // client.on('data', packetDataHandler.onData);
+      // client.once('error', onError);
+      // client.once('error', (err) => {
+      //   console.log('error');
+      //   reject(err);
+      // });
+      client.once('close', (hadError: boolean) => {
+        console.log('close');
+        console.log(hadError);
+        //reject(hadError);
+      })
+      // client.on('connectionAttemptTimeout', () => {
+      //   console.log('connectionAttemptTimeout');
+      // })
+      // client.on('connectionAttemptFailed', () => {
+      //   console.log('connectionAttemptFailed');
+      //   reject('connectionAttemptFailed');
+      // })
+      // client.on('connectionAttempt', () => {
+      //   console.log('connectionAttempt');
+      // })
+      client.on('timeout', () => {
+        console.log('timeout');
+        //reject('timeout');
+      })
+      client.on('end', () => {
+        console.log('end');
+        //reject('end');
+      })
+
+      client.connect(options.port, options.host);
+
     });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function onError(err: any) {
+    if (!retryComplete) {
+      retryComplete = new Promise<void>((resolve, reject) => {
+        resolveRetry = resolve;
+        rejectRetry = reject;
+      });
+    }
     logger.error(`net.Socket error: ${err?.message}`, err);
     console.error(err); // not sure if I can relay on logger to properly display the error :/
     // cleanUp(); maybe not ?
@@ -134,19 +243,36 @@ export function useRcon(options: RconOptions, logger: Logger) {
           // noinspection ES6MissingAwait
           sendExecPacket(requestBody, id);
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        resolveRetry!();
+        retryComplete = undefined;
+        resolveRetry = undefined;
       }, retryDelay * 1000);
-      retryDelay *= 2; // 5, 10, 20, 40, 80
+      // This may result in strange behavior of spammed rcon warn ?
+      retryDelay *= 2; // 5, 10, 20, 40, (80)
     } else {
+      // Don't reject, we would get errors all over the place and app
+      // would stop with uncaughtError.
+      // Let them hang, process will exit anyway
+      // or not?
+      // rejectRetry not supposed to be null here.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      rejectRetry!(new Error('RCON connect max retry reached, giving up.'));
+      retryComplete = undefined;
+      resolveRetry = undefined;
       logger.error('Max retry reached, giving up.');
       cleanUp();
-      // Likely this should call disconnect which will call cleanUp...
+      // Likely this will call disconnect which will call cleanUp...
       // Maybe I make something better than relying on UncaughtError in main.mts ?
       throw new Error('RCON disconnected after max retry reached.')
     }
   }
 
   function cleanUp() {
+    if (retryTimeout) {
+      clearTimeout(retryTimeout);
+    }
+    client.removeAllListeners();
     client.destroy();
     // Because you think removing unused variables make the code easier to understand here eslint ??
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -156,9 +282,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
     awaitedCallbacks.clear();
     resPackets.length = 0;
     packetDataHandler.cleanUp();
-    if (retryTimeout) {
-      clearTimeout(retryTimeout);
-    }
   }
 
   function disconnect() {
@@ -201,7 +324,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
           resolve(false);
         },
         reject,
-        requestBody: '', // not needed, auth won't be resumed.
+        requestBody: '<hidden>', // not needed, auth won't be resumed.
       });
 
       // Doc "If authentication was successful, the ID assigned by the request"
@@ -211,7 +334,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
           resolve(true);
         },
         reject,
-        requestBody: '', // not needed, auth won't be resumed.
+        requestBody: '<hidden>', // not needed, auth won't be resumed.
       });
 
       // Send the packet
@@ -284,6 +407,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
     }
     // Doc "A SERVERDATA_RESPONSE_VALUE packet is the response to a SERVERDATA_EXECCOMMAND request."
     else if (packet.type === PacketType.RESPONSE_VALUE) {
+      // Special handler because RESPONSE_VALUE can have multi-packets response
       onResPacket(packet);
     }
     else if (packet.type === PacketType.AUTH_RESPONSE) {
@@ -297,7 +421,14 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
   let resPackets: Packet[] = [];
 
+  /**
+   * Handle packets of type PacketType.RESPONSE_VALUE
+   */
   function onResPacket(packet: Packet) {
+    if (packet.type !== PacketType.RESPONSE_VALUE) {
+      throw new Error(`Unexpected packet type ${packet.type} with body: ${packet.body}`);
+    }
+
     const isEmptyPacket = packet.body.length === 0;
 
     // Doc "Unfortunately, it can be difficult to accurately determine from the first packet
@@ -328,7 +459,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
   function executePacketCallback(packet: Packet) {
     if (!awaitedCallbacks.has(packet.id)) {
-      throw new Error('Unexpected: onData: callback is null');
+      throw new Error(`Unexpected: onData: callback is not set for id ${packet.id}, with body: ${packet.body}`);
     }
 
     // Safe here because has above.
@@ -339,8 +470,13 @@ export function useRcon(options: RconOptions, logger: Logger) {
   }
 
 
-  function execute<T extends string>(command: IncludesRCONCommand<T>) {
-    return sendExecPacket(command);
+  async function execute<T extends string>(command: IncludesRCONCommand<T>) {
+    // Currently retrying, wait for retry to be successful or abort request with the server...
+    if (retryComplete) {
+      await retryComplete;
+    }
+
+    return await sendExecPacket(command);
   }
 
   return {

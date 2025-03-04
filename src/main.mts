@@ -22,6 +22,7 @@ import { ServerConfigFile, useSquadConfig } from './squad-config/use-squad-confi
 import { useAdminList } from './admin-list/use-admin-list';
 import { joinSafeSubPath, promiseWithTimeout } from './utils';
 import { logGitVersion } from './log-git-version';
+import { useRcon } from './rcon/use-rcon';
 
 interface Props {
   /**
@@ -70,7 +71,7 @@ export async function main(props?: Props) {
     logReaderLogger,
     githubInfoLogger,
   } = useSubLogger(logger, config.logger.verbosity);
-  const rcon = props?.mocks.rcon ?? new Rcon(config.rcon, rconLogger);
+  const rcon = props?.mocks.rcon ?? useRcon(config.rcon, rconLogger);
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
   const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
   const logParser = useLogParser(
@@ -145,7 +146,8 @@ export async function main(props?: Props) {
     await rconSquad.connect(); // todo, right now, wrong password is not properly handled, and will not stop SquadTS !!
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.fatal(`Failed to connect to RCON server: ${error?.message}`, { error });
+    logger.fatal(`Failed to connect to RCON server: ${error?.message}`, {error});
+    console.error(error);
     await earlyCleanup();
     return;
   }
