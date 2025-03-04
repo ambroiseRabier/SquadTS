@@ -38,6 +38,8 @@ Me semble que je l'ai zappé, pour `!status`
   J'ai que ce log :(, c pas assez, je peux pas limiter l'arme ni même être certain que il est mort (ou alors je prends sur 1sec ?) (peut pas limiter l'arme, trop dommage)
   : `No match on line: [2025.02.22-16.20.18:430][512]LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.`
 - Squad claim (indique qui a la prio, si ce n'est option de kick le joueur ds un truc qui n'a pas la prio... ?)
+- plugin qui force certaines map tres populaire genre fallujah apres une certaine heure et un certain nombre de joueur, genre apres 23h france sur serv
+  anglais, j'ai vu le mapvote enlever pr fallujah direct. peut etre un set next layer ? 
 
 ## Plugin pas à refaire
 

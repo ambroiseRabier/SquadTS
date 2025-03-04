@@ -74,6 +74,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let rejectRetry: ((reason?: any) => void) | undefined;
 
+  // todo test behavior with empty pwd and wrong pwd.
   function connect() {
     return new Promise<void>((resolve, reject) => {
       client = new net.Socket(); // allowHalfOpen ?, keepAlive ?
@@ -91,9 +92,10 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
       client.once('connect', () => {
         logger.info(`Connected to ${options.host}:${options.port}`);
-        retryCount = 0;
+        retryCount = 0; // Internet is ok, reset retry count.
 
         logger.info('Sending authentication packet...');
+
 
         // Doc "When the server receives an auth request, it will respond with an empty SERVERDATA_RESPONSE_VALUE,
         // followed immediately by a SERVERDATA_AUTH_RESPONSE indicating whether authentication succeeded or failed."
@@ -118,11 +120,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
           // Doc "Note that the status code is returned in the packet id field"
           // "If authentication was successful, the ID assigned by the request. If auth failed, -1 (0xFF FF FF FF)"
           if (packet.id !== -1) {
-            logger.info(`Authenticated to ${options.host}:${options.port}`);
-            resolve(); // auth succeeded
+            onAuthSuccess();
           } else {
-            logger.error('Authentication failed.');
-            reject();
+            onAuthFail();
           }
         }
 
@@ -132,36 +132,43 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
         // handleAuthPackets.next will be called exactly two times more.
         // Note: I believe handling auth data separately from other responses make it easier to follow and debug.
-        const onAuthData = usePacketDataHandler(logger, handleAuthPackets.next);
+        // cleanup from hook is not needed here, as it onData will not be re-used after auth.
+        const {onData: onAuthData} = usePacketDataHandler(logger, handleAuthPackets.next.bind(handleAuthPackets));
 
         // Listen to data before sending auth response
         client.on('data', onAuthData);
-        sendAuth().then(success => {
-          if (success) {
-            logger.info(`Authenticated to ${options.host}:${options.port}`);
+        const encodedPacket = encodePacket(PacketType.AUTH, 0, options.password);
+        client.write(encodedPacket);
 
-            // remove auth and connect error listener
-            client.removeListener('error', earlyError);
-            // remove auth data listener
-            client.removeListener('data', onAuthData);
+        function onAuthSuccess() {
+          logger.info(`Authenticated to ${options.host}:${options.port}`);
 
-            // listen to error
-            client.once('error', onError);
-            // listen to data
-            client.on('data', packetDataHandler.onData);
+          // remove auth and connect error listener
+          client.removeListener('error', earlyError);
+          // remove auth data listener
+          client.removeListener('data', onAuthData);
 
-            resolve();
-          } else {
-            logger.error('Authentication failed.');
-            // remove error listener
-            client.removeAllListeners();
-            client.destroy();
-            // If authentification fails, there is no point retrying later.
-            reject('Authentication failed.');
-          }
-        }).catch(reject);
+          // listen to error
+          client.once('error', onError);
+          // listen to data
+          client.on('data', packetDataHandler.onData);
+
+          resolve(); // auth succeeded
+        }
+
+        function onAuthFail() {
+          logger.error('Authentication failed.');
+
+          // remove error listener
+          client.removeAllListeners();
+          client.destroy();
+          // If authentification fails, there is no point retrying later.
+
+          reject();
+        }
       });
 
+      // tmp test
       // client.on('data', packetDataHandler.onData);
       // client.once('error', onError);
       // client.once('error', (err) => {
@@ -192,8 +199,8 @@ export function useRcon(options: RconOptions, logger: Logger) {
         //reject('end');
       })
 
+      // Last but not least
       client.connect(options.port, options.host);
-
     });
   }
 
@@ -310,37 +317,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
     });
   }
 
-  // todo test behavior with empty pwd and wrong pwd.
-  async function sendAuth() {
-    return new Promise<boolean>((resolve, reject) => {
-      // Reserved 0 id for auth request. (SquadTS choice, not a Valve doc)
-      const encodedPacket = encodePacket(PacketType.AUTH, 0, options.password);
-
-      // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#SERVERDATA_AUTH_RESPONSE
-      // Doc "If auth failed, -1"
-      awaitedCallbacks.set(-1, {
-        resolve: () => {
-          awaitedCallbacks.delete(0);
-          resolve(false);
-        },
-        reject,
-        requestBody: '<hidden>', // not needed, auth won't be resumed.
-      });
-
-      // Doc "If authentication was successful, the ID assigned by the request"
-      awaitedCallbacks.set(0, {
-        resolve: () => {
-          awaitedCallbacks.delete(-1);
-          resolve(true);
-        },
-        reject,
-        requestBody: '<hidden>', // not needed, auth won't be resumed.
-      });
-
-      // Send the packet
-      client.write(encodedPacket);
-    });
-  }
 
   /**
    * Returns the decoded response.
@@ -360,7 +336,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
       awaitedCallbacks.set(id, {
         resolve: (decodedData: Packet) => {
-          logger.debug(`Received packet with id ${id}`);
+          logger.debug(`"${body}" response: ${decodedData.body}`);
           resolve(decodedData.body);
         },
         reject,
@@ -410,10 +386,8 @@ export function useRcon(options: RconOptions, logger: Logger) {
       // Special handler because RESPONSE_VALUE can have multi-packets response
       onResPacket(packet);
     }
-    else if (packet.type === PacketType.AUTH_RESPONSE) {
-      executePacketCallback(packet);
-    }
     else {
+      // Auth responses are handled separately
       // Either indicating a mistake, or a new type of packet after a Squad update.
       logger.warn(`Unknown packet type ${packet.type} with body: ${packet.body}`);
     }
@@ -435,6 +409,8 @@ export function useRcon(options: RconOptions, logger: Logger) {
     // alone whether the response has been split.
     // One common workaround is for the client to send an empty SERVERDATA_RESPONSE_VALUE packet
     // after every SERVERDATA_EXECCOMMAND request."
+    //
+    // Doc again " receiving a response packet with an empty packet body guarantees that all of the meaningful response packets have already been received"
     if (isEmptyPacket) {
       // We have the full packet.
       // But... Doc "Also note that requests executed asynchronously can possibly send their
@@ -476,6 +452,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       await retryComplete;
     }
 
+    logger.debug(`Executing command: ${command}`);
     return await sendExecPacket(command);
   }
 
@@ -502,12 +479,15 @@ function encodePacket(
   body: string,
 ) {
   // Size, in bytes, of the whole packet.
+  // 14 => size = 4, id = 4, type = 4, string terminator = 2
   const size = Buffer.byteLength(body) + 14;
   const buffer = Buffer.alloc(size);
+  // size should not count itself. Doc:
+  // "Note that the packet size field itself is not included when determining the size of the packet, so the value of this field is always 4 less than the packet's actual length"
   buffer.writeInt32LE(size - 4, 0);
   buffer.writeInt32LE(id,       4);
   buffer.writeInt32LE(type,     8);
-  buffer.write(body, 12, size - 2, 'ascii'); // maybe SquadTS support utf8 ?
+  buffer.write(body, 12, size - 2, 'ascii'); // todo maybe SquadTS support utf8 ?
   // String terminator and 8 empty bits
   buffer.writeInt16LE(0, size - 2);
   return buffer;
