@@ -3,8 +3,8 @@
 export default (pascalName: string, kebabName: string) => {
   return `import { ${pascalName}Options } from './${kebabName}.config';
 import { afterAll, describe, expect, it, MockedFunction, vi } from 'vitest';
-import { setRconMock, TestServer, useTestServer, } from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { setRconMock, TestServer, useTestServer, } from '../../src/use-test-server/use-test-server';
+import { Rcon } from '../../src/rcon/use-rcon';
 
 
 describe('${pascalName}', () => {
@@ -44,7 +44,7 @@ Team ID: 2 (Manticore Security Task Force)\`,
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         // This parameter allows us to load only the plugin we want to test.
         pluginOptionOverride: {
           '${kebabName}': {

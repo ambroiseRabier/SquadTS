@@ -1,4 +1,4 @@
-import { Rcon } from '../src/rcon/rcon';
+import { useRcon } from '../src/rcon/use-rcon';
 import { RconOptions, rconOptionsSchema } from '../src/rcon/rcon.config';
 import fs from 'fs';
 import JSON5 from 'json5';
@@ -28,7 +28,7 @@ logger.level = 'info';
 
 async function rconExecute(options: RconOptions, command: string) {
   logger.info(`Executing command: ${command}`);
-  const rcon = new Rcon(options, logger);
+  const rcon = useRcon(options, logger);
   await rcon.connect();
   try {
     // At worse, server will handle the wrong command gracefully. Everything is still strings.

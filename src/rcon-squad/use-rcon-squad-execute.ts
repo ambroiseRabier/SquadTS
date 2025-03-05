@@ -1,4 +1,4 @@
-import { Rcon } from '../rcon/rcon';
+import { Rcon } from '../rcon/use-rcon';
 import { extractIDs } from '../rcon/id-parser';
 import { omit } from 'lodash-es';
 import { ObjectFromRegexStr } from '../log-parser/log-parser-helpers';

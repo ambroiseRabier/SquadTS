@@ -1,10 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
-import {
-  setRconMock,
-  TestServer,
-  useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { setRconMock, TestServer, useTestServer } from '../../src/use-test-server/use-test-server';
+import { Rcon } from '../../src/rcon/use-rcon';
 import { MaxPlayerInSquadOptions } from './max-player-in-squad.config';
 
 // test intended to run in order with one time executed initial startup
@@ -67,7 +63,7 @@ Team ID: 2 (Manticore Security Task Force)
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'max-player-in-squad': {
             __skipValidation: true, // Useful hack to avoid validation and force short timing and speed up test !

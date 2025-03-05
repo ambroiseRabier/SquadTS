@@ -5,7 +5,12 @@
 {
   discord: {
     enabled: false,
-    // Discord token. Get at https://discord.com/developers/applications
+    // Discord bot token. Do not confuse with public key.
+    // You can reset the token:
+    // 1. Go to https://discord.com/developers/applications
+    // 2. Select your bot.
+    // 3. Click on the bot menu and click on "Reset Token".
+    // 4. Copy the new token.
     token: '',
   },
 }

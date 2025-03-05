@@ -1,11 +1,7 @@
 import { EndMatchVoteOptions } from './end-match-vote.config';
 import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
-import {
-  setRconMock,
-  TestServer,
-  useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { setRconMock, TestServer, useTestServer } from '../../src/use-test-server/use-test-server';
+import { Rcon } from '../../src/rcon/use-rcon';
 
 describe('EndMatchVote', () => {
   let testBed: TestServer;
@@ -54,7 +50,7 @@ ID: 2 | Online IDs: EOS: player3 steam: 76561198016942033 | Name: Player3 | Team
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'end-match-vote': pluginConfig,
         },

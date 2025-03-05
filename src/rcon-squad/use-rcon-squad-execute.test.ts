@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi, MockedFunction, beforeEach } from 'vitest';
-import { Rcon } from '../rcon/rcon';
+import { Rcon } from '../rcon/use-rcon';
 import { useRconSquadExecute } from './use-rcon-squad-execute';
 import { gameServerInfoKeys } from './server-info.type';
 import { createMockLogger } from '../test-utils';

@@ -12,17 +12,28 @@ export function usePacketDataHandler(
   const incomingChunks: Buffer[] = [];
   let chunksByteLength = 0;
   let actualPacketLength: number | undefined;
-  let packetType: PacketType | undefined;
 
   function cleanUp() {
-    incomingChunks.length = 0;
+    incomingChunks.length = 0; // clear array, keep reference
     chunksByteLength = 0;
     actualPacketLength = undefined;
-    packetType = undefined;
   }
 
   function onData(data: Buffer<ArrayBufferLike>) {
-    logger.trace(`Got data: ${bufToHexString(data)}`); // todo: is pwd displayed ? on auth ? otherwise is id 0 as special
+    // Note: auth request will not come back with password, so we won't display the password here.
+    logger.trace(`Got data: ${bufToHexString(data)}`);
+
+    // One log trace function, that log as much as possible, usable anywhere safely in onDate function.
+    function logTracePacket() {
+      if (logger.level !== 'trace') {
+        return;
+      }
+      const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
+      const size = combinedData.length >= 4 && data.readUInt32LE(0);
+      const id = combinedData.length >= 8 && data.readUInt32LE(4);
+      const type = combinedData.length >= 12 && data.readUInt32LE(8);
+      logger.trace(`Incoming packet: ${JSON.stringify({ size, id, type })}`);
+    }
 
     chunksByteLength += data.byteLength;
     // Incoming date will come in order, so this is safe to do.
@@ -30,6 +41,7 @@ export function usePacketDataHandler(
 
     if (chunksByteLength < 4) {
       logger.trace('Waiting for enough data to read packet size.');
+      logTracePacket();
       return;
     }
 
@@ -45,34 +57,41 @@ export function usePacketDataHandler(
       // so the value of this field is always 4 less than the packet's actual length."
       actualPacketLength = sizeValue + 4;
 
+      // todo: why is chunksByteLength than actualPacketLength bigger sometime ?
       logger.trace(
         `Incoming packet size: ${actualPacketLength}, chunksByteLength: ${chunksByteLength}`
       );
     }
 
-    if (chunksByteLength < 12) {
-      logger.trace('Waiting for enough data to read packet type.');
+    if (chunksByteLength < 8) {
+      logger.trace('Waiting for enough data to read packet id.');
+      logTracePacket();
       return;
     }
 
-    // Read the packet type once.
-    if (packetType === undefined) {
-      const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
-      packetType = combinedData.readUInt32LE(8);
+
+    if (chunksByteLength < 12) {
+      logger.trace('Waiting for enough data to read packet type.');
+      logTracePacket();
+      return;
     }
 
     if (chunksByteLength < actualPacketLength) {
       logger.trace('Waiting for enough data to read full packet.');
+      logTracePacket();
       return;
     }
 
     const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
-    incomingChunks.length = 0; // clear array
-    chunksByteLength = 0;
-    packetType = undefined;
-    actualPacketLength = undefined;
+    cleanUp();
 
-    onPacketCallback(decodePacket(combinedData));
+    const decodedPacket = decodePacket(combinedData);
+
+    if (logger.level === 'trace') { // JSON.stringify is costly
+      logger.trace(`Decoded packet: ${JSON.stringify(decodedPacket)}`);
+    }
+
+    onPacketCallback(decodedPacket);
   }
 
   return {
@@ -82,15 +101,51 @@ export function usePacketDataHandler(
 }
 
 
-export type Packet = ReturnType<typeof decodePacket>;
+export interface Packet {
+  size: number;
+  id: number;
+  type: PacketType;
+  body: string;
+  isFollowResponse: boolean;
+}
 
-function decodePacket(packet: Buffer) {
+// Add validation for packet type
+function isValidPacketType(type: number): type is PacketType {
+  return Object.values(PacketType).includes(type);
+}
+
+function decodePacket(packet: Buffer): Packet {
+  const size = packet.readUInt32LE(0);
+  const id = packet.readUInt32LE(4);
+  const type = packet.readUInt32LE(8);
+
+  // Multi-packet responses end marker:
+  // Doc "Rather than throwing out the erroneous request, SRCDS mirrors it back to the client"
+  // But (Node stuff here) "The `toString('utf8')` method will decode all bytes in the specified range,
+  // even if they are null bytes or non-printable characters.
+  // It doesn’t treat `0x00` as a string terminator like null-terminated C strings."
+  const isStringTerminator = packet.readInt16LE(12) === 0;
+
+  // Doc "followed by another RESPONSE_VALUE packet containing 0x0000 0001 0000 0000 in the packet body field."
+  // Also known as "0a 00 00 00 01 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00"
+  const isFollowResponse = packet.length >= 16 && packet.readInt32LE(12) === 16777216;
+
+  // Decoding a string terminator will result in garbage data with a string length of 12,
+  // when we are expecting an empty string !
+  // decoding as utf8 is compatible with ascii, not sure if we receive only ascii.
+  const body = isStringTerminator ? '' : packet.toString('utf8', 12, packet.byteLength - 2);
+
+  // May happen on a Squad update, if a new packet type is added.
+  if (!isValidPacketType(type)) {
+    throw new Error(`Invalid/Unknown packet type: ${type}, with body: ${body}`);
+  }
+
   return {
-    size: packet.readUInt32LE(0),
-    id: packet.readUInt32LE(4),
-    type: packet.readUInt32LE(8),
-    // decoding as utf8 is compatible with ascii, not sure if we receive only ascii.
-    body: packet.toString('utf8', 12, packet.byteLength - 2),
+    size,
+    id,
+    type,
+    body,
+    isFollowResponse,
   };
 }
 

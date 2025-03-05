@@ -15,7 +15,7 @@ export function logGitVersion(logger: Logger): void {
   try {
     const gitInfo: GitInfo = JSON.parse(readFileSync(gitInfoPath, 'utf-8'));
     logger.info(
-      `Git version: ${gitInfo.hash} - ${gitInfo.message.substring(0, 75)}${gitInfo.message.length > 75 ? '...' : ''}`
+      `Git version: ${gitInfo.date} -  ${gitInfo.hash} - ${gitInfo.message.substring(0, 75)}${gitInfo.message.length > 75 ? '...' : ''}`
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

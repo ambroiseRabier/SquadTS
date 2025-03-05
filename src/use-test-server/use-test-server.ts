@@ -1,7 +1,7 @@
 import { main } from '../main.mjs';
 import { LogReader } from '../log-parser/use-log-reader';
 import { Subject } from 'rxjs';
-import { Rcon } from '../rcon/rcon';
+import { Rcon } from '../rcon/use-rcon';
 import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 import { Options } from '../config/config.schema';
 import { merge } from 'lodash-es';
@@ -67,7 +67,6 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
   const baseOptions: Options = {
     // rcon is not used because of the mock
     rcon: {
-      autoReconnectDelay: 5000,
       host: '127.0.0.1',
       port: 25575,
       password: 'examplePassword',
