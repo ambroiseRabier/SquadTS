@@ -11,6 +11,7 @@ import { Subject } from 'rxjs';
 import { Packet, usePacketDataHandler } from './use-packet-data-handler';
 import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
+import { useRetryConnect } from './use-retry-connect';
 
 /**
  * Doc: https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
@@ -32,7 +33,6 @@ const INT32_MAX = 2 ** 31 - 1; // 2,147,483,647
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const INT32_MIN = -(2 ** 31); // -2,147,483,648
 const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
-const MAX_CONNECT_RETRY = 4; // keep it low.
 
 /**
  * The packet id field is a 32-bit little endian integer chosen by the client for each request.
@@ -65,11 +65,9 @@ export type Rcon = ReturnType<typeof useRcon>;
  */
 export function useRcon(options: RconOptions, logger: Logger) {
   let client: net.Socket;
-  let retryTimeout: NodeJS.Timeout | undefined = undefined;
   const genPacketId = usePacketIdGen(); // todo: what if there is already a callback waiting for that id ?
   const chatPacketEvent = new Subject<string>();
   const packetDataHandler = usePacketDataHandler(logger, onPacket);
-  let retryComplete: Promise<void> | undefined;
 
   // todo test behavior with empty pwd and wrong pwd.
   function connect() {
@@ -187,18 +185,48 @@ export function useRcon(options: RconOptions, logger: Logger) {
     });
   }
 
+  let pendingExecute = 0;
+  let pendingExecuteWithoutCallback = 0;
+
+  // setTimeout(() => {
+  //   onError(new Error('fsdf'))
+  // }, 18000)
+
+  const {retryTimeout, retryConnect, retryComplete} = useRetryConnect({
+    logger,
+    connect,
+    cleanUp,
+    logResumePendingExecutes: () => {
+      logger.info(`${pendingExecuteWithoutCallback} pending execute without callback will be resumed.`);
+    },
+    resumePendingExecuteCallbacks: () => {
+      logger.info(`${pendingExecute} total pending execute will be resumed.`);
+      logger.info(`${awaitedCallbacks.size} pending execute with callback will be resumed.`);
+
+      // Immediately restart pending promise,
+      for (const [id, {requestBody}] of awaitedCallbacks) {
+        if (id === -1 || id === 0) {
+          // If we had any pending auth refusal or auth success request, remove it
+          // Although I think it is unlikely it ever happen.
+          continue;
+        }
+        // Existing promises are listening to awaitedCallbacks on certain id.
+        // If we re-use the same id, those same promise will be resolved if a packet with correct id come as response.
+        const encodedPacket = encodePacket(PacketType.EXEC_COMMAND, id, requestBody);
+        client.write(encodedPacket);
+        // Necessary to identify multi-packets responses (and we don't know which of Squad server response will be multi-packet,
+        // so every exec has this extra packet).
+        client.write(encodePacket(PacketType.EXEC_COMMAND, id, ''));
+      }
+    },
+  });
+
   // todo likely can move that into another file.
   /**
    * onError will be called when a packet is sent but fail due to absence of internet connection.
    * Maybe also if the Squad server is restarting.
    */ // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function onError(err: any) {
-    let resolveRetry: ((value: void | PromiseLike<void>) => void) | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectRetry: ((reason?: any) => void) | undefined;
-    let retryCount = 0;
-    let retryDelay = 5;
-
     // Inform
     logger.error(`net.Socket error: ${err?.message}`, err);
     console.error(err); // not sure if I can relay on logger to properly display the error :/
@@ -211,117 +239,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
     resPackets.length = 0;
     packetDataHandler.cleanUp();
 
-    if (retryComplete) {
-      throw new Error(
-        'Unexpected: another retry in progress or previous retry improperly cleanup.'
-      );
-    }
-
-    retryComplete = new Promise<void>((resolve, reject) => {
-      resolveRetry = resolve;
-      rejectRetry = reject;
-    });
-
-    // Start retrying:
-    onRetryFail();
-
-    function onRetrySuccess() {
-      logger.info(`${awaitedCallbacks.size} pending promises will be resumed.`);
-
-      // Immediately restart pending promise,
-      for (const [id, { requestBody }] of awaitedCallbacks) {
-        if (id === -1 || id === 0) {
-          // If we had any pending auth refusal or auth success request, remove it
-          // Although I think it is unlikely it ever happen.
-          continue;
-        }
-        // Existing promises are listening to awaitedCallbacks on certain id.
-        // If we re-use the same id, those same promise will receive the resolve.
-        // noinspection JSIgnoredPromiseFromCall
-        sendExecPacket(requestBody, id);
-      }
-
-      if (!resolveRetry) {
-        throw new Error('Unexpected: resolveRetry is not set');
-      }
-
-      // Tell pending RCON requests that they can proceed with being sent through the Socket.
-      resolveRetry();
-
-      // Cleanup
-      retryComplete = undefined;
-      resolveRetry = undefined;
-      rejectRetry = undefined;
-    }
-
-    /**
-     * Retry to connect.
-     * Keep in mind that:
-     * - SquadTS often call for ListPlayers, ListSquads, ShowServerInfo
-     * - Plugins may directly call RCON execute
-     * - RCON game modifying command like warn may not make sense to players if sent too late.
-     *
-     * With that in mind, we are retrying on a "short" period of time because
-     * we do not want too many pending RCON requests.
-     * Ideally, you should combine with docker "restart: unless-stopped" (or equivalent)
-     * to handle long period of disconnect.
-     */
-    function onRetryFail() {
-      if (retryCount < MAX_CONNECT_RETRY) {
-        // Visual shown 1/4 instead of 0/4 as this is what we are used to.
-        logger.info(
-          `Retrying in ${retryDelay} seconds (attempt ${retryCount + 1}/${MAX_CONNECT_RETRY})...`
-        );
-        // May need to be more coherent with how log with FTP work...
-        retryCount++;
-        retryTimeout = setTimeout(async () => {
-          // It should not error due to failed auth, since we already passed once.
-          // But it can error due to absence of internet connection (again)
-          try {
-            await connect();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } catch (error: any) {
-            if (error?.message === 'Authentication failed.') {
-              logger.fatal(
-                'Failed to reconnect to RCON server, authentification failed, did the password change ?'
-              );
-            }
-            logger.info('Connect attempt failed.');
-            onRetryFail(); // Keep retrying until retryCount is too high.
-            return;
-          }
-
-          onRetrySuccess();
-        }, retryDelay * 1000);
-        // This may result in strange behavior of spammed rcon warn ?
-        retryDelay *= 2; // 5, 10, 20, 40, (80)
-      } else {
-        onAllRetryFail();
-      }
-    }
-
-    function onAllRetryFail() {
-      if (!rejectRetry) {
-        throw new Error('Unexpected: rejectRetry is not set');
-      }
-
-      // Reject all pending RCON requests
-      // (maybe we shouldn't, all this likely send errors all over the place ?), let them hang ?
-      // todo: test above
-      rejectRetry(new Error('RCON connect max retry reached, giving up.'));
-
-      // Cleanup retryComplete, or it will keep buffering requests.
-      retryComplete = undefined;
-      resolveRetry = undefined;
-      rejectRetry = undefined;
-
-      // Annonce failure, cleanup locally, re-throw so the rest of the app can cleanup as well.
-      logger.error('Max retry reached, giving up.');
-      cleanUp();
-      // Likely this will call disconnect which will call cleanUp...
-      // Maybe I make something better than relying on UncaughtError in main.mts ?
-      throw new Error('RCON disconnected after max retry reached.');
-    }
+    retryConnect();
   }
 
   function cleanUp() {
@@ -343,52 +261,44 @@ export function useRcon(options: RconOptions, logger: Logger) {
   function disconnect() {
     return new Promise<void>(resolve => {
       logger.info(`Disconnected from ${options.host}:${options.port}`);
-      client.removeListener('data', packetDataHandler.onData);
 
-      // Force disconnect in 3 seconds if close isn't called.
-      const forceTimeout = setTimeout(() => {
-        // doubling error because this may needs some debugging later
-        console.error('Forcefully disconnecting from RCON server...');
-        cleanUp();
-        throw new Error('Forcefully disconnecting from RCON server...');
-      }, 3000);
+      // Note, plugins are shutdown first, they've got some time to
+      // await some RCON response if they REALLY need to.
+      // if there is still some RCON request pending, it is either bad luck
+      // for the plugin, or just the ListPlayers loop that is not critical...
 
-      // Since we wait for close, there should be not pending promise due to
-      // waiting data from RCON server.
-      client.once('close', () => {
-        clearTimeout(forceTimeout);
-        console.assert(
-          awaitedCallbacks.size === 0,
-          'Expected awaitedCallbacks to be empty when close event is called in graceful shutdown :/ ?'
-        );
-        cleanUp();
-        resolve();
-      });
-      client.end();
+      // Not sure here, when using end, it seems Squad server never end the connection
+      // on his side, meaning the socket remains open indefinitely.
+      // So instead of gracefully shutting it down, we force close it,
+      // resetAndDestroy seems to be the way to do it when it is not due to an error.
+      // client.end();
+      client.resetAndDestroy();
+      cleanUp();
+      resolve();
     });
   }
+
 
   /**
    * Returns the decoded response.
    */
-  async function sendExecPacket(body: string, forceId?: number) {
-    return new Promise<string>((resolve, reject) => {
-      const id = forceId ?? genPacketId();
+  async function sendExecPacket(body: string) {
+    return new Promise<Packet>((resolve, reject) => {
+      const id = genPacketId();
 
       // Well, this should never happen, we don't have Max int concurrent RCON requests...
       if (awaitedCallbacks.has(id)) {
         throw new Error(
           `Unexpected: ID ${id}, with request body ${awaitedCallbacks.get(id)?.requestBody} already has a callback.\n` +
-            `Either you have more than ${INT32_MAX} concurrent requests... Or you are using reserved id like -1 and 0`
+            `Either you have more than ${INT32_MAX} concurrent requests... Or you are using reserved id like -1 and 0 ?`
         );
       }
 
       const encodedPacket = encodePacket(PacketType.EXEC_COMMAND, id, body);
 
+      // 'data' event will use id sent in the packet to find resolve and reject.
       awaitedCallbacks.set(id, {
-        resolve: (decodedData: Packet) => {
-          resolve(decodedData.body);
-        },
+        resolve,
         reject,
         requestBody: body,
       });
@@ -505,68 +415,81 @@ export function useRcon(options: RconOptions, logger: Logger) {
   const cachedResponse = new Map<Lowercase<RCONCommand>, string>();
 
   async function execute<T extends string>(command: IncludesRCONCommand<T>) {
+    pendingExecute++;
+    pendingExecuteWithoutCallback++;
+
     // Currently retrying, wait for retry to be successful or abort request with the server...
     if (retryComplete) {
       await retryComplete;
     }
+    pendingExecuteWithoutCallback--;
+
+    if (!client.writable) {
+      throw new Error('RCON socket is not writable, did you make a RCON request after disconnect ?');
+    }
 
     logger.trace(`Executing command: ${command}`);
     return await sendExecPacket(command).then(res => {
+      pendingExecute--;
+      return res.body;
+    }).then(res => {
       // This is executed before `execute` returns.
-
-      const emitDebugLog = (cacheEnabledForCommand = false) =>
-        logger.debug(
-          `Command ${cacheEnabledForCommand ? '(logging only when changed)' : ''}: "${command}" --> "${res}"`
-        );
-
-      // Option to reduce verboseness.
-      if (options.debugCondenseLogs) {
-        // Note: case-insensitive matching.
-        const cl = command.match(/^(\w+) ?/);
-        if (!cl) {
-          throw Error(`Unexpected command (or wrong regex here): ${command}`);
-        }
-        const baseCommand = cl[1].toLowerCase() as Lowercase<RCONCommand>;
-        const cachedRes = cachedResponse.get(baseCommand);
-
-        const emitIfChanged = () => {
-          // Not cached, or cached, but res is different.
-          if (!cachedRes || (cachedRes && cachedRes !== res)) {
-            emitDebugLog(true);
-            cachedResponse.set(baseCommand, res);
-          }
-        };
-
-        switch (baseCommand) {
-          case RCONCommand.ListPlayers.toLowerCase():
-            // Extra option to further reduce the verboseness, right now, disconnect player are not used at all.
-            if (options.debugCondenseLogsIgnoreSinceDisconnect) {
-              if (cachedRes) {
-                if (hasChangesIgnoringSinceDisconnect(cachedRes, res)) {
-                  emitDebugLog(true);
-                } // else no change, doesn't emit
-              } else {
-                // not cached
-                emitDebugLog(true);
-              }
-            } else {
-              // No special behavior for ListPlayers
-              emitIfChanged();
-            }
-            break;
-          case RCONCommand.ShowServerInfo.toLowerCase():
-          case RCONCommand.ListSquads.toLowerCase():
-            emitIfChanged();
-            break;
-          default:
-            emitDebugLog();
-        }
-      } else {
-        emitDebugLog();
-      }
-
+      logExecute(command, res);
       return res;
     });
+  }
+
+  function logExecute(command: string, res: string) {
+    const emitDebugLog = (cacheEnabledForCommand = false) =>
+      logger.debug(
+        `Command ${cacheEnabledForCommand ? '(logging only when changed)' : ''}: "${command}" --> "${res}"`
+      );
+
+    // Option to reduce verboseness.
+    if (options.debugCondenseLogs) {
+      // Note: case-insensitive matching.
+      const cl = command.match(/^(\w+) ?/);
+      if (!cl) {
+        throw Error(`Unexpected command (or wrong regex here): ${command}`);
+      }
+      const baseCommand = cl[1].toLowerCase() as Lowercase<RCONCommand>;
+      const cachedRes = cachedResponse.get(baseCommand);
+
+      const emitIfChanged = () => {
+        // Not cached, or cached, but res is different.
+        if (!cachedRes || (cachedRes && cachedRes !== res)) {
+          emitDebugLog(true);
+          cachedResponse.set(baseCommand, res);
+        }
+      };
+
+      switch (baseCommand) {
+        case RCONCommand.ListPlayers.toLowerCase():
+          // Extra option to further reduce the verboseness, right now, disconnect player are not used at all.
+          if (options.debugCondenseLogsIgnoreSinceDisconnect) {
+            if (cachedRes) {
+              if (hasChangesIgnoringSinceDisconnect(cachedRes, res)) {
+                emitDebugLog(true);
+              } // else no change, doesn't emit
+            } else {
+              // not cached
+              emitDebugLog(true);
+            }
+          } else {
+            // No special behavior for ListPlayers
+            emitIfChanged();
+          }
+          break;
+        case RCONCommand.ShowServerInfo.toLowerCase():
+        case RCONCommand.ListSquads.toLowerCase():
+          emitIfChanged();
+          break;
+        default:
+          emitDebugLog();
+      }
+    } else {
+      emitDebugLog();
+    }
   }
 
   return {
