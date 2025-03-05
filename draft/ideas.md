@@ -39,7 +39,7 @@ Me semble que je l'ai zappé, pour `!status`
   : `No match on line: [2025.02.22-16.20.18:430][512]LogSquad: Warning: ASQWeapon::DealDamage was called but there was no valid actor or component.`
 - Squad claim (indique qui a la prio, si ce n'est option de kick le joueur ds un truc qui n'a pas la prio... ?)
 - plugin qui force certaines map tres populaire genre fallujah apres une certaine heure et un certain nombre de joueur, genre apres 23h france sur serv
-  anglais, j'ai vu le mapvote enlever pr fallujah direct. peut etre un set next layer ? 
+  anglais, j'ai vu le mapvote enlever pr fallujah direct. peut etre un set next layer ?
 
 ## Plugin pas à refaire
 
@@ -165,3 +165,9 @@ et il continue...
 je vais changer rcon.ts de toute façon
 
 ## Prévenir si champs manquant en config (due a une update)
+
+## Build en JS et tout pour réduire la taille total
+
+genre msgpack 700 => 40ko :/
+plutôt un bundler. (tree shaking) (une vraie release du coup, mais...)
+du coup un plugin en TS peut pas fonctionner, pas en drop-in ?

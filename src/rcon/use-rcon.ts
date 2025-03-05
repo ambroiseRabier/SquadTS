@@ -13,6 +13,15 @@ import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
 import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 import { useRetryConnect } from './use-retry-connect';
 
+/*
+ * Known issue: ctrl+C to terminate process while it is retrying keep it alive somehow
+ * I used something like that to test, so maybe that's not a very good test either.
+ * Has limited impact, since hopefully most of the time we ctrl+C we are not in a retry.
+  // setTimeout(() => {
+  //   onError(new Error('fake error'))
+  // }, 18000)
+ */
+
 /**
  * Doc: https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
  */
@@ -188,23 +197,21 @@ export function useRcon(options: RconOptions, logger: Logger) {
   let pendingExecute = 0;
   let pendingExecuteWithoutCallback = 0;
 
-  // setTimeout(() => {
-  //   onError(new Error('fsdf'))
-  // }, 18000)
-
-  const {retryTimeout, retryConnect, retryComplete} = useRetryConnect({
+  const { retryTimeout, retryConnect, retryComplete } = useRetryConnect({
     logger,
     connect,
     cleanUp,
     logResumePendingExecutes: () => {
-      logger.info(`${pendingExecuteWithoutCallback} pending execute without callback will be resumed.`);
+      logger.info(
+        `${pendingExecuteWithoutCallback} pending execute without callback will be resumed.`
+      );
     },
     resumePendingExecuteCallbacks: () => {
       logger.info(`${pendingExecute} total pending execute will be resumed.`);
       logger.info(`${awaitedCallbacks.size} pending execute with callback will be resumed.`);
 
       // Immediately restart pending promise,
-      for (const [id, {requestBody}] of awaitedCallbacks) {
+      for (const [id, { requestBody }] of awaitedCallbacks) {
         if (id === -1 || id === 0) {
           // If we had any pending auth refusal or auth success request, remove it
           // Although I think it is unlikely it ever happen.
@@ -277,7 +284,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
       resolve();
     });
   }
-
 
   /**
    * Returns the decoded response.
@@ -425,18 +431,22 @@ export function useRcon(options: RconOptions, logger: Logger) {
     pendingExecuteWithoutCallback--;
 
     if (!client.writable) {
-      throw new Error('RCON socket is not writable, did you make a RCON request after disconnect ?');
+      throw new Error(
+        'RCON socket is not writable, did you make a RCON request after disconnect ?'
+      );
     }
 
     logger.trace(`Executing command: ${command}`);
-    return await sendExecPacket(command).then(res => {
-      pendingExecute--;
-      return res.body;
-    }).then(res => {
-      // This is executed before `execute` returns.
-      logExecute(command, res);
-      return res;
-    });
+    return await sendExecPacket(command)
+      .then(res => {
+        pendingExecute--;
+        return res.body;
+      })
+      .then(res => {
+        // This is executed before `execute` returns.
+        logExecute(command, res);
+        return res;
+      });
   }
 
   function logExecute(command: string, res: string) {

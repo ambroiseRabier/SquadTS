@@ -5,14 +5,11 @@ import { useRconSquad } from './rcon-squad/use-rcon-squad';
 import { LogReader, useLogReader } from './log-parser/use-log-reader';
 import { useLogParser } from './log-parser/use-log-parser';
 import { retrieveGithubInfo } from './github-info/use-retrieve-github-info';
-import path from 'node:path';
 import { useCachedGameStatus } from './cached-game-status/use-cached-game-status';
 import { useSquadServer } from './squad-server';
 import { useDiscordConnector } from './connectors/use-discord.connector';
 import { usePluginLoader } from './plugin-loader/plugin-loader.mjs';
 import { Options } from './config/config.schema';
-import { dirname } from 'path';
-import { fileURLToPath } from 'node:url';
 import { Subject } from 'rxjs';
 import { useRefinedLogEvents } from './cached-game-status/use-refined-log-events';
 import { useRefinedChatEvents } from './cached-game-status/use-refined-chat-events';
@@ -23,6 +20,7 @@ import { useAdminList } from './admin-list/use-admin-list';
 import { joinSafeSubPath, promiseWithTimeout } from './utils';
 import { logGitVersion } from './log-git-version';
 import { useRcon } from './rcon/use-rcon';
+import { GITHUB_INFO_CACHE } from './config/path-constants.mjs';
 
 interface Props {
   /**
@@ -180,10 +178,7 @@ export async function main(props?: Props) {
   // Get extra info from squad wiki github. Only if file ETag changed.
   // todo use for.... ? Wasn't there a plugin that needed that
   // map vote maybe ? -> just allow to end match is enough with game map vote.
-  const githubInfo = await retrieveGithubInfo(
-    path.join(dirname(fileURLToPath(import.meta.url)), '..', 'github-info-cache'),
-    githubInfoLogger
-  );
+  const githubInfo = await retrieveGithubInfo(GITHUB_INFO_CACHE, githubInfoLogger);
 
   // Update the admin list once at game start.
   // I believe admin role changes are taken in account by squad only when changing layer.

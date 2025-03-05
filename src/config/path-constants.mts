@@ -60,3 +60,5 @@ export const LOG_FILE = path.join(PROJECT_ROOT, 'logs', 'SquadTS.log');
 
 // todo: path.join(os.tmpdir(), 'SquadTS') ?
 export const TMP_DIR = path.join(PROJECT_ROOT, 'tmp');
+
+export const GITHUB_INFO_CACHE = path.join(PROJECT_ROOT, 'github-info-cache');
