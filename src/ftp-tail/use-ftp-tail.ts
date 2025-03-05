@@ -393,7 +393,7 @@ export function useFtpTail(logger: Logger, options: Props) {
       logger.error(`Error while waiting for currentFetchPromise to resolve: ${e?.message}`, e);
     } finally {
       await client.disconnect();
-      logger.debug('FTP tail disconnected');
+      logger.info('FTP/SFTP disconnected');
     }
   }
 

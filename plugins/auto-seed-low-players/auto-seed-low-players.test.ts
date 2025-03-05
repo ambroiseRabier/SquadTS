@@ -1,10 +1,6 @@
 import { AutoSeedLowPlayers } from './auto-seed-low-players.config';
 import { afterEach, beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
-import {
-  setRconMock,
-  TestServer,
-  useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
+import { setRconMock, TestServer, useTestServer } from '../../src/use-test-server/use-test-server';
 import { Rcon } from '../../src/rcon/use-rcon';
 import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
 

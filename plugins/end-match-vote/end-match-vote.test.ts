@@ -1,10 +1,6 @@
 import { EndMatchVoteOptions } from './end-match-vote.config';
 import { afterAll, beforeAll, describe, expect, it, MockedFunction, vi } from 'vitest';
-import {
-  setRconMock,
-  TestServer,
-  useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
+import { setRconMock, TestServer, useTestServer } from '../../src/use-test-server/use-test-server';
 import { Rcon } from '../../src/rcon/use-rcon';
 
 describe('EndMatchVote', () => {

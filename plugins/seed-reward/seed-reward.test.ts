@@ -4,7 +4,7 @@ import {
   setRconMock,
   TestServer,
   useTestServer,
-} from '../../src/plugin-test-helper/plugin-test-helper';
+} from '../../src/use-test-server/use-test-server';
 import path from 'path';
 import fs from 'fs';
 import { SeedRewardOptions } from './seed-reward.config';
