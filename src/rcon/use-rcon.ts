@@ -65,16 +65,11 @@ export type Rcon = ReturnType<typeof useRcon>;
  */
 export function useRcon(options: RconOptions, logger: Logger) {
   let client: net.Socket;
-  let retryCount = 0;
-  let retryDelay = 5;
   let retryTimeout: NodeJS.Timeout | undefined = undefined;
   const genPacketId = usePacketIdGen(); // todo: what if there is already a callback waiting for that id ?
   const chatPacketEvent = new Subject<string>();
   const packetDataHandler = usePacketDataHandler(logger, onPacket);
   let retryComplete: Promise<void> | undefined;
-  let resolveRetry: ((value: void | PromiseLike<void>) => void) | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let rejectRetry: ((reason?: any) => void) | undefined;
 
   // todo test behavior with empty pwd and wrong pwd.
   function connect() {
@@ -94,8 +89,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
       client.once('connect', () => {
         logger.info(`Connected to ${options.host}:${options.port}`);
-        retryCount = 0; // Internet is up, reset the retry count.
-
         logger.info('Sending authentication packet...');
 
         // Doc "When the server receives an auth request, it will respond with an empty SERVERDATA_RESPONSE_VALUE,
@@ -194,17 +187,23 @@ export function useRcon(options: RconOptions, logger: Logger) {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // todo likely can move that into another file.
+  /**
+   * onError will be called when a packet is sent but fail due to absence of internet connection.
+   * Maybe also if the Squad server is restarting.
+   */ // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function onError(err: any) {
-    if (!retryComplete) {
-      retryComplete = new Promise<void>((resolve, reject) => {
-        resolveRetry = resolve;
-        rejectRetry = reject;
-      });
-    }
+    let resolveRetry: ((value: void | PromiseLike<void>) => void) | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectRetry: ((reason?: any) => void) | undefined;
+    let retryCount = 0;
+    let retryDelay = 5;
+
+    // Inform
     logger.error(`net.Socket error: ${err?.message}`, err);
     console.error(err); // not sure if I can relay on logger to properly display the error :/
-    // cleanUp(); maybe not ?
+
+    // cleanup the socket partially
     client.removeAllListeners();
     client.destroy();
 
@@ -212,54 +211,111 @@ export function useRcon(options: RconOptions, logger: Logger) {
     resPackets.length = 0;
     packetDataHandler.cleanUp();
 
-    // todo handle pending promises somehow
-    // Retry to connect. To keep in mind:
-    // - SquadTS often call for ListPlayers, ListSquads, ShowServerInfo
-    // - Plugins may directly call RCON execute
-    // - RCON game modifying command like warn may not make sense if sent too late.
-    if (retryCount < MAX_CONNECT_RETRY) {
-      logger.info(
-        `Retrying in ${retryDelay} seconds (attempt ${retryCount}/${MAX_CONNECT_RETRY})...`
+    if (retryComplete) {
+      throw new Error(
+        'Unexpected: another retry in progress or previous retry improperly cleanup.'
       );
-      // May need to be coherent with how log with FTP work...
-      // Since sometimes SquadTS is hosted at home, we should allow a somewhat large retry in case
-      // of internet disconnect.
-      retryCount++;
-      retryTimeout = setTimeout(async () => {
-        // Note: It should not error due to failed auth, since we already passed once.
-        await connect(); // todo: not sure it work properly since it error on internet loss (timeout)
+    }
 
-        logger.info(`${awaitedCallbacks.size} pending promises will be resumed.`);
+    retryComplete = new Promise<void>((resolve, reject) => {
+      resolveRetry = resolve;
+      rejectRetry = reject;
+    });
 
-        // Immediately restart pending promise,
-        for (const [id, { requestBody }] of awaitedCallbacks) {
-          if (id === -1 || id === 0) {
-            // If we had any pending auth refusal or auth success request, remove it
-            // Although I think it is unlikely it ever happen.
-            continue;
-          }
-          // Existing promises are listening to awaitedCallbacks on certain id.
-          // If we re-use the same id, those same promise will receive the resolve.
-          // noinspection ES6MissingAwait
-          sendExecPacket(requestBody, id);
+    // Start retrying:
+    onRetryFail();
+
+    function onRetrySuccess() {
+      logger.info(`${awaitedCallbacks.size} pending promises will be resumed.`);
+
+      // Immediately restart pending promise,
+      for (const [id, { requestBody }] of awaitedCallbacks) {
+        if (id === -1 || id === 0) {
+          // If we had any pending auth refusal or auth success request, remove it
+          // Although I think it is unlikely it ever happen.
+          continue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        resolveRetry!();
-        retryComplete = undefined;
-        resolveRetry = undefined;
-      }, retryDelay * 1000);
-      // This may result in strange behavior of spammed rcon warn ?
-      retryDelay *= 2; // 5, 10, 20, 40, (80)
-    } else {
-      // Don't reject, we would get errors all over the place and app
-      // would stop with uncaughtError.
-      // Let them hang, process will exit anyway
-      // or not?
-      // rejectRetry not supposed to be null here.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      rejectRetry!(new Error('RCON connect max retry reached, giving up.'));
+        // Existing promises are listening to awaitedCallbacks on certain id.
+        // If we re-use the same id, those same promise will receive the resolve.
+        // noinspection JSIgnoredPromiseFromCall
+        sendExecPacket(requestBody, id);
+      }
+
+      if (!resolveRetry) {
+        throw new Error('Unexpected: resolveRetry is not set');
+      }
+
+      // Tell pending RCON requests that they can proceed with being sent through the Socket.
+      resolveRetry();
+
+      // Cleanup
       retryComplete = undefined;
       resolveRetry = undefined;
+      rejectRetry = undefined;
+    }
+
+    /**
+     * Retry to connect.
+     * Keep in mind that:
+     * - SquadTS often call for ListPlayers, ListSquads, ShowServerInfo
+     * - Plugins may directly call RCON execute
+     * - RCON game modifying command like warn may not make sense to players if sent too late.
+     *
+     * With that in mind, we are retrying on a "short" period of time because
+     * we do not want too many pending RCON requests.
+     * Ideally, you should combine with docker "restart: unless-stopped" (or equivalent)
+     * to handle long period of disconnect.
+     */
+    function onRetryFail() {
+      if (retryCount < MAX_CONNECT_RETRY) {
+        // Visual shown 1/4 instead of 0/4 as this is what we are used to.
+        logger.info(
+          `Retrying in ${retryDelay} seconds (attempt ${retryCount + 1}/${MAX_CONNECT_RETRY})...`
+        );
+        // May need to be more coherent with how log with FTP work...
+        retryCount++;
+        retryTimeout = setTimeout(async () => {
+          // It should not error due to failed auth, since we already passed once.
+          // But it can error due to absence of internet connection (again)
+          try {
+            await connect();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (error: any) {
+            if (error?.message === 'Authentication failed.') {
+              logger.fatal(
+                'Failed to reconnect to RCON server, authentification failed, did the password change ?'
+              );
+            }
+            logger.info('Connect attempt failed.');
+            onRetryFail(); // Keep retrying until retryCount is too high.
+            return;
+          }
+
+          onRetrySuccess();
+        }, retryDelay * 1000);
+        // This may result in strange behavior of spammed rcon warn ?
+        retryDelay *= 2; // 5, 10, 20, 40, (80)
+      } else {
+        onAllRetryFail();
+      }
+    }
+
+    function onAllRetryFail() {
+      if (!rejectRetry) {
+        throw new Error('Unexpected: rejectRetry is not set');
+      }
+
+      // Reject all pending RCON requests
+      // (maybe we shouldn't, all this likely send errors all over the place ?), let them hang ?
+      // todo: test above
+      rejectRetry(new Error('RCON connect max retry reached, giving up.'));
+
+      // Cleanup retryComplete, or it will keep buffering requests.
+      retryComplete = undefined;
+      resolveRetry = undefined;
+      rejectRetry = undefined;
+
+      // Annonce failure, cleanup locally, re-throw so the rest of the app can cleanup as well.
       logger.error('Max retry reached, giving up.');
       cleanUp();
       // Likely this will call disconnect which will call cleanUp...
@@ -466,7 +522,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       // Option to reduce verboseness.
       if (options.debugCondenseLogs) {
         // Note: case-insensitive matching.
-        const cl = command.match(/^(w+) /);
+        const cl = command.match(/^(\w+) ?/);
         if (!cl) {
           throw Error(`Unexpected command (or wrong regex here): ${command}`);
         }

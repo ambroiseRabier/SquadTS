@@ -170,7 +170,7 @@ For everyone:
 - Properly clean up RCON and FTP connection when process is killed (CTRL+C)
 - Remote admin list is automatically downloaded and merged to provide SquadTS plugins with the correct admin list.
 - If RCON or FTP connection dies (error or internet loss), SquadTS is stopped, SquadTS don't stay in an unusable state.
-  If using docker, you may combine with `restart: always` so that SquadTS restarts automatically if an exceptional error happen.
+  If using docker, you may combine with `restart: unless-stopped` so that SquadTS restarts automatically if an exceptional error happen.
 - RCON requests made will be buffered in case of short internet disconnect, instead of being thrown.
 
 This makes it easier to develop and maintain plugins.
