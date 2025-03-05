@@ -503,7 +503,7 @@ function encodePacket(
 function bufToHexString(buf: Buffer<ArrayBuffer>) {
   const match = buf.toString('hex').match(/../g);
 
-  // Probably never happen ? But I can't assert that.
+  // Probably never happens? But I can't assert that.
   if (!match) {
     throw new Error('bufToHexString: match is null');
   }

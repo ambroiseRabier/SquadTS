@@ -5,7 +5,6 @@ describe('parseConfig', () => {
   test('Ensure complete valid config is parsed with no errors', async () => {
     const validConfig: Options = {
       rcon: {
-        autoReconnectDelay: 5000,
         host: '127.0.0.1',
         port: 25575,
         password: 'examplePassword',
@@ -54,7 +53,8 @@ describe('parseConfig', () => {
       connectors: {
         discord: {
           enabled: true,
-          token: 'sdfsdf',
+          // fake token.
+          token: 'NDc5ODU5NzMxNTY1NzU3ODky.Xxn6gQ.bogusPARTtoPASSregex-27long',
         },
       },
     };

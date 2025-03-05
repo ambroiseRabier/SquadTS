@@ -5,7 +5,7 @@ import {
   TestServer,
   useTestServer,
 } from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { Rcon } from '../../src/rcon/use-rcon';
 import { GameServerInfo } from '../../src/rcon-squad/server-info.type';
 
 // We may be able to change sequential, but it also may make logs harder to read.
@@ -56,7 +56,7 @@ ID: 1 | Online IDs: EOS: 0002a10186d9414496bf20d22d386022 steam: 765611980169420
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'auto-seed-low-players': {
             ...pluginConfig,
@@ -193,7 +193,7 @@ ID: 3 | Online IDs: EOS: 0002a10186d9414496bf20d22d386044 steam: 765611980169420
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'auto-seed-low-players': {
             ...pluginConfig,

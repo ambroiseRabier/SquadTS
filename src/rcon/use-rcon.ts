@@ -9,7 +9,8 @@ import { RconOptions } from './rcon.config';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
 import { Packet, usePacketDataHandler } from './use-packet-data-handler';
-import { IncludesRCONCommand } from '../rcon-squad/rcon-commands';
+import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
+import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 
 /**
  * Doc: https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
@@ -28,7 +29,8 @@ export enum PacketType {
 }
 
 const INT32_MAX = 2 ** 31 - 1; // 2,147,483,647
-const INT32_MIN = -(2 ** 31);  // -2,147,483,648
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const INT32_MIN = -(2 ** 31); // -2,147,483,648
 const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
 const MAX_CONNECT_RETRY = 4; // keep it low.
 
@@ -70,7 +72,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
   const chatPacketEvent = new Subject<string>();
   const packetDataHandler = usePacketDataHandler(logger, onPacket);
   let retryComplete: Promise<void> | undefined;
-  let resolveRetry: ((value: (void | PromiseLike<void>)) => void) | undefined;
+  let resolveRetry: ((value: void | PromiseLike<void>) => void) | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let rejectRetry: ((reason?: any) => void) | undefined;
 
@@ -92,10 +94,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
       client.once('connect', () => {
         logger.info(`Connected to ${options.host}:${options.port}`);
-        retryCount = 0; // Internet is ok, reset retry count.
+        retryCount = 0; // Internet is up, reset the retry count.
 
         logger.info('Sending authentication packet...');
-
 
         // Doc "When the server receives an auth request, it will respond with an empty SERVERDATA_RESPONSE_VALUE,
         // followed immediately by a SERVERDATA_AUTH_RESPONSE indicating whether authentication succeeded or failed."
@@ -109,13 +110,17 @@ export function useRcon(options: RconOptions, logger: Logger) {
           // Simply ignore the first packet
           let packet: Packet = yield;
           if (packet.type !== PacketType.RESPONSE_VALUE) {
-            throw new Error(`Unexpected first packet type ${packet.type} with body: ${packet.body}`);
+            throw new Error(
+              `Unexpected first packet type ${packet.type} with body: ${packet.body}`
+            );
           }
 
           // This contains the info we need
           packet = yield;
           if (packet.type !== PacketType.AUTH_RESPONSE) {
-            throw new Error(`Unexpected first packet type ${packet.type} with body: ${packet.body}`);
+            throw new Error(
+              `Unexpected first packet type ${packet.type} with body: ${packet.body}`
+            );
           }
           // Doc "Note that the status code is returned in the packet id field"
           // "If authentication was successful, the ID assigned by the request. If auth failed, -1 (0xFF FF FF FF)"
@@ -133,20 +138,36 @@ export function useRcon(options: RconOptions, logger: Logger) {
         // handleAuthPackets.next will be called exactly two times more.
         // Note: I believe handling auth data separately from other responses make it easier to follow and debug.
         // cleanup from hook is not needed here, as it onData will not be re-used after auth.
-        const {onData: onAuthData} = usePacketDataHandler(logger, handleAuthPackets.next.bind(handleAuthPackets));
+        const { onData: onAuthData } = usePacketDataHandler(
+          logger,
+          handleAuthPackets.next.bind(handleAuthPackets)
+        );
+
+        // It seems either my Squad server host or Squad itself behaves not like in the Valve's doc.
+        // Instead of sending -1 for response for failed auth, I just get disconnected.
+        function onEarlyEnd() {
+          // Make sure client also get destroyed (it will be anyway, but we don't want to wait)
+          client.destroy();
+          reject(new Error('Authentication failed.'));
+        }
 
         // Listen to data before sending auth response
-        client.on('data', onAuthData);
+        client.on('data', data => {
+          onAuthData(data);
+        });
+        client.once('end', onEarlyEnd);
+
+        // Reserved 0 id for auth.
         const encodedPacket = encodePacket(PacketType.AUTH, 0, options.password);
         client.write(encodedPacket);
 
         function onAuthSuccess() {
           logger.info(`Authenticated to ${options.host}:${options.port}`);
 
-          // remove auth and connect error listener
+          // Remove listeners used for auth only.
           client.removeListener('error', earlyError);
-          // remove auth data listener
           client.removeListener('data', onAuthData);
+          client.removeListener('end', onEarlyEnd);
 
           // listen to error
           client.once('error', onError);
@@ -164,40 +185,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
           client.destroy();
           // If authentification fails, there is no point retrying later.
 
-          reject();
+          reject(new Error('Authentication failed.'));
         }
       });
-
-      // tmp test
-      // client.on('data', packetDataHandler.onData);
-      // client.once('error', onError);
-      // client.once('error', (err) => {
-      //   console.log('error');
-      //   reject(err);
-      // });
-      client.once('close', (hadError: boolean) => {
-        console.log('close');
-        console.log(hadError);
-        //reject(hadError);
-      })
-      // client.on('connectionAttemptTimeout', () => {
-      //   console.log('connectionAttemptTimeout');
-      // })
-      // client.on('connectionAttemptFailed', () => {
-      //   console.log('connectionAttemptFailed');
-      //   reject('connectionAttemptFailed');
-      // })
-      // client.on('connectionAttempt', () => {
-      //   console.log('connectionAttempt');
-      // })
-      client.on('timeout', () => {
-        console.log('timeout');
-        //reject('timeout');
-      })
-      client.on('end', () => {
-        console.log('end');
-        //reject('end');
-      })
 
       // Last but not least
       client.connect(options.port, options.host);
@@ -228,18 +218,21 @@ export function useRcon(options: RconOptions, logger: Logger) {
     // - Plugins may directly call RCON execute
     // - RCON game modifying command like warn may not make sense if sent too late.
     if (retryCount < MAX_CONNECT_RETRY) {
-      logger.info(`Retrying in ${retryDelay} seconds (attempt ${retryCount}/${MAX_CONNECT_RETRY})...`);
+      logger.info(
+        `Retrying in ${retryDelay} seconds (attempt ${retryCount}/${MAX_CONNECT_RETRY})...`
+      );
       // May need to be coherent with how log with FTP work...
       // Since sometimes SquadTS is hosted at home, we should allow a somewhat large retry in case
       // of internet disconnect.
       retryCount++;
       retryTimeout = setTimeout(async () => {
-        await connect();
+        // Note: It should not error due to failed auth, since we already passed once.
+        await connect(); // todo: not sure it work properly since it error on internet loss (timeout)
 
         logger.info(`${awaitedCallbacks.size} pending promises will be resumed.`);
 
         // Immediately restart pending promise,
-        for (const [id, {requestBody}] of awaitedCallbacks) {
+        for (const [id, { requestBody }] of awaitedCallbacks) {
           if (id === -1 || id === 0) {
             // If we had any pending auth refusal or auth success request, remove it
             // Although I think it is unlikely it ever happen.
@@ -271,7 +264,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       cleanUp();
       // Likely this will call disconnect which will call cleanUp...
       // Maybe I make something better than relying on UncaughtError in main.mts ?
-      throw new Error('RCON disconnected after max retry reached.')
+      throw new Error('RCON disconnected after max retry reached.');
     }
   }
 
@@ -283,8 +276,8 @@ export function useRcon(options: RconOptions, logger: Logger) {
     client.destroy();
     // Because you think removing unused variables make the code easier to understand here eslint ??
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [id, {resolve, reject, requestBody}] of awaitedCallbacks) {
-      reject(new Error('Cleanup was called, rejecting all pending requests.'))
+    for (const [id, { resolve, reject, requestBody }] of awaitedCallbacks) {
+      reject(new Error('Cleanup was called, rejecting all pending requests.'));
     }
     awaitedCallbacks.clear();
     resPackets.length = 0;
@@ -292,7 +285,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
   }
 
   function disconnect() {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(resolve => {
       logger.info(`Disconnected from ${options.host}:${options.port}`);
       client.removeListener('data', packetDataHandler.onData);
 
@@ -308,15 +301,16 @@ export function useRcon(options: RconOptions, logger: Logger) {
       // waiting data from RCON server.
       client.once('close', () => {
         clearTimeout(forceTimeout);
-        console.assert(awaitedCallbacks.size === 0,
-          'Expected awaitedCallbacks to be empty when close event is called in graceful shutdown :/ ?');
+        console.assert(
+          awaitedCallbacks.size === 0,
+          'Expected awaitedCallbacks to be empty when close event is called in graceful shutdown :/ ?'
+        );
         cleanUp();
         resolve();
       });
       client.end();
     });
   }
-
 
   /**
    * Returns the decoded response.
@@ -328,15 +322,15 @@ export function useRcon(options: RconOptions, logger: Logger) {
       // Well, this should never happen, we don't have Max int concurrent RCON requests...
       if (awaitedCallbacks.has(id)) {
         throw new Error(
-          `Unexpected: ID ${id}, with request body ${awaitedCallbacks.get(id)?.requestBody} already has a callback.\n`
-          + `Either you have more than ${INT32_MAX} concurrent requests... Or you are using reserved id like -1 and 0`)
+          `Unexpected: ID ${id}, with request body ${awaitedCallbacks.get(id)?.requestBody} already has a callback.\n` +
+            `Either you have more than ${INT32_MAX} concurrent requests... Or you are using reserved id like -1 and 0`
+        );
       }
 
       const encodedPacket = encodePacket(PacketType.EXEC_COMMAND, id, body);
 
       awaitedCallbacks.set(id, {
         resolve: (decodedData: Packet) => {
-          logger.debug(`"${body}" response: ${decodedData.body}`);
           resolve(decodedData.body);
         },
         reject,
@@ -345,7 +339,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
       // Valve doc mention 4096 as max packet size, but is it only for response or also for request?
       if (encodedPacket.length > MAXIMUM_PACKET_RESPONSE_SIZE) {
-        logger.warn(`Packet may be too long, monitor to see if packet request > ${MAXIMUM_PACKET_RESPONSE_SIZE} are ok. Body: ${body}`);
+        logger.warn(
+          `Packet may be too long, monitor to see if packet request > ${MAXIMUM_PACKET_RESPONSE_SIZE} are ok. Body: ${body}`
+        );
       }
 
       client.write(encodedPacket);
@@ -391,8 +387,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
     else if (packet.type === PacketType.RESPONSE_VALUE) {
       // Special handler because RESPONSE_VALUE can have multi-packets response
       onResPacket(packet);
-    }
-    else {
+    } else {
       // Auth responses are handled separately
       // Either indicating a mistake, or a new type of packet after a Squad update.
       logger.warn(`Unknown packet type ${packet.type} with body: ${packet.body}`);
@@ -422,8 +417,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       // But... Doc "Also note that requests executed asynchronously can possibly send their
       // responses out of order[1] - using a unique ID to identify and associate the
       // responses with their requests can circumvent this issue."
-      const allIdMatchingPackets = resPackets
-        .filter(p => p.id === packet.id);
+      const allIdMatchingPackets = resPackets.filter(p => p.id === packet.id);
 
       executePacketCallback({
         ...packet,
@@ -432,8 +426,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       });
 
       // Update resPackets to remove used packets.
-      resPackets = resPackets
-        .filter(p => p.id !== packet.id)
+      resPackets = resPackets.filter(p => p.id !== packet.id);
     } else {
       resPackets.push(packet);
     }
@@ -441,7 +434,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
   function executePacketCallback(packet: Packet) {
     if (!awaitedCallbacks.has(packet.id)) {
-      throw new Error(`Unexpected: onData: callback is not set for id ${packet.id}, with body: ${packet.body}`);
+      throw new Error(
+        `Unexpected: onData: callback is not set for id ${packet.id}, with body: ${packet.body}`
+      );
     }
 
     // Safe here because has above.
@@ -451,6 +446,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
     resolve(packet);
   }
 
+  const cachedResponse = new Map<Lowercase<RCONCommand>, string>();
 
   async function execute<T extends string>(command: IncludesRCONCommand<T>) {
     // Currently retrying, wait for retry to be successful or abort request with the server...
@@ -458,8 +454,63 @@ export function useRcon(options: RconOptions, logger: Logger) {
       await retryComplete;
     }
 
-    logger.debug(`Executing command: ${command}`);
-    return await sendExecPacket(command);
+    logger.trace(`Executing command: ${command}`);
+    return await sendExecPacket(command).then(res => {
+      // This is executed before `execute` returns.
+
+      const emitDebugLog = (cacheEnabledForCommand = false) =>
+        logger.debug(
+          `Command ${cacheEnabledForCommand ? '(logging only when changed)' : ''}: "${command}" --> "${res}"`
+        );
+
+      // Option to reduce verboseness.
+      if (options.debugCondenseLogs) {
+        // Note: case-insensitive matching.
+        const cl = command.match(/^(w+) /);
+        if (!cl) {
+          throw Error(`Unexpected command (or wrong regex here): ${command}`);
+        }
+        const baseCommand = cl[1].toLowerCase() as Lowercase<RCONCommand>;
+        const cachedRes = cachedResponse.get(baseCommand);
+
+        const emitIfChanged = () => {
+          // Not cached, or cached, but res is different.
+          if (!cachedRes || (cachedRes && cachedRes !== res)) {
+            emitDebugLog(true);
+            cachedResponse.set(baseCommand, res);
+          }
+        };
+
+        switch (baseCommand) {
+          case RCONCommand.ListPlayers.toLowerCase():
+            // Extra option to further reduce the verboseness, right now, disconnect player are not used at all.
+            if (options.debugCondenseLogsIgnoreSinceDisconnect) {
+              if (cachedRes) {
+                if (hasChangesIgnoringSinceDisconnect(cachedRes, res)) {
+                  emitDebugLog(true);
+                } // else no change, doesn't emit
+              } else {
+                // not cached
+                emitDebugLog(true);
+              }
+            } else {
+              // No special behavior for ListPlayers
+              emitIfChanged();
+            }
+            break;
+          case RCONCommand.ShowServerInfo.toLowerCase():
+          case RCONCommand.ListSquads.toLowerCase():
+            emitIfChanged();
+            break;
+          default:
+            emitDebugLog();
+        }
+      } else {
+        emitDebugLog();
+      }
+
+      return res;
+    });
   }
 
   return {
@@ -470,20 +521,13 @@ export function useRcon(options: RconOptions, logger: Logger) {
   };
 }
 
-
-
-
 /**
  * https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
  * @param type The packet type field is a 32-bit little endian integer, which indicates the purpose of the packet. Its value will always be either 0, 2, or 3.
  * @param id The packet id field is a 32-bit little endian integer chosen by the client for each request. It may be set to any positive integer. When the server responds to the request, the response packet will have the same packet id as the original request (unless it is a failed SERVERDATA_AUTH_RESPONSE packet - see below.) It need not be unique, but if a unique packet id is assigned, it can be used to match incoming responses to their corresponding requests.
  * @param body The packet body field is a null-terminated string encoded in ASCII
  */
-function encodePacket(
-  type: PacketType,
-  id: number,
-  body: string,
-) {
+function encodePacket(type: PacketType, id: number, body: string) {
   // Size, in bytes, of the whole packet.
   // 14 => size = 4, id = 4, type = 4, string terminator = 2
   const size = Buffer.byteLength(body) + 14;
@@ -491,8 +535,8 @@ function encodePacket(
   // size should not count itself. Doc:
   // "Note that the packet size field itself is not included when determining the size of the packet, so the value of this field is always 4 less than the packet's actual length"
   buffer.writeInt32LE(size - 4, 0);
-  buffer.writeInt32LE(id,       4);
-  buffer.writeInt32LE(type,     8);
+  buffer.writeInt32LE(id, 4);
+  buffer.writeInt32LE(type, 8);
   buffer.write(body, 12, size - 2, 'ascii'); // todo maybe SquadTS support utf8 ?
   // String terminator and 8 empty bits
   buffer.writeInt16LE(0, size - 2);

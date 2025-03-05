@@ -4,7 +4,7 @@ import {
   TestServer,
   useTestServer,
 } from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { Rcon } from '../../src/rcon/use-rcon';
 import { HeliCrashBroadCastOptions } from './heli-crash-broadcast.config';
 
 // Note: To get logs: rcon in debug to see response of rcon, and chatEvents
@@ -38,7 +38,7 @@ Team ID: 2 (Manticore Security Task Force)
       // An error in useTestServer result in "Failure cause not provided for 'Broadcast on heli crash'"
       // Type error in server files will not be surfaced by vitest.
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'heli-crash-broadcast': <HeliCrashBroadCastOptions>{
             enabled: true,

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ipv4Schema } from '../config/common-validators';
 
 export const rconOptionsSchema = z.object({
-  host: ipv4Schema.describe('The IP of the server.'),
+  host: z.union([ipv4Schema, z.literal('localhost')]).describe('The IP of the server.'),
   port: z
     .number()
     .int()
@@ -10,11 +10,6 @@ export const rconOptionsSchema = z.object({
     .default(21114)
     .describe('The RCON port of the server.'),
   password: z.string().describe('The RCON password of the server.'),
-  autoReconnectDelay: z
-    .number()
-    .nonnegative('AutoReconnectDelay must be a non-negative number')
-    .min(1000, 'AutoReconnectDelay minimum is 1000ms') // don't DOS yourself
-    .default(5000),
   debugCondenseLogs: z
     .boolean()
     .default(true)

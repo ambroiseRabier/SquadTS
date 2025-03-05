@@ -169,8 +169,9 @@ For everyone:
   - ...
 - Properly clean up RCON and FTP connection when process is killed (CTRL+C)
 - Remote admin list is automatically downloaded and merged to provide SquadTS plugins with the correct admin list.
-- If RCON or FTP connection dies (error or internet loss), SquadTS is stopped, SquadTS don't stay in an unusable state. 
+- If RCON or FTP connection dies (error or internet loss), SquadTS is stopped, SquadTS don't stay in an unusable state.
   If using docker, you may combine with `restart: always` so that SquadTS restarts automatically if an exceptional error happen.
+- RCON requests made will be buffered in case of short internet disconnect, instead of being thrown.
 
 This makes it easier to develop and maintain plugins.
 
@@ -181,7 +182,7 @@ For plugin developers:
 - RXJS.
 - Tested code\*
 - Support unit test and e2e tests for plugins.
-- Rewritten code in functional composition. (no `this`, no `.bind()`)
+- Rewritten code in functional composition. (no `this`, no `.bind()`, easier separation of concerns, no inheritance added complexity)
 - Abstracted complexity
 - Modern JS (welcome to `Map` type and much more)
 - No more searching for which events exist `'NEW_GAME'`, find them statically with code completion: `server.events.newGame.subscribe(() => {});`

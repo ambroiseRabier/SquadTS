@@ -1,6 +1,6 @@
 import { useLogger, useSubLogger } from './logger/use-logger.mjs';
 import { parseConfigs, useConfig } from './config/use-config';
-import { Rcon } from './rcon/rcon';
+import { Rcon } from './rcon/use-rcon';
 import { useRconSquad } from './rcon-squad/use-rcon-squad';
 import { LogReader, useLogReader } from './log-parser/use-log-reader';
 import { useLogParser } from './log-parser/use-log-parser';
@@ -146,8 +146,23 @@ export async function main(props?: Props) {
     await rconSquad.connect(); // todo, right now, wrong password is not properly handled, and will not stop SquadTS !!
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    logger.fatal(`Failed to connect to RCON server: ${error?.message}`, {error});
-    console.error(error);
+    const address = config.rcon.host + ':' + config.rcon.port;
+    if (error?.code === 'ECONNREFUSED') {
+      logger.fatal(
+        `Failed to connect to RCON server ${address}, connection refused, likely wrong host/port.`
+      );
+    } else if (error?.code === 'ETIMEDOUT') {
+      logger.fatal(
+        `Failed to connect to RCON server ${address}, timeout, host doesn't exist or you have no internet connection.`
+      );
+    } else if (error?.message === 'Authentication failed.') {
+      logger.fatal(
+        `Failed to connect to RCON server ${address}, authentification failed, wrong password.`
+      );
+    } else {
+      logger.fatal(`Failed to connect to RCON server ${address}: ${error?.message}`, { error });
+      console.error(error);
+    }
     await earlyCleanup();
     return;
   }

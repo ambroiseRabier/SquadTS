@@ -5,7 +5,7 @@ import {
   TestServer,
   useTestServer,
 } from '../../src/plugin-test-helper/plugin-test-helper';
-import { Rcon } from '../../src/rcon/rcon';
+import { Rcon } from '../../src/rcon/use-rcon';
 
 describe('AutoKickUnassigned', () => {
   let testBed: TestServer;
@@ -55,7 +55,7 @@ Team ID: 2 (Manticore Security Task Force)`,
       };
 
       testBed = await useTestServer({
-        executeFn: rconExec as Rcon['execute'],
+        executeFn: rconExec as unknown as Rcon['execute'],
         pluginOptionOverride: {
           'auto-kick-unassigned': {
             ...pluginConfig,
