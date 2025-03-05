@@ -373,6 +373,12 @@ export function useRcon(options: RconOptions, logger: Logger) {
   >();
 
   function onPacket(packet: Packet) {
+    // Doc "followed by another RESPONSE_VALUE packet containing 0x0000 0001 0000 0000 in the packet body field."
+    // Ignore these packets, we do not need them.
+    if (packet.isFollowResponse) {
+      return;
+    }
+
     // Chat value seems to be unique to Squad. I have no idea if there can be multi-packet
     // response for chat value, I will assume there isn't.
     // Assumes there is no multi-packet response

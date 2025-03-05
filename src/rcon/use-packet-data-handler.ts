@@ -12,24 +12,28 @@ export function usePacketDataHandler(
   const incomingChunks: Buffer[] = [];
   let chunksByteLength = 0;
   let actualPacketLength: number | undefined;
-  let packetType: PacketType | undefined;
-  let packetId: number | undefined;
 
   function cleanUp() {
     incomingChunks.length = 0; // clear array, keep reference
     chunksByteLength = 0;
     actualPacketLength = undefined;
-    packetType = undefined;
-    packetId = undefined;
   }
 
   function onData(data: Buffer<ArrayBufferLike>) {
     // Note: auth request will not come back with password, so we won't display the password here.
     logger.trace(`Got data: ${bufToHexString(data)}`);
 
-    // function logTracePacket() {
-    //
-    // }
+    // One log trace function, that log as much as possible, usable anywhere safely in onDate function.
+    function logTracePacket() {
+      if (logger.level !== 'trace') {
+        return;
+      }
+      const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
+      const size = combinedData.length >= 4 && data.readUInt32LE(0);
+      const id = combinedData.length >= 8 && data.readUInt32LE(4);
+      const type = combinedData.length >= 12 && data.readUInt32LE(8);
+      logger.trace(`Incoming packet: ${JSON.stringify({ size, id, type })}`);
+    }
 
     chunksByteLength += data.byteLength;
     // Incoming date will come in order, so this is safe to do.
@@ -37,6 +41,7 @@ export function usePacketDataHandler(
 
     if (chunksByteLength < 4) {
       logger.trace('Waiting for enough data to read packet size.');
+      logTracePacket();
       return;
     }
 
@@ -60,28 +65,20 @@ export function usePacketDataHandler(
 
     if (chunksByteLength < 8) {
       logger.trace('Waiting for enough data to read packet id.');
+      logTracePacket();
       return;
-    }
-    if (logger.level === 'trace' && !packetId) {
-      packetId = Buffer.concat(incomingChunks, chunksByteLength).readInt32LE(4);
-      logger.trace(`Incoming packet id: ${packetId}`);
     }
 
 
     if (chunksByteLength < 12) {
       logger.trace('Waiting for enough data to read packet type.');
+      logTracePacket();
       return;
-    }
-
-    // Read the packet type once.
-    if (logger.level === 'trace' && packetType === undefined) {
-      const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
-      packetType = combinedData.readUInt32LE(8);
-      logger.trace(`Incoming packet type: ${packetType}`);
     }
 
     if (chunksByteLength < actualPacketLength) {
       logger.trace('Waiting for enough data to read full packet.');
+      logTracePacket();
       return;
     }
 
@@ -109,6 +106,7 @@ export interface Packet {
   id: number;
   type: PacketType;
   body: string;
+  isFollowResponse: boolean;
 }
 
 // Add validation for packet type
@@ -116,7 +114,7 @@ function isValidPacketType(type: number): type is PacketType {
   return Object.values(PacketType).includes(type);
 }
 
-function decodePacket(packet: Buffer) {
+function decodePacket(packet: Buffer): Packet {
   const size = packet.readUInt32LE(0);
   const id = packet.readUInt32LE(4);
   const type = packet.readUInt32LE(8);
@@ -127,6 +125,10 @@ function decodePacket(packet: Buffer) {
   // even if they are null bytes or non-printable characters.
   // It doesn’t treat `0x00` as a string terminator like null-terminated C strings."
   const isStringTerminator = packet.readInt16LE(12) === 0;
+
+  // Doc "followed by another RESPONSE_VALUE packet containing 0x0000 0001 0000 0000 in the packet body field."
+  // Also known as "0a 00 00 00 01 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00"
+  const isFollowResponse = packet.length >= 16 && packet.readInt32LE(12) === 16777216;
 
   // Decoding a string terminator will result in garbage data with a string length of 12,
   // when we are expecting an empty string !
@@ -143,6 +145,7 @@ function decodePacket(packet: Buffer) {
     id,
     type,
     body,
+    isFollowResponse,
   };
 }
 
