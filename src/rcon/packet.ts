@@ -1,6 +1,6 @@
+import * as util from 'node:util';
 
 export const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
-
 
 /**
  * https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
@@ -40,7 +40,6 @@ export enum PacketType {
   CHAT_VALUE = 0x01,
 }
 
-
 export interface Packet {
   size: number;
   id: number;
@@ -49,9 +48,20 @@ export interface Packet {
   isFollowResponse: boolean;
 }
 
-// Add validation for packet type
 function isValidPacketType(type: number): type is PacketType {
   return Object.values(PacketType).includes(type);
+}
+
+export function debugDecodePacket(buffer: Buffer) {
+  const size = buffer.length >= 4 && buffer.readUInt32LE(0);
+  const id = buffer.length >= 8 && buffer.readUInt32LE(4);
+  const type = buffer.length >= 12 && buffer.readUInt32LE(8);
+  const body = buffer.length >= 12 && buffer.toString('utf8', 12, buffer.byteLength - 2);
+  return (
+    `Incoming packet: ${util.inspect({ size, id, type, body })}\n` +
+    'Raw packet: ' +
+    bufToHexString(buffer)
+  );
 }
 
 /**
@@ -92,7 +102,6 @@ export function decodePacket(packet: Buffer): Omit<Packet, 'isFollowResponse'> {
     body,
   };
 }
-
 
 /**
  * Output: "0a 14 1e 28" ...

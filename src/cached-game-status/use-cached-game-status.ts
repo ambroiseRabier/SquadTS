@@ -29,15 +29,15 @@ export interface Player {
   name?: string;
 
   // (provided by rcon)
-  // Be careful, because a player can change clan tag middle game...
+  // Be careful, because a player can change clan tag mid-game...
   nameWithClanTag?: string;
 
   // (provided by rcon) (defaulted to false in log connect)
   isLeader: boolean;
 
-  // Note: it is name squadIndex like the game does (see  rcon "ListCommands 1")
-  //       instead of confusing squadID
-  // (provided by rcon) (defaulted to null in log connect)
+  // Note: it is name squadIndex like the game does (see rcon "ListCommands 1")
+  //       instead of confusing squadID (although RCON ListPlayers use squadID label)
+  // (provided by rcon) (defaulted to undefined in log connect)
   squadIndex?: string;
 
   // (provided by log)

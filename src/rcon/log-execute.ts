@@ -2,10 +2,13 @@ import { RCONCommand } from '../rcon-squad/rcon-commands';
 import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 import { Logger } from 'pino';
 
-export function useLogExecute(logger: Logger, options: { debugCondenseLogs: boolean; debugCondenseLogsIgnoreSinceDisconnect: boolean }) {
+export function useLogExecute(
+  logger: Logger,
+  options: { debugCondenseLogs: boolean; debugCondenseLogsIgnoreSinceDisconnect: boolean }
+) {
   const cachedResponse = new Map<Lowercase<RCONCommand>, string>();
 
-  function logExecute(command: string, res: string, isProxy: boolean = false) {
+  function logExecute(command: string, res: string, isProxy = false) {
     const emitDebugLog = (cacheEnabledForCommand = false) =>
       logger.debug(
         `${isProxy ? '(Proxy)' : ''} Command ${cacheEnabledForCommand ? '(logging only when changed)' : ''}: "${command}" --> "${res}"`

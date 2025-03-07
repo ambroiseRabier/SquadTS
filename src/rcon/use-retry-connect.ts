@@ -15,16 +15,20 @@ interface Props {
 /**
  * Handle the biggest part of retrying to connect.
  */
-export function useRetryConnect(
-  {logger, logResumePendingExecutes, resumePendingExecuteCallbacks, connect, cleanUp}: Props,
-) {
+export function useRetryConnect({
+  logger,
+  logResumePendingExecutes,
+  resumePendingExecuteCallbacks,
+  connect,
+  cleanUp,
+}: Props) {
   let retryComplete: Promise<void> | undefined;
   let retryTimeout: NodeJS.Timeout | undefined = undefined;
 
   /**
    * onError will be called when a packet is sent but fail due to absence of internet connection.
    * Maybe also if the Squad server is restarting.
-   */ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   */
   function retryConnect() {
     let resolveRetry: ((value: void | PromiseLike<void>) => void) | undefined;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +37,9 @@ export function useRetryConnect(
     let retryDelay = 5;
 
     if (retryComplete) {
-      throw new Error('Unexpected: another retry in progress or previous retry improperly cleanup.');
+      throw new Error(
+        'Unexpected: another retry in progress or previous retry improperly cleanup.'
+      );
     }
 
     retryComplete = new Promise<void>((resolve, reject) => {
@@ -57,7 +63,6 @@ export function useRetryConnect(
       logResumePendingExecutes();
       resolveRetry();
 
-
       // Cleanup
       retryComplete = undefined;
       resolveRetry = undefined;
@@ -80,7 +85,7 @@ export function useRetryConnect(
       if (retryCount < MAX_CONNECT_RETRY) {
         // Visual shown 1/4 instead of 0/4 as this is what we are used to.
         logger.info(
-          `Retrying in ${retryDelay} seconds (attempt ${retryCount+1}/${MAX_CONNECT_RETRY})...`
+          `Retrying in ${retryDelay} seconds (attempt ${retryCount + 1}/${MAX_CONNECT_RETRY})...`
         );
         // May need to be more coherent with how log with FTP work...
         retryCount++;
@@ -143,6 +148,6 @@ export function useRetryConnect(
       // Use a getter to make sure value is never stale.
       return retryTimeout;
     },
-    retryConnect
+    retryConnect,
   };
 }

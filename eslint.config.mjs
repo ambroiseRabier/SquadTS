@@ -47,6 +47,6 @@ export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   // In addition of .gitignore
   {
-    ignores: ['.husky', '.github', '.idea', '/config'],
+    ignores: ['.husky', '.github', '.idea', '/config', '\\draft'],
   }
 );

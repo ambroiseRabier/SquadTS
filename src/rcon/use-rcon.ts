@@ -27,7 +27,6 @@ import { useLogExecute } from './log-execute';
   // }, 18000)
  */
 
-
 const INT32_MAX = 2 ** 31 - 1; // 2,147,483,647
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const INT32_MIN = -(2 ** 31); // -2,147,483,648
@@ -411,7 +410,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
   const logExecute = useLogExecute(logger, options);
 
-  async function execute<T extends string>(command: IncludesRCONCommand<T>, isProxy: boolean = false) {
+  async function execute<T extends string>(command: IncludesRCONCommand<T>, isProxy = false) {
     pendingExecute++;
     pendingExecuteWithoutCallback++;
 
@@ -439,7 +438,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
         return res;
       });
   }
-
 
   return {
     chatPacketEvent,

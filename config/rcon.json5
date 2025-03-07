@@ -11,8 +11,7 @@
   debugCondenseLogsIgnoreSinceDisconnect: true,
   // Proxy to use for SquadJS, host will likely be localhost or 127.0.0.1. If using docker container, use the container name instead of localhost.
   // Ask yourself a simple question: "Where I am running Squad TS?"
-  // 
-  squadJSProxy: {
+  proxy: {
     enabled: false,
     // The port to use for SquadJS proxy. Can be anything you want.
     port: 21115,
