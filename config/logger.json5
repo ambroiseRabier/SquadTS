@@ -12,6 +12,7 @@
     // Will also be used for FTP/SFTP debug logs if enabled.
     LogReader: 'info',
     GithubInfo: 'info',
+    SquadJSProxyLogger: 'info',
   },
   debugLogMatching: {
     // Log matched logs, that will be turned into events. They show at DEBUG log level.

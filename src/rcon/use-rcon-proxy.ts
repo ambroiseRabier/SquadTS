@@ -4,6 +4,7 @@ import { Rcon } from './use-rcon';
 import { bufToHexString, decodePacket, encodePacket, MAXIMUM_PACKET_RESPONSE_SIZE, Packet, PacketType } from './packet';
 import { Subscription } from 'rxjs';
 import * as util from 'node:util';
+import { usePacketDataHandler } from './use-packet-data-handler';
 
 interface ProxyOptions {
   password: string;
@@ -23,7 +24,9 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
     function transmitChat(message: string) {
       client.write(encodePacket(
         PacketType.CHAT_VALUE,
-        0, // Unless mistaken, SquadJS like SquadTS does not check id field on CHAT_VALUE
+        // Unless mistaken, SquadJS and SquadTS does not check id field on CHAT_VALUE
+        // I don't know if Squad server sends anything useful in id field.
+        0,
         message
       ));
     }
@@ -60,6 +63,40 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       }
     }
 
+    const writeQueue: (Promise<Buffer<ArrayBuffer>> | Buffer<ArrayBuffer>)[] = [];
+
+    // Doc "Also note that requests executed asynchronously can possibly send their responses out of order[1]"
+    // Not sure if I understand the Valve's doc right, at some part it say packet are ordered
+    // and elsewhere it says they might be out of order...
+    //
+    // Update: It seems like this is a difference between Source RCON and Factorio RCON.
+    //
+    // Not sure how Squad RCON behaves but receiving an empty packet before receiving all packet responses for that same id
+    // would not work (if you receive an empty packet first, how many response packets do you wait for?).
+    // So the Factorio addition makes no sense for me, in regard of multi-packet responses.
+    //
+    // The proxy itself will be ordered.
+    async function writeLoop() {
+      while(client.writable) {
+        if (writeQueue.length > 0) {
+          // We check the length just above.
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const packetOrPromise = writeQueue.shift()!;
+          if (packetOrPromise instanceof Promise) {
+            // Await the pending execute.
+            const actualPacket = await packetOrPromise;
+            write(actualPacket);
+          } else {
+            write(packetOrPromise);
+          }
+        } else {
+          // Wait one tick.
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+    }
+
+
     function write(encodedPacket: Buffer<ArrayBuffer>) {
       if (logger.level === 'trace') {
         logger.trace(`Sending packet: ${bufToHexString(encodedPacket)}`);
@@ -90,16 +127,8 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
     //
     // Alternative... would be to send the packets directly to Squad RCON, and directly back to client,
     // While providing...  different id, to not conflict with SquadTS ids.
-    const mirrorPair = new Map<number, {
-      // Empty packet, but the id will be the same as the request/response, but type will be
-      // the same as the empty packet sent.
-      // This mirrors the empty packet response as per doc.
-      mirrorResponse: Buffer<ArrayBuffer>;
-      // This is sent in addition of a mirror response, as per doc.
-      followMirrorResponse: Buffer<ArrayBuffer>;
-    }>();
-    const pendingExecuteIds = new Set<number>();
 
+    // todo name of function may be confusing !
     function onAuthData(packet: Packet) {
       if (logger.level === 'trace') {
         logger.trace(`Receiving packet: ${util.inspect(packet)}`);
@@ -119,53 +148,39 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       if (packet.type === PacketType.EXEC_COMMAND && packet.body.length > 0) {
         logger.trace(`Executing command: ${packet.body}`);
 
-        // Track the pending execute.
-        pendingExecuteIds.add(packet.id);
+        try {
+          const packetPromise = rcon
+            // Not sure how to fix that. Safe to do as execute param and packet.body are string.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .execute(packet.body as any, true)
+            .then<Buffer<ArrayBuffer>>(res => {
+              logger.trace(`Response: ${res}`);
+              const resPacket = encodePacket(
+                PacketType.RESPONSE_VALUE,
+                packet.id,
+                res
+              );
 
-        // Not sure how to fix that. Safe to do as execute param and packet.body are string.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rcon.execute(packet.body as any, true).then(res => {
-          logger.trace(`Response: ${res}`);
-          const resPacket = encodePacket(
-            PacketType.RESPONSE_VALUE,
-            packet.id,
-            res
-          );
-          
-          // We allow the packet to be bigger. 
-          // This avoids us the task of cutting the packet into multiple ones.
-          // Note: UDP limit seem to be 65507, TCP is much higher 64KB
-          // net.Socket use TCP, we likely never reach a limit that is a problem.
-          // But to be safe, keep this warning, if nothing bad happens after this warning,
-          // that means we can safely remove it. (after a long period of testing)
-          if (resPacket.length > MAXIMUM_PACKET_RESPONSE_SIZE) {
-            logger.warn('Response is too long, monitor to see if packet request > 4096 are ok for client.');
-          }
+              // We allow the packet to be bigger than Valve's doc.
+              // This avoids us the task of cutting the packet into multiple ones.
+              //
+              // Note: UDP limit seem to be 65507, TCP is much higher 64KB
+              // net.Socket use TCP, we likely never reach a limit that is a problem.
+              // But to be safe, keep this warning, if nothing bad happens after this warning,
+              // that means we can safely remove it. (after a long period of testing)
+              if (resPacket.length > MAXIMUM_PACKET_RESPONSE_SIZE) {
+                logger.warn('Response is too long, monitor to see if packet request > 4096 are ok for client.');
+              }
 
-          // Response to the Exec command will always be first.
-          write(resPacket);
-
-          // Untrack pending execute
-          pendingExecuteIds.delete(packet.id);
-
-          // Check if we already received the end of multi-packet response
-          // If we have it, sent it.
-          if (mirrorPair.has(packet.id)) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            write(mirrorPair.get(packet.id)!.mirrorResponse);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            write(mirrorPair.get(packet.id)!.followMirrorResponse);
-            mirrorPair.delete(packet.id);
-          }
-          // Else we haven't receives it, no worries.
-          // We will check pendingExecuteIds en empty packet received,
-          // and if no pending execute match the id, it means the mirror response can be sent
-          // immediately.
-        }).catch(err => {
+              return resPacket;
+            });
+          // It is async but we want to preserve order of packet, like if each packet was handled synchronously.
+          writeQueue.push(packetPromise);
+        } catch (err) {
           // If promises get rejected while in process of disconnect, we could ignore them.
           // Until then, at least warn.
           logger.warn(`Error while executing command: ${err}`);
-        });
+        }
         return;
       }
 
@@ -181,7 +196,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       if (packet.body.length === 0) {
         logger.trace('Empty packet received.');
 
-        // mirror response, sent AFTER the exec packet as per doc !
+        // Mirror response, sent AFTER the exec packet as per doc!
         const mirror = encodePacket(
           packet.type,
           packet.id,
@@ -189,30 +204,36 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
           // So we won't mirror that. SquadJS do not send data either as far as I know.
           ''
         );
-        // 16777216 is magic number sent after an empty RESPONSE_VALUE by the protocol.
-        // Binary representation of 16777216 in little-endian: [0x00, 0x00, 0x00, 0x01]
-        const asciiString = String.fromCharCode(0x00, 0x00, 0x00, 0x01);
+        // "follow response" body sent after an empty RESPONSE_VALUE by the protocol. (UE4 RCON)
+        // SquadJS check the body for exactly this bellow.
+        // In the end, we want a packet to look like this:
+        // 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00
+        // Instead of a simple empty body:
+        // 0a 00 00 00 00 00 00 00 00 00 00 00 00 00
+        //
+        // Or better explained:
+        // 0a 00 00 00 00 00 00 00 00 00 00 00       00 00 00 01 00 00 00       00 00
+        // 0a 00 00 00 00 00 00 00 00 00 00 00                                  00 00
+        // (shown for id and type 0 above)
+        //
+        // How does this change from Valve's doc?
+        // https://developer.valvesoftware.com/wiki/Source_RCON_Protocol doc
+        // show 0x0000 0001 0000 0000, which would be 00 00 00 00 01 00 00 00 (one extra 00 at the start)
+        // UE4 RCON only send 00 00 00 01 00 00 00.
+        const asciiString = String.fromCharCode(
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00
+        );
         // Follow response, that is always sent after a mirror, type is also mirrored on Squad servers.
         const follow = encodePacket(
           PacketType.RESPONSE_VALUE,
           packet.id,
           asciiString
         );
+        // write the wrong value of 10, when it actually is 17, following UE4 RCON.
+        follow.writeInt32LE(10, 0);
 
-        if (pendingExecuteIds.has(packet.id)) {
-          // Whups! We don't want to send the end of multi-packet response before the response itself!
-          // Store the packets, and let the pending execute send them in proper time.
-          mirrorPair.set(packet.id, {
-            mirrorResponse: mirror,
-            followMirrorResponse: follow,
-          });
-        } else {
-          // No pending execute? This means execute has already been written to the socket.
-          // We can write the end of multi-packet response immediately.
-          write(mirror);
-          // follow always after mirror, as per Valve's doc.
-          write(follow);
-        }
+        writeQueue.push(mirror);
+        writeQueue.push(follow);
         return;
       }
 
@@ -225,25 +246,29 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       logger.warn(`Unhandled packet received: ${util.inspect(packet)}`)
     }
 
-    // Handle incoming data from the client
-    // Auth and Exec packets
-    client.on('data', async data => {
+    // todo, may display pwd in logs
+    const packetDataHandler = usePacketDataHandler(logger, onPacket);
+
+    function onPacket(packet: Packet) {
       if (!clientAuthenticated) {
-        const packet = decodePacket(data);
         onNonAuthData(packet);
       } else {
-        // String terminator and 8 empty bits are sent to the Squad server, we need to remove them
-        // to properly get the body instead of body + garbage:
-        // ex: ListSquads\x00\x00\n\x00\x00\x00\x02\x00\x01\x00\x02\x00\x00\x00
-        // For some reason, auth work without the slice, but break with the slice :/ ?
-        // I do not know why -14, -2 make sense since we writeUInt16LE at the end of the packet.
-        // but where does those extra 12 bytes come from at the end ?
-        const fixedData = data.subarray(0, data.length); // fixed it? (???) 🎵 Magic, magic 🎵
-        const packet = decodePacket(fixedData);
-        logger.trace(`Receiving packet (SquadJS style decoded): ${util.inspect(decodePacketSquadJS(fixedData))}`);
+        if (logger.level === 'trace') {
+          const encoded = encodePacket(packet.type, packet.id, packet.body);
+          logger.trace(`Receiving (authenticated) data:\nSquadJS: ${util.inspect(decodePacketSquadJS(encoded))}\nSquadTS: ${util.inspect(packet)}`);
+        }
         onAuthData(packet);
       }
-    });
+    }
+
+    // Handle incoming data from the client
+    // Auth and Exec packets exepected.
+    // IMPORTANT: TCP may merge multiple packets sent into one data,
+    // Meaning we could have response followed by the empty body packet into one data.
+    // Which give the confusing packet body: ListSquads\x00\x00\n\x00\x00\x00\x02\x00\x01\x00\x02\x00\x00\x00
+    // with bytes behind ListSquads being 14 long (size of empty body packet)
+    // ---> Good thing that logic has been extracted into re-usable packetDataHandler.
+    client.on('data', packetDataHandler.onData);
 
     // Log disconnections
     client.on('end', () => {
@@ -251,6 +276,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       // end maybe be called if the password is wrong.
       subChat?.unsubscribe();
       client.end();
+      packetDataHandler.cleanUp();
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -264,9 +290,14 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       // If error at auth, subChat will not have been set.
       subChat?.unsubscribe();
       client.destroy();
+      packetDataHandler.cleanUp();
     })
+
+    // Start the writeLoop, writeLoop will close by itself when client is not writable anymore.
+    writeLoop();
   });
   // todo test disconnect and reconnect squadJS, should not error SquadTS.
+
 
   // Start listening for incoming client connections
   server.listen(options.port, () => {

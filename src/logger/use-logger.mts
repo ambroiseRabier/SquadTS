@@ -109,5 +109,9 @@ export function useSubLogger(logger: Logger, verbosity: Options['logger']['verbo
       msgPrefix: chalk.magentaBright('[GithubInfo] '),
       level: verbosity.GithubInfo,
     }),
+    rconProxyLogger: logger.child({}, {
+      msgPrefix: chalk.magentaBright('[RCONProxy] '),
+      level: verbosity.RCONProxyLogger, // todo dunno why I placed uppercase here, maybe it was like that in SquadJS
+    }),
   };
 }

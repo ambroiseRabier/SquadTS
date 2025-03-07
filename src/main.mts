@@ -21,6 +21,8 @@ import { joinSafeSubPath, promiseWithTimeout } from './utils';
 import { logGitVersion } from './log-git-version';
 import { useRcon } from './rcon/use-rcon';
 import { GITHUB_INFO_CACHE } from './config/path-constants.mjs';
+import { RCONProxy, useRconProxy } from './rcon/use-rcon-proxy';
+import chalk from 'chalk';
 
 interface Props {
   /**
@@ -36,8 +38,13 @@ interface Props {
 }
 
 export async function main(props?: Props) {
+  console.info('\n');
+  console.info(chalk.bold('Squad') + chalk.bold.blue('TS'));
+  console.info('Put a star on Github if you like it: https://github.com/ambroiseRabier/SquadTS');
+  console.info('\n');
+  // todo: version display (... :/)
+
   const logger = useLogger();
-  logger.info('Starting SquadTS');
   logGitVersion(logger);
 
   // Load config from object if it is a test server, or from directory if non-test server.
@@ -68,8 +75,14 @@ export async function main(props?: Props) {
     pluginLoaderLogger,
     logReaderLogger,
     githubInfoLogger,
+    rconProxyLogger,
   } = useSubLogger(logger, config.logger.verbosity);
   const rcon = props?.mocks.rcon ?? useRcon(config.rcon, rconLogger);
+  let rconProxy: RCONProxy;
+  if (config.rcon.proxy.enabled) {
+    rconProxy = useRconProxy(rconProxyLogger, rcon, config.rcon.proxy);
+  }
+
   const rconSquad = useRconSquad(rconSquadLogger, rcon, config.rconSquad);
   const logReader = props?.mocks.logReader ?? useLogReader(config.logParser, logReaderLogger);
   const logParser = useLogParser(
@@ -92,6 +105,7 @@ export async function main(props?: Props) {
   const earlyCleanup = async (skipExit = false) => {
     console.info('Shutdown signal received. Cleaning up...');
     try {
+      rconProxy.cleanup();
       await rcon.disconnect();
     } catch (error) {
       console.error(error);
@@ -251,6 +265,8 @@ export async function main(props?: Props) {
   //       it appears messy if mixed up with pino logger that is slightly behind.
   const cleanupFCT = async () => {
     try {
+      rconProxy?.cleanup();
+
       // Cleanup shouldn't be that long, if it is, it is probably a problem.
       // If you came here from a test, make sure you disabled fake timers before calling cleanup!
       await promiseWithTimeout(
