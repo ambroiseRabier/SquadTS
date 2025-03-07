@@ -1,4 +1,3 @@
-
 export function encodePacket(type, id, body) {
   // Size, in bytes, of the whole packet.
   // 14 => size = 4, id = 4, type = 4, string terminator = 2

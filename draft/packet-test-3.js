@@ -1,7 +1,4 @@
-
-const asciiString = String.fromCharCode(
-  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00
-);
+const asciiString = String.fromCharCode(0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00);
 // Follow response, that is always sent after a mirror, type is also mirrored on Squad servers.
 const follow = encodePacket(
   0x00, //PacketType.RESPONSE_VALUE,
@@ -26,7 +23,6 @@ function encodePacket(type, id, body) {
   buffer.writeInt16LE(0, size - 2);
   return buffer;
 }
-
 
 /**
  * Output: "0a 14 1e 28" ...

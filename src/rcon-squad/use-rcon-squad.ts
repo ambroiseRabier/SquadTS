@@ -19,6 +19,6 @@ export function useRconSquad(logger: Logger, rcon: Rcon, config: RconSquadConfig
 
     // Bind is needed here because RCON is a class.
     connect: rcon.connect,
-    disconnect: rcon.disconnect
+    disconnect: rcon.disconnect,
   };
 }

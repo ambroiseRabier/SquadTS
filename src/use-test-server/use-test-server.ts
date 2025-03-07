@@ -76,7 +76,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
         enabled: false,
         port: 21115,
         password: '',
-      }
+      },
     },
     logger: {
       verbosity: {
