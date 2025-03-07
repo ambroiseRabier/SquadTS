@@ -72,6 +72,11 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
       password: 'examplePassword',
       debugCondenseLogs: false, // Keep it false as this may be confusing in tests.
       debugCondenseLogsIgnoreSinceDisconnect: false, // same as above
+      proxy: {
+        enabled: false,
+        port: 21115,
+        password: '',
+      },
     },
     logger: {
       verbosity: {
@@ -84,6 +89,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
         RCONSquad: 'debug',
         LogReader: 'info', // not used because of the mock
         GithubInfo: 'info',
+        RCONProxyLogger: 'info',
       },
       debugLogMatching: {
         showMatching: true, // recommended to keep it true for easier debug (help you confirm the logs you've placed are processed

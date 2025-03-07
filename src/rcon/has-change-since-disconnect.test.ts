@@ -13,6 +13,7 @@ ID: 0 | Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 765611980169420
 
     expect(hasChangesIgnoringSinceDisconnect(str1, str2)).toEqual(false);
   });
+
   it('React to change', () => {
     const str1 = `----- Active Players -----
 ----- Recently Disconnected Players [Max of 15] -----`;
@@ -22,5 +23,11 @@ ID: 0 | Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 765611980169420
 ID: 0 | Online IDs: EOS: 0002a10186d9414496bf20d22d3860ba steam: 76561198016942077 | Since Disconnect: 02m.11s | Name:  Yuca`;
 
     expect(hasChangesIgnoringSinceDisconnect(str1, str2)).toEqual(true);
+  });
+
+  it('Ignore no change', () => {
+    const str = `----- Active Players -----
+----- Recently Disconnected Players [Max of 15] -----`;
+    expect(hasChangesIgnoringSinceDisconnect(str, str)).toEqual(false);
   });
 });

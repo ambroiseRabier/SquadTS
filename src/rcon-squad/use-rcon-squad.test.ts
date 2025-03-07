@@ -1,7 +1,7 @@
 import { expect, beforeEach, describe, it, vi, Mocked } from 'vitest';
 import { useRconSquad } from './use-rcon-squad';
 import { Rcon } from '../rcon/use-rcon';
-import { Packet } from '../rcon/use-packet-data-handler';
+import { Packet } from '../rcon/packet';
 import { Subject } from 'rxjs';
 
 vi.mock('../rcon/rcon');

@@ -1,4 +1,8 @@
 /**
+ * IMPORTANT UPDATE: From offworld discord: This uses UE4 RCON Module, not Valve's RCON.
+ *                   UE4 source code is not available to the public, and there doesn't seem to be any doc.
+ *                   It is likely based on Valve's RCON, but may be (is) different.
+ *
  * Based on https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
  * With the help of:
  * - https://github.com/Matttor/SimplestSquadRcon (MIT license)
@@ -8,10 +12,11 @@ import net from 'net';
 import { RconOptions } from './rcon.config';
 import { Logger } from 'pino';
 import { Subject } from 'rxjs';
-import { Packet, usePacketDataHandler } from './use-packet-data-handler';
-import { IncludesRCONCommand, RCONCommand } from '../rcon-squad/rcon-commands';
-import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
+import { usePacketDataHandler } from './use-packet-data-handler';
+import { IncludesRCONCommand } from '../rcon-squad/rcon-commands';
 import { useRetryConnect } from './use-retry-connect';
+import { encodePacket, MAXIMUM_PACKET_RESPONSE_SIZE, Packet, PacketType } from './packet';
+import { useLogExecute } from './log-execute';
 
 /*
  * Known issue: ctrl+C to terminate process while it is retrying keep it alive somehow
@@ -22,26 +27,9 @@ import { useRetryConnect } from './use-retry-connect';
   // }, 18000)
  */
 
-/**
- * Doc: https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
- */
-export enum PacketType {
-  EXEC_COMMAND = 0x02,
-  // This is by design, not a mistake.
-  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
-  AUTH_RESPONSE = 0x02,
-  RESPONSE_VALUE = 0x00,
-  AUTH = 0x03,
-  /**
-   * Special packet type from Squad, undocumented.
-   */
-  CHAT_VALUE = 0x01,
-}
-
 const INT32_MAX = 2 ** 31 - 1; // 2,147,483,647
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const INT32_MIN = -(2 ** 31); // -2,147,483,648
-const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
 
 /**
  * The packet id field is a 32-bit little endian integer chosen by the client for each request.
@@ -228,7 +216,6 @@ export function useRcon(options: RconOptions, logger: Logger) {
     },
   });
 
-  // todo likely can move that into another file.
   /**
    * onError will be called when a packet is sent but fail due to absence of internet connection.
    * Maybe also if the Squad server is restarting.
@@ -357,7 +344,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
     }
     // Doc "A SERVERDATA_RESPONSE_VALUE packet is the response to a SERVERDATA_EXECCOMMAND request."
     else if (packet.type === PacketType.RESPONSE_VALUE) {
-      // Special handler because RESPONSE_VALUE can have multi-packets response
+      // Special handler because RESPONSE_VALUE can have multi-packets responses.
       onResPacket(packet);
     } else {
       // Auth responses are handled separately
@@ -384,6 +371,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
     // after every SERVERDATA_EXECCOMMAND request."
     //
     // Doc again " receiving a response packet with an empty packet body guarantees that all of the meaningful response packets have already been received"
+    //
+    // Update: For this multi-packet trick to work, the empty packet needs to always come after the response, meaning a somewhat ordered response behavior.
+    //         If the empty packet was coming first in some case, we could have no idea how many response packet to wait for.
     if (isEmptyPacket) {
       // We have the full packet.
       // But... Doc "Also note that requests executed asynchronously can possibly send their
@@ -418,9 +408,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
     resolve(packet);
   }
 
-  const cachedResponse = new Map<Lowercase<RCONCommand>, string>();
+  const logExecute = useLogExecute(logger, options);
 
-  async function execute<T extends string>(command: IncludesRCONCommand<T>) {
+  async function execute<T extends string>(command: IncludesRCONCommand<T>, isProxy = false) {
     pendingExecute++;
     pendingExecuteWithoutCallback++;
 
@@ -436,7 +426,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
       );
     }
 
-    logger.trace(`Executing command: ${command}`);
+    logger.trace(`${isProxy ? '(proxy) ' : ''}Executing command: ${command}`);
     return await sendExecPacket(command)
       .then(res => {
         pendingExecute--;
@@ -444,62 +434,9 @@ export function useRcon(options: RconOptions, logger: Logger) {
       })
       .then(res => {
         // This is executed before `execute` returns.
-        logExecute(command, res);
+        logExecute(command, res, isProxy);
         return res;
       });
-  }
-
-  function logExecute(command: string, res: string) {
-    const emitDebugLog = (cacheEnabledForCommand = false) =>
-      logger.debug(
-        `Command ${cacheEnabledForCommand ? '(logging only when changed)' : ''}: "${command}" --> "${res}"`
-      );
-
-    // Option to reduce verboseness.
-    if (options.debugCondenseLogs) {
-      // Note: case-insensitive matching.
-      const cl = command.match(/^(\w+) ?/);
-      if (!cl) {
-        throw Error(`Unexpected command (or wrong regex here): ${command}`);
-      }
-      const baseCommand = cl[1].toLowerCase() as Lowercase<RCONCommand>;
-      const cachedRes = cachedResponse.get(baseCommand);
-
-      const emitIfChanged = () => {
-        // Not cached, or cached, but res is different.
-        if (!cachedRes || (cachedRes && cachedRes !== res)) {
-          emitDebugLog(true);
-          cachedResponse.set(baseCommand, res);
-        }
-      };
-
-      switch (baseCommand) {
-        case RCONCommand.ListPlayers.toLowerCase():
-          // Extra option to further reduce the verboseness, right now, disconnect player are not used at all.
-          if (options.debugCondenseLogsIgnoreSinceDisconnect) {
-            if (cachedRes) {
-              if (hasChangesIgnoringSinceDisconnect(cachedRes, res)) {
-                emitDebugLog(true);
-              } // else no change, doesn't emit
-            } else {
-              // not cached
-              emitDebugLog(true);
-            }
-          } else {
-            // No special behavior for ListPlayers
-            emitIfChanged();
-          }
-          break;
-        case RCONCommand.ShowServerInfo.toLowerCase():
-        case RCONCommand.ListSquads.toLowerCase():
-          emitIfChanged();
-          break;
-        default:
-          emitDebugLog();
-      }
-    } else {
-      emitDebugLog();
-    }
   }
 
   return {
@@ -508,26 +445,4 @@ export function useRcon(options: RconOptions, logger: Logger) {
     connect,
     disconnect,
   };
-}
-
-/**
- * https://developer.valvesoftware.com/wiki/Source_RCON_Protocol
- * @param type The packet type field is a 32-bit little endian integer, which indicates the purpose of the packet. Its value will always be either 0, 2, or 3.
- * @param id The packet id field is a 32-bit little endian integer chosen by the client for each request. It may be set to any positive integer. When the server responds to the request, the response packet will have the same packet id as the original request (unless it is a failed SERVERDATA_AUTH_RESPONSE packet - see below.) It need not be unique, but if a unique packet id is assigned, it can be used to match incoming responses to their corresponding requests.
- * @param body The packet body field is a null-terminated string encoded in ASCII
- */
-function encodePacket(type: PacketType, id: number, body: string) {
-  // Size, in bytes, of the whole packet.
-  // 14 => size = 4, id = 4, type = 4, string terminator = 2
-  const size = Buffer.byteLength(body) + 14;
-  const buffer = Buffer.alloc(size);
-  // size should not count itself. Doc:
-  // "Note that the packet size field itself is not included when determining the size of the packet, so the value of this field is always 4 less than the packet's actual length"
-  buffer.writeInt32LE(size - 4, 0);
-  buffer.writeInt32LE(id, 4);
-  buffer.writeInt32LE(type, 8);
-  buffer.write(body, 12, size - 2, 'ascii'); // todo maybe SquadTS support utf8 ?
-  // String terminator and 8 empty bits
-  buffer.writeInt16LE(0, size - 2);
-  return buffer;
 }

@@ -10,6 +10,11 @@ describe('parseConfig', () => {
         password: 'examplePassword',
         debugCondenseLogs: false,
         debugCondenseLogsIgnoreSinceDisconnect: false,
+        proxy: {
+          enabled: false,
+          port: 25576,
+          password: 'examplePassword',
+        },
       },
       logger: {
         verbosity: {
@@ -20,6 +25,7 @@ describe('parseConfig', () => {
           RCONSquad: 'info',
           LogReader: 'info',
           GithubInfo: 'info',
+          RCONProxyLogger: 'info',
         },
         debugLogMatching: {
           showMatching: false,

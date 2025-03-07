@@ -15,7 +15,8 @@ export const loggerOptionsSchema = z.object({
         .default('info')
         .describe(
           'Set to debug to view every response made, trace to view every RCON call made.\n' +
-            'You may use debugCondenseLogs in rcon config to reduce verboseness of some responses.'
+            'You may use debugCondenseLogs in rcon config to reduce verboseness of some responses.\n' +
+            'Be aware that trace level is very verbose, and intended to debug handling of RCON packets and RCON proxy packets.'
         ),
       RCONSquad: pinoLevelSchema.default('info'),
       PluginLoader: pinoLevelSchema.default('info'),
@@ -23,6 +24,7 @@ export const loggerOptionsSchema = z.object({
         .default('info')
         .describe('Will also be used for FTP/SFTP debug logs if enabled.'),
       GithubInfo: pinoLevelSchema.default('info'),
+      RCONProxyLogger: pinoLevelSchema.default('info'),
     })
     .describe(
       `Define the log levels for each logger, available levels: ${logLevels.join(', ')}.\n` +

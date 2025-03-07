@@ -214,7 +214,7 @@ export function useSquadServer({
     unwatch: async () => {
       logger.info('SquadTS server is shutting down...');
       cachedGameStatus.unwatch();
-      await rconSquad.disconnect();
+      await rconSquad.disconnect(); // todo, why here, just ask rcon directly in main.mts, added benefit is not need to drill disconnect into rconSquad
       await logParser.unwatch();
       logger.info('SquadTS server is shut down.');
       // Wait a bit for remaining logs to be displayed, especially useful for tests that are very fast.
