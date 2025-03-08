@@ -9,7 +9,7 @@ describe('parseConfig', () => {
         port: 25575,
         password: 'examplePassword',
         debugCondenseLogs: false,
-        debugCondenseLogsIgnoreSinceDisconnect: false,
+        PLAYTIME_I: false,
         proxy: {
           enabled: false,
           port: 25576,

@@ -1,10 +1,11 @@
 import { RCONCommand } from '../rcon-squad/rcon-commands';
 import { hasChangesIgnoringSinceDisconnect } from './has-change-since-disconnect';
 import { Logger } from 'pino';
+import { omit } from 'lodash-es';
 
 export function useLogExecute(
   logger: Logger,
-  options: { debugCondenseLogs: boolean; debugCondenseLogsIgnoreSinceDisconnect: boolean }
+  options: { debugCondenseLogs: boolean; debugCondenseLogsFurther: boolean }
 ) {
   const cachedResponse = new Map<Lowercase<RCONCommand>, string>();
 
@@ -41,14 +42,9 @@ export function useLogExecute(
       switch (baseCommand) {
         case RCONCommand.ListPlayers.toLowerCase():
           // Extra option to further reduce the verboseness, right now, disconnect player are not used at all.
-          if (options.debugCondenseLogsIgnoreSinceDisconnect) {
-            if (cachedRes) {
-              if (hasChangesIgnoringSinceDisconnect(cachedRes, res)) {
-                emitDebugLog(true);
-                cachedResponse.set(baseCommand, res);
-              } // else no change, doesn't emit
-            } else {
-              // not cached
+          if (options.debugCondenseLogsFurther) {
+            const shouldCacheResponse = !cachedRes || hasChangesIgnoringSinceDisconnect(cachedRes, res);
+            if (shouldCacheResponse) {
               emitDebugLog(true);
               cachedResponse.set(baseCommand, res);
             }
@@ -58,6 +54,27 @@ export function useLogExecute(
           }
           break;
         case RCONCommand.ShowServerInfo.toLowerCase():
+          if (options.debugCondenseLogsFurther) {
+            const hasChangeIgnoringPlayTime = () => {
+              if (!cachedRes) {
+                return true;
+              }
+              // eslint not happy that I put let, but a delete on a const...
+              const parsedRes = JSON.parse(res);
+              delete parsedRes.PLAYTIME_I;
+              const parsedCached = JSON.parse(cachedRes);
+              delete parsedCached.PLAYTIME_I;
+              return parsedRes !== parsedCached;
+            };
+
+            const shouldCacheResponse = !cachedRes || hasChangeIgnoringPlayTime();
+            if (shouldCacheResponse) {
+              emitDebugLog(true);
+              cachedResponse.set(baseCommand, res);
+            }
+          } else {
+            emitIfChanged();
+          }
         case RCONCommand.ListSquads.toLowerCase():
           emitIfChanged();
           break;

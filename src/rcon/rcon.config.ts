@@ -16,10 +16,11 @@ export const rconOptionsSchema = z.object({
     .describe(
       'If true, will not show ListPlayers / ListSquads / ShowServerInfo RCON response log (debug level) if theses have not changed.'
     ),
-  debugCondenseLogsIgnoreSinceDisconnect: z
+  debugCondenseLogsFurther: z
     .boolean()
     .default(true)
-    .describe('If true, exclusive change in `Since Disconnect: 03m.14s` will not be displayed.'),
+    .describe('If true, changes in RCON ListPlayers `Since Disconnect: 03m.14s` will be ignored.\n' +
+      'PLAYTIME_I changes in RCON ShowServerInfo will be ignored.'),
   proxy: z
     .discriminatedUnion('enabled', [
       z.object({

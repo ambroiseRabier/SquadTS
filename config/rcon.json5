@@ -7,8 +7,9 @@
   password: '',
   // If true, will not show ListPlayers / ListSquads / ShowServerInfo RCON response log (debug level) if theses have not changed.
   debugCondenseLogs: true,
-  // If true, exclusive change in `Since Disconnect: 03m.14s` will not be displayed.
-  debugCondenseLogsIgnoreSinceDisconnect: true,
+  // If true, changes in RCON ListPlayers `Since Disconnect: 03m.14s` will be ignored.
+  // PLAYTIME_I changes in RCON ShowServerInfo will be ignored.
+  debugCondenseLogsFurther: true,
   // Proxy to use for SquadJS, host will likely be localhost or 127.0.0.1. If using docker container, use the container name instead of localhost.
   // Ask yourself a simple question: "Where I am running Squad TS?"
   proxy: {
