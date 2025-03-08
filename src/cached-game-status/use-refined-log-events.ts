@@ -81,7 +81,7 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
         player: {
           // Even if we don't have player connected event it is
           // safe to do, since we got RCON player data at the startup.
-          ...getPlayerByEOSID(data.eosID)!,
+          // ...getPlayerByEOSID(data.eosID)!, // todo wrong, we remove the player from players list before :///
           // Make sure we use latest info here
           controller: data.controller,
           ip: data.ip,

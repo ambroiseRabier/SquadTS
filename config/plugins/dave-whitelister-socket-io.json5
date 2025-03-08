@@ -1,0 +1,13 @@
+/**
+ * Socket.io server for https://github.com/fantinodavide/Squad_Whitelister
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // Your secret token/password for connecting.
+  securityToken: '',
+  // The port to listen on.
+  websocketPort: 3000,
+}
