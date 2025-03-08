@@ -64,7 +64,7 @@ const heliCrashBroadcast: SquadTSPlugin<HeliCrashBroadCastOptions> = async (
 
       // on suicide, victim and attacker are the same.
       await server.rcon.broadcast(
-        message.replace('%pilot%', server.helpers.getPlayerDisplayName(data.attacker))
+        message.replaceAll('%pilot%', server.helpers.getPlayerDisplayName(data.attacker))
       );
     });
 };

@@ -80,7 +80,7 @@ const autoKickUnassigned: SquadTSPlugin<AutoKickUnassignedOptions> = async (
           return;
         }
 
-        await server.rcon.warn(eosID, options.warnMessage.replace('%remainingTime%', duration));
+        await server.rcon.warn(eosID, options.warnMessage.replaceAll('%remainingTime%', duration));
         logger.debug(
           `Warned player ${player.nameWithClanTag} (${player.eosID}) for being unassigned.`
         );

@@ -56,10 +56,10 @@ const endMatchVote: SquadTSPlugin<EndMatchVoteOptions> = async (
 
     const { totalPlayers, votes, percentage } = calculateVoteStats();
     const message = options.broadcastMessages.voteUpdated
-      .replace('%votes%', votes.toString())
-      .replace('%total%', totalPlayers.toString())
-      .replace('%percentage%', percentage.toString())
-      .replace('%remainingTime%', getRemainingTime());
+      .replaceAll('%votes%', votes.toString())
+      .replaceAll('%total%', totalPlayers.toString())
+      .replaceAll('%percentage%', percentage.toString())
+      .replaceAll('%remainingTime%', getRemainingTime());
 
     await server.rcon.broadcast(message);
   };
@@ -85,8 +85,8 @@ const endMatchVote: SquadTSPlugin<EndMatchVoteOptions> = async (
 
     // Broadcast initial message
     const message = options.broadcastMessages.voteStarted
-      .replace('%nextCommand%', options.nextCommand[0])
-      .replace('%continueCommand%', options.continueCommand);
+      .replaceAll('%nextCommand%', options.nextCommand[0])
+      .replaceAll('%continueCommand%', options.continueCommand);
     await server.rcon.broadcast(message);
 
     // Schedule updates
@@ -102,9 +102,9 @@ const endMatchVote: SquadTSPlugin<EndMatchVoteOptions> = async (
 
         if (percentage >= options.voteThresholdPercentage) {
           const message = options.broadcastMessages.nextWin
-            .replace('%votes%', votes.toString())
-            .replace('%total%', totalPlayers.toString())
-            .replace('%percentage%', percentage.toString());
+            .replaceAll('%votes%', votes.toString())
+            .replaceAll('%total%', totalPlayers.toString())
+            .replaceAll('%percentage%', percentage.toString());
 
           await server.rcon.broadcast(message);
 
@@ -114,9 +114,9 @@ const endMatchVote: SquadTSPlugin<EndMatchVoteOptions> = async (
           }, 10000);
         } else {
           const message = options.broadcastMessages.continueWin
-            .replace('%votes%', votes.toString())
-            .replace('%total%', totalPlayers.toString())
-            .replace('%percentage%', percentage.toString());
+            .replaceAll('%votes%', votes.toString())
+            .replaceAll('%total%', totalPlayers.toString())
+            .replaceAll('%percentage%', percentage.toString());
 
           await server.rcon.broadcast(message);
         }
@@ -143,9 +143,9 @@ const endMatchVote: SquadTSPlugin<EndMatchVoteOptions> = async (
         clearVoteTimers();
 
         const message = options.broadcastMessages.nextWin
-          .replace('%votes%', votes.toString())
-          .replace('%total%', totalPlayers.toString())
-          .replace('%percentage%', percentage.toString());
+          .replaceAll('%votes%', votes.toString())
+          .replaceAll('%total%', totalPlayers.toString())
+          .replaceAll('%percentage%', percentage.toString());
 
         await server.rcon.broadcast(message);
 
