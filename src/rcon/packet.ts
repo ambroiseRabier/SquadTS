@@ -58,7 +58,7 @@ export function debugDecodePacket(buffer: Buffer) {
   const type = buffer.length >= 12 && buffer.readUInt32LE(8);
   const body = buffer.length >= 12 && buffer.toString('utf8', 12, buffer.byteLength - 2);
   return (
-    `Incoming packet: ${util.inspect({ size, id, type, body })}\n` +
+    `Incoming packet: ${util.inspect({ size, id, type, body }, false, null, true)}\n` +
     'Raw packet: ' +
     bufToHexString(buffer)
   );

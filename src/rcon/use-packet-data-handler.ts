@@ -184,7 +184,7 @@ export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: 
       if (remainingData.length > 0) {
         logger.trace(`Remaining data (${remainingData.length}): ${bufToHexString(remainingData)}`);
       }
-      logger.trace(`Decoded packet: ${util.inspect(decodedPacket)}`);
+      logger.trace(`Decoded packet: ${util.inspect(decodedPacket, false, null, true)}`);
     }
 
     onPacketCallback(decodedPacket);
