@@ -76,17 +76,37 @@ export function useRefinedLogEvents({ logParser, cachedGameStatus }: Props) {
     ),
 
     playerDisconnected: logParser.events.playerDisconnected.pipe(
-      map(data => ({
-        ...omit(data, ['controller', 'ip', 'eosID']),
-        player: {
-          // Even if we don't have player connected event it is
-          // safe to do, since we got RCON player data at the startup.
-          // ...getPlayerByEOSID(data.eosID)!, // todo wrong, we remove the player from players list before :///
-          // Make sure we use latest info here
-          controller: data.controller,
-          ip: data.ip,
-        },
-      }))
+      map(data => {
+        // logParser playerDisconnected event is received at the same time by cachedGameStatus,
+        // cachedGameStatus will remove the player from the list, making `getPlayerByEOSID(data.eosID)` fail.
+        // cachedGameStatus.lastPlayerDisconnected is a hack to save us.
+        // I still use `getPlayerByEOSID(data.eosID)`, just in case this subscription would be called first.
+        const player = getPlayerByEOSID(data.eosID) ?? cachedGameStatus.lastPlayerDisconnected;
+
+        // When starting SquadTS, we run RCON ListPlayers before parsing any log.
+        // If we get any player disconnected log event, we should always be able to find the player in cached player list.
+        if (!player) {
+          throw new Error('Unexpected: Player not found');
+        }
+
+        if (player.eosID !== data.eosID) {
+          throw new Error(
+            'Unexpected: Player id mismatch, is cachedGameStatus.lastPlayerDisconnected not what we think?'
+          );
+        }
+
+        return {
+          ...omit(data, ['controller', 'ip', 'eosID']),
+          player: {
+            // Even if we don't have player connected event it is
+            // safe to do, since we got RCON player data at the startup.
+            ...player,
+            // Make sure we use the latest info here.
+            controller: data.controller,
+            ip: data.ip,
+          },
+        };
+      })
     ),
   };
 }

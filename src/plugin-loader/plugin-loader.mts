@@ -296,7 +296,10 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     let plugin, configSchema;
 
     try {
+      const t0 = performance.now();
       plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
+      const t1 = performance.now();
+      logger.debug(`Plugin ${file} loaded in ${t1 - t0}ms`);
       // eslint-disable-next-line
     } catch (e: any) {
       logger.error(`${file}: Failed to import plugin files, error: ${e?.message}`, e);

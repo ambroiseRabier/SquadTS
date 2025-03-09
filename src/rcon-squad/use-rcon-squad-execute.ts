@@ -60,6 +60,8 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
      */
     getListPlayers: async () => {
       const response = await execute('ListPlayers');
+      // It appears that nameWithClanTag will contain an extra space between clan tag an player
+      // But it may be an isolated case.
       const regexStr =
         '^ID: (?<id>\\d+) \\| Online IDs:(?<ids>[^|]+)\\| Name: (?<nameWithClanTag>.+) \\| Team ID: (?<teamID>\\d|N\\/A) \\| Squad ID: (?<squadIndex>\\d+|N\\/A) \\| Is Leader: (?<isLeader>True|False) \\| Role: (?<role>.+)$';
       const regex = new RegExp(regexStr);
@@ -138,58 +140,62 @@ export function useRconSquadExecute(execute: Rcon['execute'], dryRun: boolean, l
 
     // todo: renvoie quoi ? quoi que ce soit utile ?
     broadcast: async (message: string) => {
-      await dryRunExecute(`AdminBroadcast ${message}`);
+      return await dryRunExecute(`AdminBroadcast ${message}`);
     },
 
     // Doesn't do anything ?
     setFogOfWar: async (mode: string) => {
-      await dryRunExecute(`AdminSetFogOfWar ${mode}`);
+      return await dryRunExecute(`AdminSetFogOfWar ${mode}`);
     },
 
     /**
-     *
-     * @param anyID
-     * @param message 97 characters is the maximum that can be displayed in game.
+     * Limits:
+     * 242 chars
+     * vertical max 24 lines
+     * horizontal no limit but:
+     * - 172 big max if you want to stay inside 1440p screen
+     * - 38 max to stay in the black box,
+     * - 32 max to have balanced padding in the black box.
      */
     warn: async (anyID: string, message: string) => {
-      await dryRunExecute(`AdminWarn "${anyID}" ${message}`);
+      return await dryRunExecute(`AdminWarn "${anyID}" ${message}`);
     },
 
     // 0 = Perm | 1m = 1 minute | 1d = 1 Day | 1M = 1 Month | etc...
     ban: async (anyID: string, banLength: string, message: string) => {
-      await dryRunExecute(`AdminBan "${anyID}" "${banLength}" ${message}`);
+      return await dryRunExecute(`AdminBan "${anyID}" "${banLength}" ${message}`);
     },
 
     disbandSquad: async (teamID: string, squadIndex: string) => {
-      await dryRunExecute(`AdminDisbandSquad ${teamID} ${squadIndex}`);
+      return await dryRunExecute(`AdminDisbandSquad ${teamID} ${squadIndex}`);
     },
 
     kick: async (anyID: string, reason: string) => {
-      await dryRunExecute(`AdminKick "${anyID}" ${reason}`);
+      return await dryRunExecute(`AdminKick "${anyID}" ${reason}`);
     },
 
     forceTeamChange: async (anyID: string) => {
-      await dryRunExecute(`AdminForceTeamChange "${anyID}"`);
+      return await dryRunExecute(`AdminForceTeamChange "${anyID}"`);
     },
 
     endMatch: async () => {
-      await dryRunExecute('AdminEndMatch');
+      return await dryRunExecute('AdminEndMatch');
     },
 
     // Rename is not possible, but you can reset it to default name "Squad 1", "Squad 2", ...
     resetSquadName: async (teamID: string, squadIndex: string) => {
-      await dryRunExecute(`AdminRenameSquad ${teamID} ${squadIndex}`);
+      return await dryRunExecute(`AdminRenameSquad ${teamID} ${squadIndex}`);
     },
 
     demoteCommander: async (anyID: string) => {
-      await dryRunExecute(`AdminDemoteCommander ${anyID}`);
+      return await dryRunExecute(`AdminDemoteCommander ${anyID}`);
     },
 
     // Don't remember exactly which one, but some change are taken in account only
     // at layer change, some only until restart, and this command is a recent addition
     // from Squad to allow updating the config without having to restart the server.
     reloadServerConfig: async () => {
-      await dryRunExecute('AdminReloadServerConfig');
+      return await dryRunExecute('AdminReloadServerConfig');
     },
 
     showServerInfo: async () => {
