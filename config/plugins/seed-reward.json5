@@ -25,8 +25,8 @@
   thanksMessageDelay: 15,
   // Interval in minutes between each progression message
   seedProgressionMessageInterval: 30,
-  // Message sent to players when they join seed. Available variables: %whiteListDuration%, %percent%
-  thanksMessage: 'Thank you for helping seed the server! After %whiteListDuration% days of seeding, you will get a %whiteListDuration% days whitelist. Current progress: %percent%%',
+  // Message sent to players when they join seed. Available variables: %seedDuration%, %whiteListDuration%, %percent%
+  thanksMessage: 'Thank you for helping seed the server! After %seedDuration% days of seeding, you will get a %whiteListDuration% days whitelist. Current progress: %percent%%',
   // Message sent to players periodically. Available variables: %percent%
   seedProgressionMessage: 'Current seeding progress: %percent%%',
   // Message sent to players when they get whitelisted. Available variables: %whiteListDuration%

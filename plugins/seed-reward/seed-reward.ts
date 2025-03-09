@@ -65,8 +65,8 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
 
       await server.rcon.broadcast(
         options.seedRewardBroadcastMessage
-          .replace('%playerName%', record.displayName)
-          .replace('%whiteListDuration%', options.whiteListDuration.toString())
+          .replaceAll('%playerName%', record.displayName)
+          .replaceAll('%whiteListDuration%', options.whiteListDuration.toString())
       );
 
       await server.rcon.warn(
@@ -119,8 +119,9 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
           await server.rcon.warn(
             player.eosID,
             options.thanksMessage
-              .replace('%whiteListDuration%', options.whiteListDuration.toString())
-              .replace('%percent%', percent.toString())
+              .replaceAll('%seedDuration%', options.seedDuration.toString())
+              .replaceAll('%whiteListDuration%', options.whiteListDuration.toString())
+              .replaceAll('%percent%', percent.toString())
           );
         }
       }
@@ -146,7 +147,7 @@ const seedReward: SquadTSPlugin<SeedRewardOptions> = async (
             if (!recentlyRewarded) {
               await server.rcon.warn(
                 player.eosID,
-                options.seedProgressionMessage.replace('%percent%', percent.toString())
+                options.seedProgressionMessage.replaceAll('%percent%', percent.toString())
               );
             }
           }

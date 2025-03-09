@@ -194,9 +194,9 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     playersInSquadLength: number
   ) {
     const message = options.messages.warn
-      .replace('%squadType%', transgressorDetails.squadName)
-      .replace('%max%', transgressorDetails.maxPlayerInSquad.toString())
-      .replace('%warn_count%', `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`);
+      .replaceAll('%squadType%', transgressorDetails.squadName)
+      .replaceAll('%max%', transgressorDetails.maxPlayerInSquad.toString())
+      .replaceAll('%warn_count%', `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband}`);
 
     // Resend the warning to the squad leader
     await server.rcon.warn(player.eosID, message);
@@ -228,11 +228,11 @@ const maxPlayerInSquad: SquadTSPlugin<MaxPlayerInSquadOptions> = async (
     // Disband the squad
     await server.rcon.disbandSquad(squadLeader.teamID, squadLeader.squadIndex);
     const disbandBroadcastMessage = options.messages.disbandBroadcast
-      .replace('%teamNumber%', transgressorDetails.teamID)
-      .replace('%squadIndex%', transgressorDetails.squadIndex)
-      .replace('%squadName%', transgressorDetails.squadName)
-      .replace('%maxPlayerInSquad%', transgressorDetails.maxPlayerInSquad.toString())
-      .replace('%squadType%', transgressorDetails.containWord);
+      .replaceAll('%teamNumber%', transgressorDetails.teamID)
+      .replaceAll('%squadIndex%', transgressorDetails.squadIndex)
+      .replaceAll('%squadName%', transgressorDetails.squadName)
+      .replaceAll('%maxPlayerInSquad%', transgressorDetails.maxPlayerInSquad.toString())
+      .replaceAll('%squadType%', transgressorDetails.containWord);
     await server.rcon.broadcast(disbandBroadcastMessage);
 
     const warnStr = `${transgressorDetails.warnCount}/${options.maxWarnBeforeDisband} warns`;

@@ -75,8 +75,8 @@ const knifeBroadCast: SquadTSPlugin<KnifeBroadCastOptions> = async (
 
       await server.rcon.broadcast(
         message
-          .replace('%attacker%', server.helpers.getPlayerDisplayName(data.attacker))
-          .replace('%victim%', server.helpers.getPlayerDisplayName(data.victim))
+          .replaceAll('%attacker%', server.helpers.getPlayerDisplayName(data.attacker))
+          .replaceAll('%victim%', server.helpers.getPlayerDisplayName(data.victim))
       );
     });
 };

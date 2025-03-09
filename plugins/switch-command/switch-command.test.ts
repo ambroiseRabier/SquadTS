@@ -41,8 +41,8 @@ const serverMock = () => {
   const players$ = new BehaviorSubject<SwitchCommandPlayer[]>([]);
   return {
     rcon: {
-      forceTeamChange: vi.fn<SquadServer['rcon']['forceTeamChange']>().mockResolvedValue(undefined),
-      warn: vi.fn<SquadServer['rcon']['warn']>().mockResolvedValue(undefined),
+      forceTeamChange: vi.fn<SquadServer['rcon']['forceTeamChange']>().mockResolvedValue(''), // resolved value is ignored
+      warn: vi.fn<SquadServer['rcon']['warn']>().mockResolvedValue(''), // resolved value is ignored
     },
     chatEvents: {
       // Based on what the plugin use

@@ -50,12 +50,14 @@ SquadTS comes with plugins ready to use:
 - Discord killfeed
 - Discord server status
 - Discord squad created
+- Discord squad rcon
 - End match vote
 - Heli crash broadcast
 - Knife broadcast
 - Max player in squad
-- Switch command
 - Seed reward
+- Switch command
+- Dave whitelister socke.io: Necessary for https://github.com/fantinodavide/Squad_Whitelister (you may want to disable seed reward if you use this)
 
 Go into [./config/plugins](./config/plugins) folder to discover them.
 

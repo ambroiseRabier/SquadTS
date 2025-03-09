@@ -85,6 +85,7 @@ export function useCachedGameStatus({
     initialServerInfo
   );
   const playersSquadChange$ = new Subject<Player[]>();
+  let lastPlayerDisconnected: Player | undefined = undefined;
 
   // todo idea, behaviorSubject per player ? following actions per eosID ?
   // todo: squad created event (depuis RCON et depuis logs) ?
@@ -94,6 +95,10 @@ export function useCachedGameStatus({
   const sub: Subscription[] = [];
 
   return {
+    // Hack for refined playerDisconnected
+    get lastPlayerDisconnected() {
+      return lastPlayerDisconnected;
+    },
     players$,
     squads$,
     serverInfo$,
@@ -108,7 +113,13 @@ export function useCachedGameStatus({
           // can start being read at any time.
           // Remove players through logs
 
-          // todo track disconnected, and reuse their data if reconnect
+          lastPlayerDisconnected = {
+            // Safe to do sine we RCON ListPlayers before listening to logs.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            ...players$.getValue().find(player => player.eosID === playerDisconnected.eosID)!,
+            ...playerDisconnected,
+          };
+
           players$.next(
             players$.getValue().filter(player => player.eosID !== playerDisconnected.eosID)
           );

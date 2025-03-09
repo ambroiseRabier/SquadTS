@@ -21,7 +21,7 @@ const autoTKWarn: SquadTSPlugin<AutoTKWarnOptions> = async (
       await wait(options.victimMessageDelay * 1000).then(async () => {
         await server.rcon.warn(
           info.victim.eosID,
-          options.victimMessage.replace('%attackerName%', attackerName)
+          options.victimMessage.replaceAll('%attackerName%', attackerName)
         );
       }),
     ]);

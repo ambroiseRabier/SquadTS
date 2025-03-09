@@ -289,6 +289,10 @@ export function useFtpTail(logger: Logger, options: Props) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (error: any) => error?.message.toLowerCase().includes('timeout')
     );
+
+    // TODO: handle ECONNRESET error coming (likely from fetchFile, not connect)
+    //       maybe remove retryWithExponentialBackoff and make a while loop, with retries
+
     // Don't process the file again if it hasn't changed, or you get duplicated logs.
     if (hasDownloaded) {
       logger.debug('Processing file...');
@@ -336,7 +340,8 @@ export function useFtpTail(logger: Logger, options: Props) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     } catch (e) {
-      logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`, (e as Error)?.stack);
+      logger.fatal(`Error in fetch loop: ${(e as Error)?.message}`);
+      console.error(e); // better display
       hasError = true;
       // Stop looping at unhandled error. main.mts will handle the cleanup on unhandled errors.
       throw e;

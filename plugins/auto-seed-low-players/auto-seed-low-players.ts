@@ -22,8 +22,8 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
   // Function to broadcast and warn players about map change
   const announceMapChange = async (nextLayer: string) => {
     const message = options.broadcastMessages.beforeChangeMap
-      .replace('%nextLayer%', nextLayer)
-      .replace('%threshold%', options.playerThreshold.toString());
+      .replaceAll('%nextLayer%', nextLayer)
+      .replaceAll('%threshold%', options.playerThreshold.toString());
 
     await server.rcon.broadcast(message);
 
@@ -85,8 +85,8 @@ const autoSeedLowPlayers: SquadTSPlugin<AutoSeedLowPlayers> = async (
     // Broadcast after settings timeout, to avoid possible double broadcast.
     // Broadcast message when going below threshold (only once when lowPlayerTimeout starts, and not on every player count change)
     const message = options.broadcastMessages.bellowThreshold
-      .replace('%playerThreshold%', options.playerThreshold.toString())
-      .replace('%duration%', formatDuration({ minutes: options.duration }));
+      .replaceAll('%playerThreshold%', options.playerThreshold.toString())
+      .replaceAll('%duration%', formatDuration({ minutes: options.duration }));
     await server.rcon.broadcast(message);
   };
 

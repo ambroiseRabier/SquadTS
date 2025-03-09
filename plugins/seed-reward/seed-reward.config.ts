@@ -29,10 +29,10 @@ const enabledSchema = pluginBaseOptionsSchema.extend({
     .string()
     .nonempty()
     .default(
-      'Thank you for helping seed the server! After %whiteListDuration% days of seeding, you will get a %whiteListDuration% days whitelist. Current progress: %percent%%'
+      'Thank you for helping seed the server! After %seedDuration% days of seeding, you will get a %whiteListDuration% days whitelist. Current progress: %percent%%'
     )
     .describe(
-      'Message sent to players when they join seed. Available variables: %whiteListDuration%, %percent%'
+      'Message sent to players when they join seed. Available variables: %seedDuration%, %whiteListDuration%, %percent%'
     ),
   seedProgressionMessage: z
     .string()

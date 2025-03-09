@@ -71,7 +71,7 @@ export async function useTestServer({ executeFn, optionsOverride, pluginOptionOv
       port: 25575,
       password: 'examplePassword',
       debugCondenseLogs: false, // Keep it false as this may be confusing in tests.
-      debugCondenseLogsIgnoreSinceDisconnect: false, // same as above
+      debugCondenseLogsFurther: false, // same as above
       proxy: {
         enabled: false,
         port: 21115,

@@ -171,3 +171,46 @@ je vais changer rcon.ts de toute façon
 genre msgpack 700 => 40ko :/
 plutôt un bundler. (tree shaking) (une vraie release du coup, mais...)
 du coup un plugin en TS peut pas fonctionner, pas en drop-in ?
+
+## Autres plugins idea:
+
+INF
+MBT, IFV
+
+un des tags definie, disband
+
+va bien avec max players une squad,
+sinon trop facile a contourner.
+
+creer squad 1
+warn + disband.
+
+au debut de chaque partie: broadcast avec tag et explicatif.
+
+si trop de fois disband pr cette raison: tu te fais kick du server.
+
+squad baiting: trop d'escoude créer en peu de temps (3 fois en 10min) tu te fais kick. (tu fais chier les autres, et tu sais pas ce que tu fais)
+
+si nouveau joueur, moins de 50h de jeu, 3 création de squad avant kick, sinon 6.
+
+## ASCII art en warn
+
+    // Size that is max before it goes out of the black background
+    // 1234567890A1234567890B1234567890C12345
+    // For Same padding left and right, approximately
+    // 1234567890A1234567890B1234567890
+    // There is no limit is line length, but on 1440p screen the max is
+    // 1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567
+    //
+    // There is a limit in lines (vertical), it will stay in the black box, the limit is
+    // 1234567890A1234567890B12
+    //
+    // 242 chars max until it breaks.
+    // likely because packet is 14, that make 260,
+    // but likely size field 4 bytes are not included
+    // meaning the well known 256.
+
+limite de 256 chars, 24 lignes en vertical, pas de limite en horizontal, mais 172 grand max pour 1440p.
+38 en horizontal pour rester dans la boite noire.
+32 en horizontal pour avoir padding équilibré
+à confirmer, mais je crois aussi que par défaut il line break les mots. (peut être contourner en mettant un char au début de chaque ligne?)

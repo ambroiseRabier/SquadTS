@@ -104,7 +104,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       if (logger.level === 'trace') {
         logger.trace(`Sending packet: ${bufToHexString(encodedPacket)}`);
         const squadJSdecoded = decodePacketSquadJS(encodedPacket);
-        logger.trace(`SquadJS will receive: ${util.inspect(squadJSdecoded)}`);
+        logger.trace(`SquadJS will receive: ${util.inspect(squadJSdecoded, false, null, true)}`);
       }
       client.write(encodedPacket);
     }
@@ -134,7 +134,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
     // todo name of function may be confusing !
     function onAuthData(packet: Packet) {
       if (logger.level === 'trace') {
-        logger.trace(`Receiving packet: ${util.inspect(packet)}`);
+        logger.trace(`Receiving packet: ${util.inspect(packet, false, null, true)}`);
       }
 
       // Only exec command and no empty packet.
@@ -241,7 +241,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
       // why would you send that?
       // It could also be a new type of packet after a Squad update.
       // Whatever it is, we don't want to be silent about it.
-      logger.warn(`Unhandled packet received: ${util.inspect(packet)}`);
+      logger.warn(`Unhandled packet received: ${util.inspect(packet, false, null, true)}`);
     }
 
     const packetDataHandler = usePacketDataHandler(
@@ -257,7 +257,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
         if (logger.level === 'trace') {
           const encoded = encodePacket(packet.type, packet.id, packet.body);
           logger.trace(
-            `Receiving (authenticated) data:\nSquadJS: ${util.inspect(decodePacketSquadJS(encoded))}\nSquadTS: ${util.inspect(packet)}`
+            `Receiving (authenticated) data:\nSquadJS: ${util.inspect(decodePacketSquadJS(encoded), false, null, true)}\nSquadTS: ${util.inspect(packet, false, null, true)}`
           );
         }
         onAuthData(packet);
