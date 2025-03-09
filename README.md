@@ -56,6 +56,7 @@ SquadTS comes with plugins ready to use:
 - Knife broadcast
 - Max player in squad
 - Seed reward
+- Squad name validator
 - Switch command
 - Dave whitelister socke.io: Necessary for https://github.com/fantinodavide/Squad_Whitelister (you may want to disable seed reward if you use this)
 

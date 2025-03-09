@@ -1,0 +1,20 @@
+/**
+ * Given certains rules, will warn SL and disband squad which have an invalid name.
+ * If you have more complex rules, I recommend you use either battlemetric or a custom plugin based on this one.
+ */
+{
+  enabled: false,
+  // Available levels: trace, debug, info, warn, error, fatal.
+  // To disable a logger, set it to silent.
+  loggerVerbosity: 'info',
+  // Squad name must contain at least one these words, case-insensitive. e.g. ["INF", "MBT", "TANK", "SPEC OPS"]
+  // Note that if you do not add "Squad 1, Squad 2, ..." to this list, it will not be considered a valid name.
+  // But if you want names like "Squad 1" to be valid, you shouldn't be using this plugin in the first place.
+  mustContain: [],
+  // You may wait to disable disband, if you haven't finished configuring proper rules yet.
+  // Also note that if you enable this plugin mid-game, it will instantly disband all squad with invalid names.
+  // You should have this plugin enabled this the beginning of the game.
+  enableDisband: true,
+  // Message to send to the squad creator.
+  warnMessage: 'Squad name is invalid. Please read the rules!\n\n It must contains one of these tags: %mustContain%',
+}

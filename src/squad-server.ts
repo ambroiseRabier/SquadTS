@@ -113,7 +113,7 @@ export function useSquadServer({
     /**
      * Squad observable, you may subscribe to watch every change in players.
      */
-    players$: cachedGameStatus.players$,
+    players$: cachedGameStatus.players$.asObservable(), // .asObservable() avoid accidentally calling .next from a plugin
 
     /**
      * Far more valuable than `playerConnected` event, as it provides significantly more detailed information.
@@ -123,7 +123,7 @@ export function useSquadServer({
     /**
      * Squad observable, you may subscribe to watch every change in squads.
      */
-    squad$: cachedGameStatus.squads$,
+    squad$: cachedGameStatus.squads$.asObservable(),
 
     /**
      * List of squads at time of the call.
