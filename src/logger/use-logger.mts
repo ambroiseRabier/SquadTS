@@ -59,8 +59,8 @@ export function useLogger() {
               // How many log file max to keep without counting the one we are writing to.
               // Note that it is not a complete fix as it won't handle file created from a previous execution.
               limit: { count: 25 },
-              // Would prefer the date being placed before .log not after...
-              dateFormat: 'yyyy-MM-dd-hh',
+              // '.log' is constant
+              dateFormat: "yyyy-MM-dd-hh'.log'",
             },
           },
         ],

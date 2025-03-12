@@ -19,6 +19,7 @@ export function useLogReader(options: LogParserConfig, logger: Logger) {
       });
       const subject = new Subject<string>();
       tail.on('line', line => {
+        logger.trace(line);
         subject.next(line);
       });
 

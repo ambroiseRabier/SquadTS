@@ -1,3 +1,7 @@
+/**
+ * Generate plugins file based on a template for a quick start.
+ */
+
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

@@ -1,3 +1,11 @@
+/**
+ * Execute a single RCON command from console.
+ * Beware that multiple RCON connections from the same IP will get you disconnected by Squad serer.
+ * You can avoid the issue by using the proxy feature of SquadTS.
+ *
+ * Example: npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
+ */
+
 import { useRcon } from '../src/rcon/use-rcon';
 import { RconOptions, rconOptionsSchema } from '../src/rcon/rcon.config';
 import fs from 'fs';
@@ -5,9 +13,7 @@ import JSON5 from 'json5';
 import pretty from 'pino-pretty';
 import { pino } from 'pino';
 
-/**
- * Example: npx tsx scripts/rcon-execute.ts ./dev-config/rcon.json5 ListCommands 1
- */
+
 
 // Execute on custom server with all rights, there is also ListCommands 1, but this may list command that only devs
 // have access to.

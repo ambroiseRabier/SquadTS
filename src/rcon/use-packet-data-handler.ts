@@ -25,7 +25,7 @@ const followResponseEnd = Buffer.from([0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
  * `cleanUp` can be called if you need to remove all buffered chunks.
  * For example, if the socket closed, and you made a new one.
  */
-export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: Packet) => void) {
+export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: Packet) => void, censor?: string) {
   const incomingChunks: Buffer[] = [];
   let chunksByteLength = 0;
   let actualPacketLength: number | undefined;
@@ -38,7 +38,12 @@ export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: 
 
   function onData(data: Buffer<ArrayBufferLike>) {
     // Note: auth request will not come back with password, so we won't display the password here.
-    logger.trace(`Got data: ${bufToHexString(data)}`);
+    // But auth request to the proxy, will come with password!
+    if (!censor) {
+      logger.trace(`Got data: ${bufToHexString(data)}`);
+    } else {
+      logger.trace(`Got data (censored). Length: ${data.byteLength}`)
+    }
 
     // Helper. Log as much as possible, usable anywhere safely.
     function logTracePacket() {
@@ -46,7 +51,7 @@ export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: 
         return;
       }
       const combinedData = Buffer.concat(incomingChunks, chunksByteLength);
-      logger.trace(debugDecodePacket(combinedData));
+      logger.trace(debugDecodePacket(combinedData, censor));
     }
 
     chunksByteLength += data.byteLength;
@@ -184,7 +189,7 @@ export function usePacketDataHandler(logger: Logger, onPacketCallback: (packet: 
       if (remainingData.length > 0) {
         logger.trace(`Remaining data (${remainingData.length}): ${bufToHexString(remainingData)}`);
       }
-      logger.trace(`Decoded packet: ${util.inspect(decodedPacket, false, null, true)}`);
+      logger.trace(`Decoded packet: ${censor ? util.inspect(decodedPacket, false, null, true).replace(censor, '*'.repeat(censor.length)) : util.inspect(decodedPacket, false, null, true)}`);
     }
 
     onPacketCallback(decodedPacket);

@@ -1,3 +1,7 @@
+/**
+ * Generate base config for SquadTS and plugins.
+ */
+
 import { optionsSchema } from '../src/config/config.schema';
 import { z } from 'zod';
 import { generateJson5Commented } from './generate-config/generate-json5-commented';

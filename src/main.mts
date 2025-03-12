@@ -45,6 +45,7 @@ export async function main(props?: Props) {
   // todo: version display (... :/)
 
   const logger = useLogger();
+  logger.info('Starting SquadTS'); // Useful log, when there is multiple start and stop on same log file (docker)
   logGitVersion(logger);
 
   // Load config from object if it is a test server, or from directory if non-test server.
@@ -316,7 +317,7 @@ export async function main(props?: Props) {
     process.exit(0);
   }); // e.g., Process kill
   process.once('uncaughtException', async error => {
-    logger.fatal('UncaughtException, see the error trace above.', { error });
+    logger.fatal(`UncaughtException, see the error trace above.\n${error?.message}\n${error?.stack}`, { error });
     console.error(error);
     await cleanupFCT();
     process.exit(1);

@@ -422,7 +422,7 @@ export function useRcon(options: RconOptions, logger: Logger) {
 
     if (!client.writable) {
       throw new Error(
-        'RCON socket is not writable, did you make a RCON request after disconnect ?'
+        `RCON socket is not writable, did you make a RCON request after disconnect ? Do you have another RCON client running on the same IP ? Command: ${command}, proxy: ${isProxy ? 'yes' : 'no'}`
       );
     }
 

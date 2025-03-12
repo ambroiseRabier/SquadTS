@@ -1,3 +1,7 @@
+/**
+ * Write information about which version of the project is being used to a file.
+ */
+
 import { execSync } from 'child_process';
 import { writeFileSync } from 'fs';
 import { dirname } from 'path';

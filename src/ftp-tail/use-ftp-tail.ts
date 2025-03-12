@@ -271,7 +271,6 @@ export function useFtpTail(logger: Logger, options: Props) {
   }
 
   async function fetchLoop() {
-    logger.debug('Connecting or reconnecting to FTP server...');
     await retryWithExponentialBackoff(
       connect,
       12,
@@ -324,7 +323,7 @@ export function useFtpTail(logger: Logger, options: Props) {
 
       const executionTime = performance.now() - startTime;
 
-      logger.debug(`Fetch loop took ${executionTime}ms.`);
+      logger.debug(`Fetch loop took ${Math.ceil(executionTime)}ms.`);
 
       if (executionTime > options.fetchIntervalMs) {
         logger.info(
