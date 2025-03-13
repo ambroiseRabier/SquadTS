@@ -8,7 +8,7 @@ export const MAXIMUM_PACKET_RESPONSE_SIZE = 4096;
  * @param id The packet id field is a 32-bit little endian integer chosen by the client for each request. It may be set to any positive integer. When the server responds to the request, the response packet will have the same packet id as the original request (unless it is a failed SERVERDATA_AUTH_RESPONSE packet - see below.) It need not be unique, but if a unique packet id is assigned, it can be used to match incoming responses to their corresponding requests.
  * @param body The packet body field is a null-terminated string encoded in ASCII
  */
-export function encodePacket(type: PacketType, id: number, body: string) {
+export function encodePacket(type: PacketType, id: number, body: string, encoding: BufferEncoding = 'ascii') {
   // Size, in bytes, of the whole packet.
   // 14 => size = 4, id = 4, type = 4, string terminator = 2
   const size = Buffer.byteLength(body) + 14;
@@ -18,7 +18,7 @@ export function encodePacket(type: PacketType, id: number, body: string) {
   buffer.writeInt32LE(size - 4, 0);
   buffer.writeInt32LE(id, 4);
   buffer.writeInt32LE(type, 8);
-  buffer.write(body, 12, size - 2, 'ascii'); // todo maybe SquadTS support utf8 ?
+  buffer.write(body, 12, size - 2, encoding); // SquadTS send back UTF8, important for proxy!
   // String terminator and 8 empty bits
   buffer.writeInt16LE(0, size - 2);
   return buffer;

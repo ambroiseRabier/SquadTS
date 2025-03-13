@@ -48,7 +48,8 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
           // Unless mistaken, SquadJS and SquadTS does not check id field on CHAT_VALUE
           // I don't know if Squad server sends anything useful in id field.
           0,
-          message
+          message,
+          'utf8'
         )
       );
     }
@@ -149,7 +150,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
             .execute(packet.body as any, true)
             .then<Buffer<ArrayBuffer>>(res => {
               logger.trace(`Response: ${res}`);
-              const resPacket = encodePacket(PacketType.RESPONSE_VALUE, packet.id, res);
+              const resPacket = encodePacket(PacketType.RESPONSE_VALUE, packet.id, res, 'utf8');
 
               // We allow the packet to be bigger than Valve's doc.
               // This avoids us the task of cutting the packet into multiple ones.
