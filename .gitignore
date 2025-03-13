@@ -45,3 +45,5 @@ yarn-error.log*
 
 # Example path in README.md, in case someone leave it by default.
 /myserver-config
+
+/build

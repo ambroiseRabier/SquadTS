@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 
 /**
  * Use config folder by default, unless envConfigPath env var is specified.
@@ -25,11 +26,17 @@ export function resolveConfigsPath(envConfigPath: string | undefined): string {
   }
 }
 
+// path of this file will be build/src/index.js with esbuild
+// we want to have build/
+const projectRoot = process.env.IS_ESBUILD
+  ? path.resolve(fileURLToPath(import.meta.url), '../../build')
+  : path.resolve(fileURLToPath(import.meta.url), '../../..')
+
 /**
  * <your-path>\SquadTS
  * Will be the same from anywhere, be it you run the server or run tests.
  */
-export const PROJECT_ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
+export const PROJECT_ROOT = projectRoot;
 
 /**
  * <your-path>\SquadTS\plugins
@@ -56,7 +63,7 @@ export const CONFIGS_ROOT = resolveConfigsPath(process.env.SQUAD_TS_CONFIG_PATH)
  */
 export const PLUGINS_CONFIG_ROOT = path.join(CONFIGS_ROOT, 'plugins');
 
-export const LOG_FILE = path.join(PROJECT_ROOT, 'logs', 'SquadTS.log');
+export const LOG_FILE = path.join(PROJECT_ROOT, 'logs', 'SquadTS');
 
 // todo: path.join(os.tmpdir(), 'SquadTS') ?
 export const TMP_DIR = path.join(PROJECT_ROOT, 'tmp');

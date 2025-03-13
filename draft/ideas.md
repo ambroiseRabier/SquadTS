@@ -214,3 +214,22 @@ limite de 256 chars, 24 lignes en vertical, pas de limite en horizontal, mais 17
 38 en horizontal pour rester dans la boite noire.
 32 en horizontal pour avoir padding équilibré
 à confirmer, mais je crois aussi que par défaut il line break les mots. (peut être contourner en mettant un char au début de chaque ligne?)
+
+
+## a noter quelquepart
+
+le double ctrl+c pour fermer l'app, il vient que quand on utilise npm start, pas node index.truc
+
+
+## Bundler
+
+- un dossier, tout dedans.
+- config, logs, cache et tmp
+- package.json avec le nécessaire en external
+- et les plugins ?
+
+les plugins, tsImport fonctionne peut etre sinon  `npm install @esbuild-kit/esm-loader`, 
+`node --loader @esbuild-kit/esm-loader src/index.mts`.
+mais en fait, les imports ds les plugins sont faux, et dependents des fichier séparé, cela va pas du tout.
+
+esbuild pr chaque plugin ?

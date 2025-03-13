@@ -52,15 +52,21 @@ function isValidPacketType(type: number): type is PacketType {
   return Object.values(PacketType).includes(type);
 }
 
-export function debugDecodePacket(buffer: Buffer) {
+export function debugDecodePacket(buffer: Buffer, censor?: string) {
   const size = buffer.length >= 4 && buffer.readUInt32LE(0);
   const id = buffer.length >= 8 && buffer.readUInt32LE(4);
   const type = buffer.length >= 12 && buffer.readUInt32LE(8);
-  const body = buffer.length >= 12 && buffer.toString('utf8', 12, buffer.byteLength - 2);
+  let body = buffer.length >= 12 && buffer.toString('utf8', 12, buffer.byteLength - 2);
+
+  if (body && censor) {
+    // Completely censor the body, not even a part of the censored string should be shown.
+    body = '*'.repeat(body.length);
+  }
+
   return (
     `Incoming packet: ${util.inspect({ size, id, type, body }, false, null, true)}\n` +
     'Raw packet: ' +
-    bufToHexString(buffer)
+    body && censor ? 'CENSORED' : bufToHexString(buffer)
   );
 }
 
@@ -92,7 +98,7 @@ export function decodePacket(packet: Buffer): Omit<Packet, 'isFollowResponse'> {
 
   // May happen on a Squad update, if a new packet type is added.
   if (!isValidPacketType(type)) {
-    throw new Error(`Invalid/Unknown packet type: ${type}, with body: ${body}`);
+    throw new Error(`Invalid/Unknown packet with size ${size}, id ${id}, type ${type}, with body: ${body}`);
   }
 
   return {

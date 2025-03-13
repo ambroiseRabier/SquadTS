@@ -3,6 +3,7 @@ import { Options } from '../config/config.schema';
 import chalk from 'chalk';
 import { LOG_FILE } from '../config/path-constants.mjs';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 // const isDev = process.env.NODE_ENV !== 'production';
 
@@ -30,8 +31,8 @@ export function useLogger() {
         level: 'trace',
         pipeline: [
           {
-            target: fileURLToPath(import.meta.url).replace(
-              'use-logger.mts',
+            target: path.join(
+              path.dirname(fileURLToPath(import.meta.url)),
               'strip-ansi.pipeline.mjs'
             ),
           },

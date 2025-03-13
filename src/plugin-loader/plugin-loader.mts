@@ -43,7 +43,7 @@ export function usePluginLoader(
       const pluginsPair = await loadPlugins(logger, pluginOptionOverride);
 
       if (pluginsPair.length === 0) {
-        logger.warn('No plugins found. Is plugins folder empty ?');
+        logger.warn('No plugins found or all of them errored.');
         return;
       }
 
@@ -242,12 +242,14 @@ function findFilesMatchingParentDirectory(fileList: string[]): string[] {
 }
 
 async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string, unknown>) {
+  logger.info(`Loading plugins from ${PLUGINS_ROOT}`);
   // Note that plugins dir has been added to tsconfig, if the directory ever become dynamic, we are gonna need
   // ts-node at runtime.
   const pluginsDirectory = PLUGINS_ROOT;
+  const extension = process.env.IS_ESBUILD ? '.js' : '.ts';
   // Instead of putting every file inside plugins, better having a folder for each plugin since we require 3 files per plugin !
   // const pluginFiles = readdirSync(pluginsDirectory).filter(file => file.endsWith('.ts'));
-  const allTSFiles = findFilesInSubfolders(pluginsDirectory, '.ts');
+  const allTSFiles = findFilesInSubfolders(pluginsDirectory, extension);
   const pluginMainFiles = findFilesMatchingParentDirectory(allTSFiles);
 
   const pluginPairs: {
@@ -267,7 +269,7 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     ? pluginMainFiles
     : pluginMainFiles.filter(
         pluginMainFile =>
-          pluginOptionOverride && !!pluginOptionOverride[basename(pluginMainFile, '.ts')]
+          pluginOptionOverride && !!pluginOptionOverride[basename(pluginMainFile, extension)]
       );
 
   for (const file of mainFileFilteredForTest) {
@@ -277,7 +279,7 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     }
 
     const fileName = path.parse(file).name;
-    const configSchemaFileName = file.replace('.ts', '.config.ts');
+    const configSchemaFileName = file.replace(extension, '.config' + extension);
     const configJSON5FileName = fileName + '.json5';
     const configJSON5FilePath = path.join(configFolder, configJSON5FileName);
     const pluginPath = path.join(pluginsDirectory, file);
@@ -297,7 +299,12 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
 
     try {
       const t0 = performance.now();
-      plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
+      logger.debug(`Loading plugin at path: ${pluginPath} - ${pathToFileURL(pluginPath).href} - ${fileURLToPath(import.meta.url)}`);
+      if (process.env.IS_ESBUILD) {
+        plugin = await import(pathToFileURL(pluginPath).href);
+      } else {
+        plugin = await tsImport(pathToFileURL(pluginPath).href, fileURLToPath(import.meta.url));
+      }
       const t1 = performance.now();
       logger.debug(`Plugin ${file} loaded in ${t1 - t0}ms`);
       // eslint-disable-next-line
@@ -308,10 +315,14 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     }
 
     try {
-      configSchema = await tsImport(
-        pathToFileURL(configSchemaPath).href,
-        fileURLToPath(import.meta.url)
-      );
+      if (process.env.IS_ESBUILD) {
+        configSchema = await import(pathToFileURL(configSchemaPath).href);
+      } else {
+        configSchema = await tsImport(
+          pathToFileURL(configSchemaPath).href,
+          fileURLToPath(import.meta.url)
+        );
+      }
       // eslint-disable-next-line
     } catch (e: any) {
       logger.error(
@@ -339,7 +350,7 @@ async function loadPlugins(logger: Logger, pluginOptionOverride?: Record<string,
     }
 
     pluginPairs.push({
-      name: basename(file, '.ts'),
+      name: basename(file, extension),
       plugin,
       configSchema,
       configJSON5FileName,
