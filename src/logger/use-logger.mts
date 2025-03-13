@@ -59,8 +59,9 @@ export function useLogger() {
               // How many log file max to keep without counting the one we are writing to.
               // Note that it is not a complete fix as it won't handle file created from a previous execution.
               limit: { count: 25 },
-              // '.log' is constant
-              dateFormat: "yyyy-MM-dd-hh'.log'",
+              dateFormat: "yyyy-MM-dd-HH",
+              // The extension will be automatically added by pino-roll
+              extension: '.log'
             },
           },
         ],
