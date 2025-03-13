@@ -225,7 +225,7 @@ export function useRconProxy(logger: Logger, rcon: Rcon, options: ProxyOptions) 
         // Follow response, that is always sent after a mirror response.
         // Doc "followed by another RESPONSE_VALUE packet containing 0x0000 0001 0000 0000 in the packet body field."
         // It appears SquadJS also expect a RESPONSE_VALUE here, no type EXEC_COMMAND !
-        const follow = encodePacket(packet.type, PacketType.RESPONSE_VALUE, asciiString);
+        const follow = encodePacket(PacketType.RESPONSE_VALUE, packet.id, asciiString);
         // write the wrong value of 10, when it actually is 17, following UE4 RCON module.
         follow.writeInt32LE(10, 0);
 
